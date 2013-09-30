@@ -67,14 +67,19 @@ public class MainActivity extends Activity {
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
+		String phoneNumber = manager.getLine1Number();
+		if (phoneNumber.equals("")) {
+			phoneNumber = manager.getSubscriberId();
+		}
 		aboutDev = "IMEI: " + imeistring + " Model: " + model
 				+ " Version android: " + versionAndroid;
 
 		e = sp.edit();
+		e.putString("phoneNumber", phoneNumber);
 		e.putString("ABOUT", "dev");
 		e.commit();
 		start();
-		// start();
+		
 		// провер€ем, первый ли раз открываетс€ программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
