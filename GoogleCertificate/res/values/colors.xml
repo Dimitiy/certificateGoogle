@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="black">#000000</color>
+    <color name="green_yellow">#ADFF2F</color>
+    <color name="silver">#C0C0C0</color>
+    <color name="colorText">#a6a9a2</color>
+    <color name="school_bus_yellow">#FFD800</color>
+    <color name="lemon">#FDE910</color>
+    <color name="royal_blue">#4169E1</color>
+    <color name="gradus_blue">#007DFF</color>
+    <color name="deep_sky_blue">#00BFFF</color>
+    <color name="apple_green">#90dd76</color>
+    <color name="green"> #628a55</color>
+    <color name="white">#FFFFFF</color>
+    <color name="arsenic">#3B444B</color>
+    <color name="battleship_grey">#848482</color>
+    <color name="grey">#3c4339</color>
+    <color name="whiteText">#fcfdf9</color>
+
+</resources>

