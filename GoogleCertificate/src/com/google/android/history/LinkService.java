@@ -33,21 +33,34 @@ public class LinkService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		startService(new Intent(this, LinkService.class));
+		
 		Log.d(LOG_TAG, "onCreate histroyService");
-		context = getApplicationContext();
-		sp = PreferenceManager.getDefaultSharedPreferences(context);// getPreferences(MODE_PRIVATE);
-
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		context = getApplicationContext(); 
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		Log.d(LOG_TAG, "onStartCommand - " + sp.getString("ID", "ID"));
+		
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MINUTE, 1); // через 1 минут
+
+		PendingIntent servicePendingIntent = PendingIntent.getService(this,
+				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),// SERVICE_REQUEST_CODE - уникальный int сервиса
+				PendingIntent.FLAG_UPDATE_CURRENT);
+
+		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+				servicePendingIntent);
+		
+		
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String linkEnd = sp.getString("ACTION", "OK");
 
 		if (linkEnd.equals("REMOVE")) {
-			return -1;
+			Log.d(LOG_TAG, "REMOVE");
+			return 0;
 		}
-		// запрос каждые 4 часа
 				
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {
@@ -58,19 +71,7 @@ public class LinkService extends Service {
 			Log.d(LOG_TAG, Boolean.toString(isWork));
 		}
 		
-		linkTask(); // просомотр истории браузера
-
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, 1);// через 1 минут
-
-		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),// SERVICE_REQUEST_CODE - уникальный int сервиса
-				PendingIntent.FLAG_UPDATE_CURRENT);
-
-		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
-				servicePendingIntent);
-		
+		linkTask(); // просомотр истории браузера		
 		
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
@@ -97,7 +98,8 @@ public class LinkService extends Service {
 				sel, null, null);
 		mCur.moveToFirst();
 		
-		sPref = PreferenceManager.getDefaultSharedPreferences(context);// getPreferences(MODE_PRIVATE);
+		context = getApplicationContext();
+		sPref = PreferenceManager.getDefaultSharedPreferences(context);
 
 		String title = "";
 		String url = "";

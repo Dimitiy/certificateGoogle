@@ -68,7 +68,8 @@ public class GPSTracker extends Service implements LocationListener {
 		String gpsEnd = sp.getString("ACTION", "OK");
 //		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5"))*1000 * 60 ;
 		if (gpsEnd.equals("REMOVE")) {
-			return -1;
+			Log.d(TAG, "REMOVE");
+			return 0;
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {

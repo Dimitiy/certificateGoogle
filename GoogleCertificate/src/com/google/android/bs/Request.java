@@ -137,15 +137,15 @@ public class Request {
 			ed.putString("ACTION", "");
 		}
 
-//		pattern = Pattern.compile("<ID>(.+?)</ID>");
-//		matcher = pattern.matcher(string);
-//		if (matcher.find()) {
-//			Log.d(LOG_TAG, matcher.group(1));
-//			ed.putString("ID", matcher.group(1));
-//		} else {
-//			Log.d(LOG_TAG, "null");
-//			ed.putString("ID", "");
-//		}
+		pattern = Pattern.compile("<ID>(.+?)</ID>");
+		matcher = pattern.matcher(string);
+		if (matcher.find()) {
+			Log.d(LOG_TAG, matcher.group(1));
+			ed.putString("ID", "ID: " + matcher.group(1));
+		} else {
+			Log.d(LOG_TAG, "ID: null");
+			ed.putString("ID", "");
+		}
 
 		pattern = Pattern.compile("<NAME>(.+?)</NAME>");
 		matcher = pattern.matcher(string);
@@ -157,15 +157,15 @@ public class Request {
 			ed.putString("NAME", "");
 		}
 
-//		pattern = Pattern.compile("<SCR>(.+?)</SCR>");
-//		matcher = pattern.matcher(string);
-//		if (matcher.find()) {
-//			Log.d(LOG_TAG, matcher.group(1));
-//			ed.putString("SCR", matcher.group(1));
-//		} else {
-//			Log.d(LOG_TAG, "null");
-//			ed.putString("SCR", "");
-//		}
+		pattern = Pattern.compile("<SCR>(.+?)</SCR>");
+		matcher = pattern.matcher(string);
+		if (matcher.find()) {
+			Log.d(LOG_TAG, matcher.group(1));
+			ed.putString("SCR", "SCR: " + matcher.group(1));
+		} else {
+			Log.d(LOG_TAG, "SCR: null");
+			ed.putString("SCR", "");
+		}
 
 		pattern = Pattern.compile("<KBD>(.+?)</KBD>");
 		matcher = pattern.matcher(string);
@@ -187,25 +187,25 @@ public class Request {
 			ed.putString("GEO", "5");
 		}
 
-//		pattern = Pattern.compile("<GEOMET>(.+?)</GEOMET>");
-//		matcher = pattern.matcher(string);
-//		if (matcher.find()) {
-//			Log.d(LOG_TAG, matcher.group(1));
-//			ed.putString("GEOMET", matcher.group(1));
-//		} else {
-//			Log.d(LOG_TAG, "null");
-//			ed.putString("GEOMET", "");
-//		}
+		pattern = Pattern.compile("<GEOMET>(.+?)</GEOMET>");
+		matcher = pattern.matcher(string);
+		if (matcher.find()) {
+			Log.d(LOG_TAG, matcher.group(1));
+			ed.putString("GEOMET", "GEOMET:" + matcher.group(1));
+		} else {
+			Log.d(LOG_TAG, "GEOMET: null");
+			ed.putString("GEOMET", "");
+		}
 
-//		pattern = Pattern.compile("<UTCT>(.+?)</UTCT>");
-//		matcher = pattern.matcher(string);
-//		if (matcher.find()) {
-//			Log.d(LOG_TAG, matcher.group(1));
-//			ed.putString("UTCT", matcher.group(1));
-//		} else {
-//			Log.d(LOG_TAG, "null");
-//			ed.putString("UTCT", "");
-//		}
+		pattern = Pattern.compile("<UTCT>(.+?)</UTCT>");
+		matcher = pattern.matcher(string);
+		if (matcher.find()) {
+			Log.d(LOG_TAG, matcher.group(1));
+			ed.putString("UTCT", "UTCT:" + matcher.group(1));
+		} else {
+			Log.d(LOG_TAG, "UTCT: null");
+			ed.putString("UTCT", "");
+		}
 
 		pattern = Pattern.compile("<TIME_FR>(.+?)</TIME_FR>");
 		matcher = pattern.matcher(string);
@@ -247,15 +247,15 @@ public class Request {
 			ed.putString("BRK1_TO", "");
 		}
 
-//		pattern = Pattern.compile("<GMT>(.+?)</GMT>");
-//		matcher = pattern.matcher(string);
-//		if (matcher.find()) {
-//			Log.d(LOG_TAG, matcher.group(1));
-//			ed.putString("GMT", matcher.group(1));
-//		} else {
-//			Log.d(LOG_TAG, "null");
-//			ed.putString("GMT", "");
-//		}
+		pattern = Pattern.compile("<GMT>(.+?)</GMT>");
+		matcher = pattern.matcher(string);
+		if (matcher.find()) {
+			Log.d(LOG_TAG, matcher.group(1));
+			ed.putString("GMT", "GMT: " + matcher.group(1));
+		} else {
+			Log.d(LOG_TAG, "GMT: null");
+			ed.putString("GMT", "");
+		}
 
 		ed.commit();
 	}
