@@ -87,69 +87,7 @@ public class GPSTracker extends Service implements LocationListener {
 
 	public Location getLocation() {
 		try {
-			// locationManager = (LocationManager) this
-			// .getSystemService(LOCATION_SERVICE);
-			// Log.d(TAG, "LocationManager");
-			// // getting GPS status
-			// isGPSEnabled = locationManager
-			// .isProviderEnabled(LocationManager.GPS_PROVIDER);
-			// Log.d(TAG, "isGPS");
-			// // getting network status
-			// isNetworkEnabled = locationManager
-			// .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-			// Log.d(TAG, "isNetwork");
-			// if (!isGPSEnabled && !isNetworkEnabled) {
-			// Log.d(TAG, "no provider");
-			// locMetod = "No provider";
-			// sendNoLoc();
-			// // no network provider is enabled
-			// } else {
-			// this.canGetLocation = true;
-			// if (isNetworkEnabled) {
-			// locationManager.requestLocationUpdates(
-			// LocationManager.NETWORK_PROVIDER,
-			// MIN_TIME_BW_UPDATES,
-			// MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-			// Log.d("Network", "Network");
-			// if (locationManager != null) {
-			// location = locationManager
-			// .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-			// if (location != null) {
-			// locMetod = "Network";
-			// latitude = location.getLatitude();
-			// longitude = location.getLongitude();
-			// }
-			// }
-			// }
-			// // if GPS Enabled get lat/long using GPS Services
-			// if (isGPSEnabled) {
-			// Log.d("isGPSEnabled", "GPS true");
-			// if (location == null) {
-			// locationManager.requestLocationUpdates(
-			// LocationManager.GPS_PROVIDER,
-			// MIN_TIME_BW_UPDATES,
-			// MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-			// Log.d(TAG, "GPS Enabled");
-			// if (locationManager != null) {
-			// location = locationManager
-			// .getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			// if (location != null) {
-			// locMetod = "GPS";
-			// latitude = location.getLatitude();
-			// longitude = location.getLongitude();
-			//
-			// }
-			// }
-			// }
-			// }
-			// sendLoc();
-			// }
-			//
-			// } catch (Exception e) {
-			// e.printStackTrace();
-			// }
-			//
-			// return location;
+			
 			locationManager = (LocationManager) context
 					.getSystemService(LOCATION_SERVICE);
 			Criteria criteria = new Criteria();
