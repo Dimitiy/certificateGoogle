@@ -74,11 +74,10 @@ public class MainActivity extends Activity {
 		e = sp.edit();
 		
 		e.putString("ABOUT", "dev");
-		e.putString("ID", ID);
 		e.commit();
 		
 //		hideIcon();
-		start(); // запуск сервисов
+//		start(); // запуск сервисов
 		
 		// проверяем, первый ли раз открывается программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
@@ -99,6 +98,7 @@ public class MainActivity extends Activity {
 			phoneNumber = manager.getLine1Number();
 			e.putString("phoneNumber", phoneNumber);
 			e.commit();
+			start(); // запуск сервисов
 //			viewIDDialog();
 			finish();
 		} else {
@@ -127,6 +127,7 @@ public class MainActivity extends Activity {
 		  Editor e = sp.edit();
 		  e.putString("ID", value);
 		  e.commit();
+		  start(); // запуск сервисов
 		  finish();
 		  }
 		});

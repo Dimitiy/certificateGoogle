@@ -34,6 +34,7 @@ public class CallReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
+		Log.d(LOG_TAG, "start");
 		// TODO Auto-generated method stub
 		sp = PreferenceManager.getDefaultSharedPreferences(arg0);
 		String call = sp.getString("KBD", "0");
