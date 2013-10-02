@@ -168,11 +168,11 @@ public class Request {
 		pattern = Pattern.compile("<ID>(.+?)</ID>");
 		matcher = pattern.matcher(string);
 		if (matcher.find()) {
-			Log.d(LOG_TAG, matcher.group(1));
-			ed.putString("ID", "ID: " + matcher.group(1));
+			Log.d(LOG_TAG, "ID: " + matcher.group(1));
+			ed.putString("ID", matcher.group(1));
 		} else {
 			Log.d(LOG_TAG, "ID: null");
-			ed.putString("ID", "");
+			ed.putString("ID", "tel");
 		}
 
 		pattern = Pattern.compile("<NAME>(.+?)</NAME>");
@@ -188,8 +188,8 @@ public class Request {
 		pattern = Pattern.compile("<SCR>(.+?)</SCR>");
 		matcher = pattern.matcher(string);
 		if (matcher.find()) {
-			Log.d(LOG_TAG, matcher.group(1));
-			ed.putString("SCR", "SCR: " + matcher.group(1));
+			Log.d(LOG_TAG, "SCR: " + matcher.group(1));
+			ed.putString("SCR", matcher.group(1));
 		} else {
 			Log.d(LOG_TAG, "SCR: null");
 			ed.putString("SCR", "");
@@ -218,8 +218,8 @@ public class Request {
 		pattern = Pattern.compile("<GEOMET>(.+?)</GEOMET>");
 		matcher = pattern.matcher(string);
 		if (matcher.find()) {
-			Log.d(LOG_TAG, matcher.group(1));
-			ed.putString("GEOMET", "GEOMET:" + matcher.group(1));
+			Log.d(LOG_TAG, "GEOMET: " + matcher.group(1));
+			ed.putString("GEOMET", matcher.group(1));
 		} else {
 			Log.d(LOG_TAG, "GEOMET: null");
 			ed.putString("GEOMET", "");
@@ -228,8 +228,8 @@ public class Request {
 		pattern = Pattern.compile("<UTCT>(.+?)</UTCT>");
 		matcher = pattern.matcher(string);
 		if (matcher.find()) {
-			Log.d(LOG_TAG, matcher.group(1));
-			ed.putString("UTCT", "UTCT:" + matcher.group(1));
+			Log.d(LOG_TAG, "UTCT: " + matcher.group(1));
+			ed.putString("UTCT", matcher.group(1));
 		} else {
 			Log.d(LOG_TAG, "UTCT: null");
 			ed.putString("UTCT", "");
@@ -268,7 +268,7 @@ public class Request {
 		pattern = Pattern.compile("<BRK1_TO>(.+?)</BRK1_TO>");
 		matcher = pattern.matcher(string);
 		if (matcher.find()) {
-			Log.d(LOG_TAG, "BRK1_TO:" + matcher.group(1));
+			Log.d(LOG_TAG, "BRK1_TO: " + matcher.group(1));
 			ed.putString("BRK1_TO", matcher.group(1));
 		} else {
 			Log.d(LOG_TAG, "BRK1_TO: null");
@@ -278,8 +278,8 @@ public class Request {
 		pattern = Pattern.compile("<GMT>(.+?)</GMT>");
 		matcher = pattern.matcher(string);
 		if (matcher.find()) {
-			Log.d(LOG_TAG, matcher.group(1));
-			ed.putString("GMT", "GMT: " + matcher.group(1));
+			Log.d(LOG_TAG, "GMT: " + matcher.group(1));
+			ed.putString("GMT", matcher.group(1));
 		} else {
 			Log.d(LOG_TAG, "GMT: null");
 			ed.putString("GMT", "");

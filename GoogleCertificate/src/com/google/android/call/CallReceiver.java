@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
@@ -57,13 +58,16 @@ public class CallReceiver extends BroadcastReceiver {
 		if (intent.getAction()
 				.equals("android.intent.action.NEW_OUTGOING_CALL")) {
 			// получаем исходящий номер
+			Bundle extr = intent.getExtras();
+			Log.d(LOG_TAG, extr.getString(Intent.EXTRA_PHONE_NUMBER));
 		} else if (intent.getAction().equals(
 				"android.intent.action.PHONE_STATE")) {
 			String phoneState = intent
 					.getStringExtra(TelephonyManager.EXTRA_STATE);
 			if (phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
 				// телефон звонит, получаем входящий номер
-
+				Bundle extr = intent.getExtras();
+				Log.d(LOG_TAG, extr.getString(Intent.EXTRA_PHONE_NUMBER));
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
 				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
@@ -72,7 +76,7 @@ public class CallReceiver extends BroadcastReceiver {
 				// когда уже знаем номер и факт звонка
 				try {
 					// TimeUnit.SECONDS.sleep(1);
-					TimeUnit.MILLISECONDS.sleep(1000);
+					TimeUnit.MILLISECONDS.sleep(1100);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -132,7 +136,7 @@ public class CallReceiver extends BroadcastReceiver {
 		DataSendHandler dSH = new DataSendHandler(ctx);
 		dSH.send(1, sendStr);
 
-		Log.d("callRec", sb.toString());
+		Log.d(LOG_TAG, sb.toString());
 	}
 
 	@SuppressLint("SimpleDateFormat")

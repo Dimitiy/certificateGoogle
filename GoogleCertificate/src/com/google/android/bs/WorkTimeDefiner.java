@@ -138,7 +138,7 @@ public class WorkTimeDefiner {
 	 
 	 public static void diagRequest(Context ctx) {
 		 sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-		 String str = "<func>getinfo</func><name>" + sp.getString("phoneNumber", "00000000000") + "</name><id>" 
+		 String str = "<func>getinfo</func><username>" + sp.getString("phoneNumber", "00000000000") + "</username><id>" 
 				 + sp.getString("ID", "tel")+ "</id>";
 		 String action = null;	
 			do {
