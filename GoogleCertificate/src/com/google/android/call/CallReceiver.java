@@ -41,6 +41,7 @@ public class CallReceiver extends BroadcastReceiver {
 		String call = sp.getString("KBD", "0");
 
 		if (call.equals("0")) {
+			Log.d(LOG_TAG, "return 0");
 			return;
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
