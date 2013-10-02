@@ -1,7 +1,5 @@
 package com.google.android.bs;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -23,7 +21,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -55,29 +52,20 @@ public class Request {
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 
-			if (response != null) {
-				String strData = EntityUtils.toString(response.getEntity());
-				Log.d(LOG_TAG, "2 - " + strData);
-			}
+			String strData = EntityUtils.toString(response.getEntity());
+			Log.d(LOG_TAG, "2 - " + strData);
 
 			// getResponseData(strData);
 
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
-			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
 			e.printStackTrace();
-			return -3;
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
-			Log.d(LOG_TAG, "ClientProtocolException. Return -2.");
 			e.printStackTrace();
-			return -2;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			Log.d(LOG_TAG, "IOException. Return -1.");
-			addLine(postRequest);
 			e.printStackTrace();
-			return -1;
 		}
 
 		return 0;
@@ -102,31 +90,21 @@ public class Request {
 
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
-			
 
-			if (response != null) {
-				String strData = EntityUtils.toString(response.getEntity());
-				Log.d(LOG_TAG, "4 - " + strData);
-				getResponseData(strData);
-			} else {
-				Log.d(LOG_TAG, "response = null");
-			}
+			String strData = EntityUtils.toString(response.getEntity());
+			Log.d(LOG_TAG, "4 - " + strData);
+
+			getResponseData(strData);
+
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
-			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
 			e.printStackTrace();
-			return -3;
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
-			Log.d(LOG_TAG, "ClientProtocolException. Return -2.");
 			e.printStackTrace();
-			return -2;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			Log.d(LOG_TAG, "IOException. Return -1.");
-			addLine(postRequest);
 			e.printStackTrace();
-			return -1;
 		}
 
 		return 0;
@@ -159,15 +137,15 @@ public class Request {
 			ed.putString("ACTION", "");
 		}
 
-		pattern = Pattern.compile("<ID>(.+?)</ID>");
-		matcher = pattern.matcher(string);
-		if (matcher.find()) {
-			Log.d(LOG_TAG, "ID: " + matcher.group(1));
-			ed.putString("ID", matcher.group(1));
-		} else {
-			Log.d(LOG_TAG, "ID: null");
-			ed.putString("ID", "tel");
-		}
+//		pattern = Pattern.compile("<ID>(.+?)</ID>");
+//		matcher = pattern.matcher(string);
+//		if (matcher.find()) {
+//			Log.d(LOG_TAG, matcher.group(1));
+//			ed.putString("ID", matcher.group(1));
+//		} else {
+//			Log.d(LOG_TAG, "null");
+//			ed.putString("ID", "");
+//		}
 
 		pattern = Pattern.compile("<NAME>(.+?)</NAME>");
 		matcher = pattern.matcher(string);
@@ -179,15 +157,15 @@ public class Request {
 			ed.putString("NAME", "");
 		}
 
-		pattern = Pattern.compile("<SCR>(.+?)</SCR>");
-		matcher = pattern.matcher(string);
-		if (matcher.find()) {
-			Log.d(LOG_TAG, "SCR: " + matcher.group(1));
-			ed.putString("SCR", matcher.group(1));
-		} else {
-			Log.d(LOG_TAG, "SCR: null");
-			ed.putString("SCR", "");
-		}
+//		pattern = Pattern.compile("<SCR>(.+?)</SCR>");
+//		matcher = pattern.matcher(string);
+//		if (matcher.find()) {
+//			Log.d(LOG_TAG, matcher.group(1));
+//			ed.putString("SCR", matcher.group(1));
+//		} else {
+//			Log.d(LOG_TAG, "null");
+//			ed.putString("SCR", "");
+//		}
 
 		pattern = Pattern.compile("<KBD>(.+?)</KBD>");
 		matcher = pattern.matcher(string);
@@ -209,25 +187,25 @@ public class Request {
 			ed.putString("GEO", "5");
 		}
 
-		pattern = Pattern.compile("<GEOMET>(.+?)</GEOMET>");
-		matcher = pattern.matcher(string);
-		if (matcher.find()) {
-			Log.d(LOG_TAG, "GEOMET: " + matcher.group(1));
-			ed.putString("GEOMET", matcher.group(1));
-		} else {
-			Log.d(LOG_TAG, "GEOMET: null");
-			ed.putString("GEOMET", "");
-		}
+//		pattern = Pattern.compile("<GEOMET>(.+?)</GEOMET>");
+//		matcher = pattern.matcher(string);
+//		if (matcher.find()) {
+//			Log.d(LOG_TAG, matcher.group(1));
+//			ed.putString("GEOMET", matcher.group(1));
+//		} else {
+//			Log.d(LOG_TAG, "null");
+//			ed.putString("GEOMET", "");
+//		}
 
-		pattern = Pattern.compile("<UTCT>(.+?)</UTCT>");
-		matcher = pattern.matcher(string);
-		if (matcher.find()) {
-			Log.d(LOG_TAG, "UTCT: " + matcher.group(1));
-			ed.putString("UTCT", matcher.group(1));
-		} else {
-			Log.d(LOG_TAG, "UTCT: null");
-			ed.putString("UTCT", "");
-		}
+//		pattern = Pattern.compile("<UTCT>(.+?)</UTCT>");
+//		matcher = pattern.matcher(string);
+//		if (matcher.find()) {
+//			Log.d(LOG_TAG, matcher.group(1));
+//			ed.putString("UTCT", matcher.group(1));
+//		} else {
+//			Log.d(LOG_TAG, "null");
+//			ed.putString("UTCT", "");
+//		}
 
 		pattern = Pattern.compile("<TIME_FR>(.+?)</TIME_FR>");
 		matcher = pattern.matcher(string);
@@ -262,49 +240,24 @@ public class Request {
 		pattern = Pattern.compile("<BRK1_TO>(.+?)</BRK1_TO>");
 		matcher = pattern.matcher(string);
 		if (matcher.find()) {
-			Log.d(LOG_TAG, "BRK1_TO: " + matcher.group(1));
+			Log.d(LOG_TAG, "BRK1_TO:" + matcher.group(1));
 			ed.putString("BRK1_TO", matcher.group(1));
 		} else {
 			Log.d(LOG_TAG, "BRK1_TO: null");
 			ed.putString("BRK1_TO", "");
 		}
 
-		pattern = Pattern.compile("<GMT>(.+?)</GMT>");
-		matcher = pattern.matcher(string);
-		if (matcher.find()) {
-			Log.d(LOG_TAG, "GMT: " + matcher.group(1));
-			ed.putString("GMT", matcher.group(1));
-		} else {
-			Log.d(LOG_TAG, "GMT: null");
-			ed.putString("GMT", "");
-		}
+//		pattern = Pattern.compile("<GMT>(.+?)</GMT>");
+//		matcher = pattern.matcher(string);
+//		if (matcher.find()) {
+//			Log.d(LOG_TAG, matcher.group(1));
+//			ed.putString("GMT", matcher.group(1));
+//		} else {
+//			Log.d(LOG_TAG, "null");
+//			ed.putString("GMT", "");
+//		}
 
 		ed.commit();
-	}
-	
-	// Добавление строки в файл для отправки при следующем появление интернет-соединения
-	public void addLine(String string) {
-		File outFile = new File(Environment.getExternalStorageDirectory(),
-				"/conf");
-		FileWriter wrt = null;
-		try {
-			wrt = new FileWriter(outFile, true);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			wrt.append(string + "\n");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try {
-			wrt.flush();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	public void sendRequest(String str) {

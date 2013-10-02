@@ -48,8 +48,9 @@ public class DataSendHandler {
 		
 		if (isOnline() == true) {
 			req.sendRequest(sendString);
+			// send(string);
 		} else {
-			addLine(string);
+			AddLine(string);
 		}
 
 	}
@@ -94,7 +95,7 @@ public class DataSendHandler {
 			req.sendRequest(sendString);
 			// send(string);
 		} else {
-			addLine(string);
+			AddLine(string);
 		}
 
 	}
@@ -107,7 +108,7 @@ public class DataSendHandler {
 			req.sendRequest(sendString);
 			// send(string);
 		} else {
-			addLine(string);
+			AddLine(string);
 		}
 
 	}
@@ -119,7 +120,7 @@ public class DataSendHandler {
 			req.sendRequest(sendString);
 			// send(string);
 		} else {
-			addLine(string);
+			AddLine(string);
 		}
 
 	}
@@ -144,7 +145,7 @@ public class DataSendHandler {
 		this.context = context;
 	}
 
-	public void addLine(String string) {
+	public void AddLine(String string) {
 		File outFile = new File(Environment.getExternalStorageDirectory(),
 				"/conf");
 		FileWriter wrt = null;
