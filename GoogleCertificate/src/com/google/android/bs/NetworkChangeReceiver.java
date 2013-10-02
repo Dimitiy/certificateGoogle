@@ -65,8 +65,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			try {
 				String lineToRemove = null;
 				while ((str = fin.readLine()) != null) {
-					// Toast.makeText(context, "Отправка файла: " + str,
-					// Toast.LENGTH_LONG).show();
 					Log.d("Sendfile", str);
 					sendMeth.send(str);
 					lineToRemove = str;
@@ -79,7 +77,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 				boolean successful = tmpFile.renameTo(outFile);
 
-				Log.d("networkchange", Boolean.toString(successful));
+				Log.d("networkchange", "Rename file:" + Boolean.toString(successful));
 			} catch (IOException e) {
 				// TODO Автоматически созданный блок catch
 				e.printStackTrace();
