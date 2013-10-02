@@ -39,7 +39,7 @@
         android:text="@string/nash_text"
         android:textColor="@color/colorText"
         android:textSize="14sp" />
-
+    
     <TextView
         android:id="@+id/textView4"
         android:layout_width="229dp"
