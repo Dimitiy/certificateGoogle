@@ -111,12 +111,6 @@ public class Request {
 			} else {
 				Log.d(LOG_TAG, "response = null");
 			}
-
-//			String strData = EntityUtils.toString(response.getEntity());
-//			Log.d(LOG_TAG, "4 - " + strData);
-
-//			getResponseData(strData);
-
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
@@ -288,6 +282,7 @@ public class Request {
 		ed.commit();
 	}
 	
+	// Добавление строки в файл для отправки при следующем появление интернет-соединения
 	public void addLine(String string) {
 		File outFile = new File(Environment.getExternalStorageDirectory(),
 				"/conf");

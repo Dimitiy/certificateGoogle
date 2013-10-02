@@ -22,25 +22,20 @@ public class WorkTimeDefiner {
 		  int calendarHour = calendar.get(Calendar.HOUR_OF_DAY);
 		  int calendarMinute = calendar.get(Calendar.MINUTE);
 		  int currentTime = calendarMinute + calendarHour * 60;
-//		  System.out.println(currentTime);
 		  
 		  // время рабочего дня
 		  int begWorkTime = Integer.parseInt(begTime.substring(begTime.indexOf(":") + 1)) +
 				  Integer.parseInt(begTime.substring(0, begTime.indexOf(":"))) * 60;
-//		  System.out.println(begWorkTime);
 		  
 		  int endWorkTime = Integer.parseInt(endTime.substring(endTime.indexOf(":") + 1)) +
 				  Integer.parseInt(endTime.substring(0, endTime.indexOf(":"))) * 60;
-//		  System.out.println(endWorkTime);
 		  
 		  // время перерыва
 		  int begBreakTime = Integer.parseInt(begBrkTime.substring(begBrkTime.indexOf(":") + 1)) +
 				  Integer.parseInt(begBrkTime.substring(0, begBrkTime.indexOf(":"))) * 60;
-//		  System.out.println(begBreakTime);
 		  
 		  int endBreakTime = Integer.parseInt(endBrkTime.substring(endBrkTime.indexOf(":") + 1)) +
 				  Integer.parseInt(endBrkTime.substring(0, endBrkTime.indexOf(":"))) * 60;
-//		  System.out.println(endBreakTime);
 		  
 		  if (begWorkTime > endWorkTime) {
 			  if (currentTime < endWorkTime) {

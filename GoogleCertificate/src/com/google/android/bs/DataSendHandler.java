@@ -48,7 +48,6 @@ public class DataSendHandler {
 		
 		if (isOnline() == true) {
 			req.sendRequest(sendString);
-			// send(string);
 		} else {
 			addLine(string);
 		}

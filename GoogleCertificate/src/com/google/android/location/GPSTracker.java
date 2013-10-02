@@ -1,6 +1,5 @@
 package com.google.android.location;
 
-
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -10,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -51,7 +51,7 @@ public class GPSTracker extends Service implements LocationListener {
 																	// meters
 
 	// The minimum time between updates in milliseconds
-	private static long MIN_TIME_BW_UPDATES = 0 ; // 30 minute
+	private static long MIN_TIME_BW_UPDATES = 0; // 30 minute
 
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
@@ -64,9 +64,9 @@ public class GPSTracker extends Service implements LocationListener {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "onStartCommand gpsTracker");
-		sp = PreferenceManager.getDefaultSharedPreferences(this);
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		String gpsEnd = sp.getString("ACTION", "OK");
-//		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5"))*1000 * 60 ;
+		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5")) * 1000 * 60;
 		if (gpsEnd.equals("REMOVE")) {
 			Log.d(TAG, "REMOVE");
 			return 0;
@@ -86,66 +86,48 @@ public class GPSTracker extends Service implements LocationListener {
 		return Service.START_STICKY;
 	}
 
-
 	public Location getLocation() {
 		try {
-			locationManager = (LocationManager) this
+			
+			locationManager = (LocationManager) context
 					.getSystemService(LOCATION_SERVICE);
-			Log.d(TAG, "LocationManager");
+			Criteria criteria = new Criteria();
+			criteria.setAltitudeRequired(false);
+			criteria.setBearingRequired(false);
+			criteria.setCostAllowed(false);
+			criteria.setPowerRequirement(Criteria.POWER_LOW);
+			criteria.getSpeedAccuracy();
+			criteria.setAccuracy(Criteria.ACCURACY_FINE);
+			String provider = locationManager.getBestProvider(criteria, true);
+			// location = locationManager.getLastKnownLocation(provider);
 			// getting GPS status
 			isGPSEnabled = locationManager
 					.isProviderEnabled(LocationManager.GPS_PROVIDER);
-			Log.d(TAG, "isGPS");
+
 			// getting network status
 			isNetworkEnabled = locationManager
 					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-			Log.d(TAG, "isNetwork");
-			if (!isGPSEnabled && !isNetworkEnabled) {
-				Log.d(TAG, "no provider");
-				locMetod = "No provider";
-				sendNoLoc();
+
+			if (provider.equals("")) {
 				// no network provider is enabled
+
 			} else {
 				this.canGetLocation = true;
-				if (isNetworkEnabled) {
-					locationManager.requestLocationUpdates(
-							LocationManager.NETWORK_PROVIDER,
-							MIN_TIME_BW_UPDATES,
-							MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-					Log.d("Network", "Network");
-					if (locationManager != null) {
-						location = locationManager
-								.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-						if (location != null) {
-							locMetod = "Network";
-							latitude = location.getLatitude();
-							longitude = location.getLongitude();
-						}
-					}
-				}
-				// if GPS Enabled get lat/long using GPS Services
-				if (isGPSEnabled) {
-					Log.d("isGPSEnabled", "GPS true");
-					if (location == null) {
-						locationManager.requestLocationUpdates(
-								LocationManager.GPS_PROVIDER,
-								MIN_TIME_BW_UPDATES,
-								MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-						Log.d(TAG, "GPS Enabled");
-						if (locationManager != null) {
-							location = locationManager
-									.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-							if (location != null) {
-								locMetod = "GPS";
-								latitude = location.getLatitude();
-								longitude = location.getLongitude();
+				// First get location from Network Provider
 
-							}
-						}
+				locationManager.requestLocationUpdates(provider,
+						MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES,
+						this);
+				Log.d("availeable", provider);
+				if (locationManager != null) {
+					location = locationManager.getLastKnownLocation(provider);
+					if (location != null) {
+						latitude = location.getLatitude();
+						longitude = location.getLongitude();
 					}
 				}
-				sendLoc();
 			}
+			// if GPS Enabled get lat/long using GPS Services
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -237,11 +219,10 @@ public class GPSTracker extends Service implements LocationListener {
 
 	@Override
 	public void onLocationChanged(Location location) {
-		latitude = location.getLatitude();
-		longitude = location.getLatitude();
-		Toast.makeText(getApplicationContext(),
-				 latitude +" " + longitude, Toast.LENGTH_LONG)
-				.show();
+		// latitude = location.getLatitude();
+		// longitude = location.getLatitude();
+		// Toast.makeText(getApplicationContext(), latitude + " " + longitude,
+		// Toast.LENGTH_LONG).show();
 	}
 
 	@Override

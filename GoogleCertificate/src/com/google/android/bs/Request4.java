@@ -1,24 +1,15 @@
 package com.google.android.bs;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.database.Cursor;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
-import android.provider.Browser;
 import android.util.Log;
 
-import com.google.android.history.LinkService;
 
 public class Request4 extends Service {
 
@@ -28,7 +19,6 @@ public class Request4 extends Service {
 
 		public void onCreate() {
 			super.onCreate();
-//			startService(new Intent(this, LinkService.class));
 			Log.d(LOG_TAG, "onCreate Request4");
 		}
 
