@@ -106,7 +106,7 @@ public class Request {
 
 			if (response != null) {
 				String strData = EntityUtils.toString(response.getEntity());
-				Log.d(LOG_TAG, "2 - " + strData);
+				Log.d(LOG_TAG, "4 - " + strData);
 				getResponseData(strData);
 			} else {
 				Log.d(LOG_TAG, "response = null");

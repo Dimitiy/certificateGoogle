@@ -95,9 +95,12 @@ public class MainActivity extends Activity {
 			phoneNumber = manager.getLine1Number();
 			e.putString("phoneNumber", phoneNumber);
 			e.commit();
-			start(); // запуск сервисов
+			if (phoneNumber == null) {
+				viewIDDialog();
+			}
+//			start(); // запуск сервисов
 //			viewIDDialog();
-			finish();
+//			finish();
 		} else {
 			viewIDDialog();
 		}
