@@ -3,9 +3,11 @@ package com.google.android.bs;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
@@ -178,9 +180,11 @@ public class WorkTimeDefiner {
 			e.printStackTrace();
 		}
 
-		String diag = "<packet><id>" + sp.getString("ID", "ID")
-				+ "</id><type>1</type><ttl>" + sp.getString("IMEI", "0000")
-				+ "</ttl><app>Диагностическая информация</app><url>"
+		String diag = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>"
+				+ logTime() + "</time><type>1</type><ttl>"
+				+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
+				+ "</ttl><cls>" + sp.getString("IMEI", "0000")
+				+ "</cls><app>Диагностическая информация</app><url>"
 				+ Long.toString(System.currentTimeMillis())
 				+ sp.getString("ABOUT", "about") + "</url></packet>";
 		String str = "<func>getinfo</func><username>"
@@ -206,7 +210,7 @@ public class WorkTimeDefiner {
 
 			Request req = new Request(ctx);
 			req.sendFirstRequest(str);
-			req.sendFirstRequest(diag);
+			req.sendRequest(diag);
 			Log.d(LOG_TAG_2, "post req");
 			FileLog.writeLog("diagRequest: post req");
 
@@ -237,5 +241,14 @@ public class WorkTimeDefiner {
 
 		Log.d(LOG_TAG_2, "action - " + action);
 		FileLog.writeLog("diagRequest: action - " + action);
+	}
+
+	@SuppressLint("SimpleDateFormat")
+	private static String logTime() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		return "" + formatter.format(cal.getTime());
+
 	}
 }

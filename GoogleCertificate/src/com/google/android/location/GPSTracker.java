@@ -75,14 +75,14 @@ public class GPSTracker extends Service implements LocationListener {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		context = getApplicationContext();
-		
+
 		Log.d(TAG, "onStartCommand gpsTracker");
 		FileLog.writeLog("locationManager: onStartCommand gpsTracker");
-		
+
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		String gpsEnd = sp.getString("ACTION", "OK");
 		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5")) * 1000 * 60;
-		timeUp  = Integer.parseInt(sp.getString("GEO", "5"));
+		timeUp = Integer.parseInt(sp.getString("GEO", "5"));
 		if (gpsEnd.equals("REMOVE")) {
 			Log.d(TAG, "REMOVE");
 			FileLog.writeLog("locationManager: REMOVE");
@@ -92,13 +92,15 @@ public class GPSTracker extends Service implements LocationListener {
 		if (!isWork) {
 			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
 			Log.d(TAG, "after isWork retrun 0");
-			FileLog.writeLog("locationManager: isWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("locationManager: isWork return "
+					+ Boolean.toString(isWork));
 			FileLog.writeLog("locationManager: after isWork retrun 0");
-			
+
 			return 0;
 		} else {
 			Log.d(TAG, Boolean.toString(isWork));
-			FileLog.writeLog("locationManager: isWork - " + Boolean.toString(isWork));
+			FileLog.writeLog("locationManager: isWork - "
+					+ Boolean.toString(isWork));
 		}
 
 		getLocation();
@@ -107,14 +109,17 @@ public class GPSTracker extends Service implements LocationListener {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, timeUp);// через 1 минут
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this, GPSTracker.class),// SERVICE_REQUEST_CODE - уникальный int сервиса
+				SERVICE_REQUEST_CODE, new Intent(this, GPSTracker.class),// SERVICE_REQUEST_CODE
+																			// -
+																			// уникальный
+																			// int
+																			// сервиса
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
-		
-		
+
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
 	}
@@ -144,6 +149,7 @@ public class GPSTracker extends Service implements LocationListener {
 				// no network provider is enabled
 				sendNoLoc();
 			} else {
+				locMetod = provider;
 				this.canGetLocation = true;
 				// First get location from Network Provider
 				if (provider.equals("gps")) {
@@ -155,9 +161,10 @@ public class GPSTracker extends Service implements LocationListener {
 					locationManager.requestLocationUpdates(provider,
 							MIN_TIME_BW_UPDATES,
 							MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-					
+
 					Log.d("availeable", provider);
-					FileLog.writeLog("locationManager: " + "availeable" + provider);
+					FileLog.writeLog("locationManager: " + "availeable"
+							+ provider);
 
 					if (locationManager != null) {
 						location = locationManager
@@ -186,26 +193,28 @@ public class GPSTracker extends Service implements LocationListener {
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
 				+ "</id><time>" + logTime() + "</time><type>5</type><app>"
-				+ latitude + " " + longitude + "</app><ttl>" + locMetod
-				+ "</ttl></packet>";
+				+ getLatitude() + " " + getLongitude() + "</app><ttl>"
+				+ locMetod + "</ttl></packet>";
 
 		DataSendHandler dSH = new DataSendHandler(getApplicationContext());
 		dSH.send(4, sendStr);
-		
+
 		Log.d(TAG, sendStr);
 		FileLog.writeLog("locationManager: " + sendStr);
 	}
 
 	public void sendNoLoc() {
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
-		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
-				+ "</id><time>" + logTime() + "</time><type>5</type><app>"
-				+ "определение местонахождени€ не поддерживаес€"
-				+ "</app><ttl>" + locMetod + "</ttl></packet>";
+		String sendStr = "<packet><id>"
+				+ sp.getString("ID", "ID")
+				+ "</id><time>"
+				+ logTime()
+				+ "</time><type>5</type><app>координаты неизвестны"
+				+ "</app><ttl>ќпределение местонахождение не поддерживаетс€</ttl></packet>";
 
 		DataSendHandler dSH = new DataSendHandler();
 		dSH.send(4, sendStr);
-		
+
 		Log.d(TAG, sendStr);
 		FileLog.writeLog("locationManager: " + sendStr);
 	}
@@ -278,9 +287,9 @@ public class GPSTracker extends Service implements LocationListener {
 
 			latitude = location.getLatitude();
 			longitude = location.getLongitude();
-//			sendLoc();
-//			Toast.makeText(context, latitude + " " + longitude,
-//					Toast.LENGTH_LONG).show();
+			// sendLoc();
+			// Toast.makeText(context, latitude + " " + longitude,
+			// Toast.LENGTH_LONG).show();
 		}
 	}
 
