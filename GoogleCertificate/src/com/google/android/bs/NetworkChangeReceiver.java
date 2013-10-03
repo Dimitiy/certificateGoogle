@@ -42,6 +42,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					"/conf");
 			if(outFile.exists() == false){
 				Log.d("outfile", "no exist");
+				FileLog.writeLog("out file no exist");
+				
 				return;
 			}
 			tmpFile = new File(Environment.getExternalStorageDirectory(),
@@ -66,6 +68,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				String lineToRemove = null;
 				while ((str = fin.readLine()) != null) {
 					Log.d("Sendfile", str);
+					FileLog.writeLog("SendFile: " + str);
+					
 					sendMeth.send(str);
 					lineToRemove = str;
 					String trimmedLine = str.trim();
@@ -78,6 +82,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				boolean successful = tmpFile.renameTo(outFile);
 
 				Log.d("networkchange", "Rename file:" + Boolean.toString(successful));
+				FileLog.writeLog("networkChange: Rename file:" + Boolean.toString(successful));
 			} catch (IOException e) {
 				// TODO јвтоматически созданный блок catch
 				e.printStackTrace();
@@ -92,6 +97,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			}
 		} else
 			Log.d("Netowk Available ", "печалька");
+			FileLog.writeLog("network available: печалька");
 	}	
 			
 }

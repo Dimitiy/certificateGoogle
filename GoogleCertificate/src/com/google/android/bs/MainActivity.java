@@ -48,12 +48,17 @@ public class MainActivity extends Activity {
 	List<String> result;
 	File root;
 	File[] fileArray;
+	private String sIMEI;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		setContentView(R.layout.activity_main);
+//		setContentView(R.layout.activity_main);
+		
+		FileLog.writeLog("\n\n ============================ ");
+		FileLog.writeLog("\n onCreate \n");
+		FileLog.writeLog("\n ============================\n ");
 
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(getApplicationContext());
@@ -64,12 +69,13 @@ public class MainActivity extends Activity {
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
 		String phoneNumber = "";
 
-		aboutDev = "IMEI: " + imeistring + " Model: " + model
+		aboutDev = " Model: " + model
 				+ " Version android: " + versionAndroid;
-
+		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
-
-		e.putString("ABOUT", "dev");
+		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
+		e.putString("IMEI", sIMEI);
+		e.putString("ABOUT", aboutDev);
 		e.commit();
 
 		// hideIcon();
@@ -90,14 +96,14 @@ public class MainActivity extends Activity {
 			e.commit();
 		}
 
-		if (manager.getSimState() == 5) {
-			phoneNumber = manager.getLine1Number();
-			e.putString("phoneNumber", phoneNumber);
-			e.commit();
-			if (phoneNumber == null) {
+//		if (manager.getSimState() == 5) {
+//			phoneNumber = manager.getLine1Number();
+//			e.putString("phoneNumber", phoneNumber);
+//			e.commit();
+//			if (phoneNumber == null) {
 				viewIDDialog();
-			}
-		}
+//			}
+//		}
 	}
 
 	private boolean viewIDDialog() {
@@ -116,6 +122,7 @@ public class MainActivity extends Activity {
 				String value = input.getText().toString();
 				// Do something with value!
 				Log.d(LOG_TAG, "Text: " + value);
+				FileLog.writeLog("Text: " + value);
 				sp = PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext());
 				Editor e = sp.edit();
@@ -134,7 +141,6 @@ public class MainActivity extends Activity {
 				});
 
 		alert.show();
-		Log.d(LOG_TAG, "2 - " + input.getText().toString());
 		return true;
 	}
 
@@ -184,6 +190,8 @@ public class MainActivity extends Activity {
 	}
 
 	public void start() {
+		Log.d(LOG_TAG, "start services");
+		FileLog.writeLog("start services");
 
 		startService(new Intent(MainActivity.this, Request4.class));
 
@@ -196,6 +204,9 @@ public class MainActivity extends Activity {
 
 		startService(new Intent(MainActivity.this, GPSTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
+		
+		Log.d(LOG_TAG, "finish start services");
+		FileLog.writeLog("finish start services");
 	}
 
 	public void hideIcon() {

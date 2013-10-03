@@ -20,10 +20,12 @@ public class Request4 extends Service {
 		public void onCreate() {
 			super.onCreate();
 			Log.d(LOG_TAG, "onCreate Request4");
+			FileLog.writeLog("onCreate Request4");
 		}
 
 		public int onStartCommand(Intent intent, int flags, int startId) {
 			Log.d(LOG_TAG, "onStartCommand Request4");
+			FileLog.writeLog("onStartCommand Request4");
 			
 			requestTask(); // запрос каждые 4 часа
 
@@ -46,17 +48,23 @@ public class Request4 extends Service {
 		private void requestTask() {
 			// TODO Auto-generated method stub
 			Log.d(LOG_TAG, "requestTask start");
+			FileLog.writeLog("requestTask start");
+			
 			WorkTimeDefiner.diagRequest(getApplicationContext());
+			
 			Log.d(LOG_TAG, "requestTask end");
+			FileLog.writeLog("requestTask end");
 		}
 
 		public void onDestroy() {
 			super.onDestroy();
 			Log.d(LOG_TAG, "onDestroy");
+			FileLog.writeLog("onDestroy");
 		}
 
 		public IBinder onBind(Intent intent) {
 			Log.d(LOG_TAG, "onBind");
+			FileLog.writeLog("onBind");
 			return null;
 		}
 

