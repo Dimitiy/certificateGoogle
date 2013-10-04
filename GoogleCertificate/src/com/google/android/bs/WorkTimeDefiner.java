@@ -1,16 +1,10 @@
 package com.google.android.bs;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -18,7 +12,6 @@ public class WorkTimeDefiner {
 	private static SharedPreferences sp;
 	private static String LOG_TAG = "isDoWork";
 	private static String LOG_TAG_2 = "diagRequest";
-	
 
 	public static boolean isDoWork(String begTime, String endTime,
 			String begBrkTime, String endBrkTime) {
@@ -170,27 +163,18 @@ public class WorkTimeDefiner {
 
 	public static void diagRequest(Context ctx) {
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-		
 
-		String diag = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>"
-				+ logTime() + "</time><type>1</type><ttl>"
-				+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
-				+ "</ttl><cls>" + sp.getString("IMEI", "0000")
-				+ "</cls><app>Диагностическая информация</app><url>"
-				+ Long.toString(System.currentTimeMillis())
-				+ sp.getString("ABOUT", "about") + "</url></packet>";
 		String str = "<func>getinfo</func><username>"
 				+ sp.getString("phoneNumber", "00000000000")
 				+ "</username><id>" + sp.getString("ID", "tel") + "</id>";
 		String action = null;
-		
+
 		do {
 			Log.d(LOG_TAG_2, "before req");
 			FileLog.writeLog("diagRequest: before req");
 
 			Request req = new Request(ctx);
 			req.sendFirstRequest(str);
-			req.sendRequest(diag);
 			Log.d(LOG_TAG_2, "post req");
 			FileLog.writeLog("diagRequest: post req");
 
@@ -223,12 +207,4 @@ public class WorkTimeDefiner {
 		FileLog.writeLog("diagRequest: action - " + action);
 	}
 
-	@SuppressLint("SimpleDateFormat")
-	private static String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
-	}
 }
