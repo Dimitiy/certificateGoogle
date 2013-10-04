@@ -18,8 +18,7 @@ public class WorkTimeDefiner {
 	private static SharedPreferences sp;
 	private static String LOG_TAG = "isDoWork";
 	private static String LOG_TAG_2 = "diagRequest";
-	static File logFile;
-	static FileWriter lwrt;
+	
 
 	public static boolean isDoWork(String begTime, String endTime,
 			String begBrkTime, String endBrkTime) {
@@ -171,14 +170,7 @@ public class WorkTimeDefiner {
 
 	public static void diagRequest(Context ctx) {
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-		logFile = new File(Environment.getExternalStorageDirectory(),
-				"/LogFile.txt");
-		try {
-			lwrt = new FileWriter(logFile, true);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 
 		String diag = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>"
 				+ logTime() + "</time><type>1</type><ttl>"
@@ -191,19 +183,7 @@ public class WorkTimeDefiner {
 				+ sp.getString("phoneNumber", "00000000000")
 				+ "</username><id>" + sp.getString("ID", "tel") + "</id>";
 		String action = null;
-		try {
-			lwrt.append("sendDiagPost: " + str + "\n");
-			lwrt.append("sendStartPost: " + diag + "\n");
-		} catch (IOException e1) {
-			// TODO Автоматически созданный блок catch
-			e1.printStackTrace();
-		}
-		try {
-			lwrt.flush();
-		} catch (IOException e1) {
-			// TODO Автоматически созданный блок catch
-			e1.printStackTrace();
-		}
+		
 		do {
 			Log.d(LOG_TAG_2, "before req");
 			FileLog.writeLog("diagRequest: before req");
