@@ -17,7 +17,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -29,7 +28,6 @@ import android.widget.Toast;
 import com.google.android.certificate.R;
 import com.google.android.history.LinkService;
 import com.google.android.location.GPSTracker;
-import com.google.android.sms.SmsSentObserver;
 
 public class MainActivity extends Activity {
 	Button install;
