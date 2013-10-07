@@ -24,7 +24,7 @@ import com.google.android.bs.WorkTimeDefiner;
 
 public class LinkService extends Service {
 
-	private static final int SERVICE_REQUEST_CODE = 15;
+	private static final int SERVICE_REQUEST_CODE = 25;
 	final String LOG_TAG = "historyService";
 	SharedPreferences sPref;
 	final String SAVED_TIME = "saved_time";
