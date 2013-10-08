@@ -24,7 +24,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	BufferedReader fin;
 	BufferedWriter fout;
 	SharedPreferences sp;
-	
+
 	@Override
 	public void onReceive(final Context context, final Intent intent) {
 		final ConnectivityManager connMgr = (ConnectivityManager) context
@@ -35,15 +35,16 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+		Request req = new Request(context);
 
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
 			DataSendHandler sendMeth = new DataSendHandler(context);
 			outFile = new File(Environment.getExternalStorageDirectory(),
 					"/conf");
-			if(outFile.exists() == false){
+			if (outFile.exists() == false) {
 				Log.d("outfile", "no exist");
 				FileLog.writeLog("out file no exist");
-				
+
 				return;
 			}
 			tmpFile = new File(Environment.getExternalStorageDirectory(),
@@ -57,7 +58,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-					
+
 				}
 			} catch (FileNotFoundException e) {
 				// TODO јвтоматически созданный блок catch
@@ -69,8 +70,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				while ((str = fin.readLine()) != null) {
 					Log.d("Sendfile", str);
 					FileLog.writeLog("SendFile: " + str);
-					
-					sendMeth.send(str);
+
+					req.sendRequest(str);
 					lineToRemove = str;
 					String trimmedLine = str.trim();
 					if (trimmedLine.equals(lineToRemove))
@@ -81,8 +82,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 				boolean successful = tmpFile.renameTo(outFile);
 
-				Log.d("networkchange", "Rename file:" + Boolean.toString(successful));
-				FileLog.writeLog("networkChange: Rename file:" + Boolean.toString(successful));
+				Log.d("networkchange",
+						"Rename file:" + Boolean.toString(successful));
+				FileLog.writeLog("networkChange: Rename file:"
+						+ Boolean.toString(successful));
 			} catch (IOException e) {
 				// TODO јвтоматически созданный блок catch
 				e.printStackTrace();
@@ -97,7 +100,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			}
 		} else
 			Log.d("Netowk Available ", "печалька");
-			FileLog.writeLog("network available: печалька");
-	}	
-			
+		FileLog.writeLog("network available: печалька");
+	}
+
 }
