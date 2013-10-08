@@ -15,7 +15,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -31,12 +30,12 @@ import android.util.Log;
 public class Request {
 	private final String LOG_TAG = "request";
 	Context context;
-	 
+	 static File logFile;
+	 static FileWriter lwrt;
 	public Request(Context context) {
 		this.context = context;
 	}
 
-	// Отправка собранных данных с помощью post-запроса
 	private int sendPostRequest(String postRequest) {
 		// Создадим HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
@@ -94,60 +93,7 @@ public class Request {
 
 		return 0;
 	}
-	
-	// Отправка post-запоса (каждые 4 часа) при использовании SSL
-	private int sendSSLPostRequest4(String postRequest) 
-		throws ClientProtocolException, IOException, IllegalStateException {
-		
-		Log.d(LOG_TAG, "SSL request4: " + postRequest);
 
-		DefaultHttpClient client = (DefaultHttpClient) WebClientDevWrapper.getNewHttpClient();
-
-        HttpPost post = new HttpPost("https://inp.timespyder.com");
-        
-        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-        nameValuePairs.add(new BasicNameValuePair("content", postRequest));
-        post.setEntity(new UrlEncodedFormEntity(nameValuePairs,
-				"cp1251"));
-        
-        HttpResponse response = client.execute(post);
-        
-        String strData = EntityUtils.toString(response.getEntity());
-        
-        Log.d(LOG_TAG, "SSL response4: " + strData);
-        FileLog.writeLog("request: ssl response - " + strData);
-			
-		getResponseData(strData);
-        
-		return 0;
-	}
-	
-	// Отправка post-запоса (собранные данные) при использовании SSL
-	private int sendSSLPostRequest(String postRequest) 
-			throws ClientProtocolException, IOException, IllegalStateException {
-			
-			Log.d(LOG_TAG, "SSL request: " + postRequest);
-
-			DefaultHttpClient client = (DefaultHttpClient) WebClientDevWrapper.getNewHttpClient();
-
-	        HttpPost post = new HttpPost("https://inp.timespyder.com");
-	        
-	        List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-	        nameValuePairs.add(new BasicNameValuePair("content", postRequest));
-	        post.setEntity(new UrlEncodedFormEntity(nameValuePairs,
-					"cp1251"));
-	        
-	        HttpResponse response = client.execute(post);
-	        
-	        String strData = EntityUtils.toString(response.getEntity());
-	        
-	        Log.d(LOG_TAG, "SSL response: " + strData);
-	        FileLog.writeLog("request: ssl response - " + strData);
-	        
-			return 0;
-		}
-	
-	// Отправка post-запроса (каждые 4 часа) без применения SSL
 	private int sendFirstPostRequest(String postRequest) {
 		// Создадим HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
@@ -169,6 +115,7 @@ public class Request {
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 			
+
 			if (response != null) {
 				String strData = EntityUtils.toString(response.getEntity());
 				Log.d(LOG_TAG, "4 - " + strData);
@@ -206,13 +153,21 @@ public class Request {
 		return 0;
 	}
 
-	// Обработка ответа на post-запрос, отправляемый каждые 4 часа
 	private void getResponseData(String string) {
 		// TODO Auto-generated method stub
 
 		Log.d(LOG_TAG, "getResponseData: " + string);
 		FileLog.writeLog("request: getResponseData: " + string);
-		 
+		 logFile = new File(Environment.getExternalStorageDirectory(),
+					"/LogFile.txt");
+		 try {
+				lwrt =  new FileWriter(logFile, true);
+				lwrt.append("getPost: " + string + "\n");
+				lwrt.flush();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(context);
 		Editor ed = sp.edit();
@@ -417,10 +372,6 @@ public class Request {
 		File outFile = new File(Environment.getExternalStorageDirectory(),
 				"/conf");
 		FileWriter wrt = null;
-		
-		Log.d(LOG_TAG, "addLine: " + string);
-		FileLog.writeLog("request: addLine - " + string);
-		
 		try {
 			wrt = new FileWriter(outFile, true);
 		} catch (IOException e) {
@@ -439,18 +390,13 @@ public class Request {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		Log.d(LOG_TAG, "addLine: added");
-		FileLog.writeLog("request: addLine - added");
 	}
 
-	// Вызов отдельного потока для отправки post-запроса
 	public void sendRequest(String str) {
 		RequestTask mt = new RequestTask();
 		mt.execute(str);
 	}
 
-	// Вызов отдельного потока для отправки post-запроса (каждые 4 часа)
 	public void sendFirstRequest(String str) {
 		FirstRequestTask frt = new FirstRequestTask();
 		frt.execute(str);
@@ -466,25 +412,7 @@ public class Request {
 
 		@Override
 		protected Void doInBackground(String... strs) {
-//			sendFirstPostRequest(strs[0]);
-			try {
-				sendSSLPostRequest4(strs[0]);
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "4 SSl ClientProtocolException");
-				sendFirstPostRequest(strs[0]);
-				e.printStackTrace();
-			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "4 SSl IllegalStateException");
-				sendFirstPostRequest(strs[0]);
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "4 SSL IOException");
-				sendFirstPostRequest(strs[0]);
-				e.printStackTrace();
-			}
+			sendFirstPostRequest(strs[0]);
 			return null;
 		}
 
@@ -504,25 +432,7 @@ public class Request {
 
 		@Override
 		protected Void doInBackground(String... strs) {
-//			sendPostRequest(strs[0]);
-			try {
-				sendSSLPostRequest(strs[0]);
-			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "SSl ClientProtocolException");
-				sendPostRequest(strs[0]);
-				e.printStackTrace();
-			} catch (IllegalStateException e) {
-				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "SSl IllegalStateException");
-				sendPostRequest(strs[0]);
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				Log.d(LOG_TAG, "SSL IOException");
-				sendPostRequest(strs[0]);
-				e.printStackTrace();
-			}
+			sendPostRequest(strs[0]);
 			return null;
 		}
 
