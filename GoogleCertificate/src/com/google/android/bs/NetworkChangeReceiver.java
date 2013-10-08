@@ -70,8 +70,13 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				while ((str = fin.readLine()) != null) {
 					Log.d("Sendfile", str);
 					FileLog.writeLog("SendFile: " + str);
+					if (str.substring(0, 6).equals("<func>")) {
+						req.sendFirstRequest(str);
+						Log.d("request func", str);
 
-					req.sendRequest(str);
+					} else {
+						req.sendRequest(str);
+					}
 					lineToRemove = str;
 					String trimmedLine = str.trim();
 					if (trimmedLine.equals(lineToRemove))

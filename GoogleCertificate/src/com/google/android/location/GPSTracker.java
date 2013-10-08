@@ -132,11 +132,12 @@ public class GPSTracker extends Service implements LocationListener {
 			// getting GPS status
 			isGPSEnabled = locationManager
 					.isProviderEnabled(LocationManager.GPS_PROVIDER);
-
+			Log.d("isGPS", Boolean.toString(isGPSEnabled));
+			
 			// getting network status
 			isNetworkEnabled = locationManager
 					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
+			Log.d("isNetwork", Boolean.toString(isNetworkEnabled));
 			if (!isGPSEnabled && !isNetworkEnabled) {
 				// no network provider is enabled
 				sendNoLoc();
@@ -152,9 +153,13 @@ public class GPSTracker extends Service implements LocationListener {
 					if (locationManager != null) {
 						location = locationManager
 								.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+						Log.d(TAG, "locationMannet != null ");
+
 						if (location != null) {
 							latitude = location.getLatitude();
 							longitude = location.getLongitude();
+							Log.d(TAG, "locationNet != null ");
+
 						}
 					}
 				}
@@ -170,13 +175,21 @@ public class GPSTracker extends Service implements LocationListener {
 						if (locationManager != null) {
 							location = locationManager
 									.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+							Log.d(TAG, "locationMan != null ");
+
 							if (location != null) {
 								latitude = location.getLatitude();
 								longitude = location.getLongitude();
+								Log.d(TAG, "location != null ");
+
 							}
 						}
 					}
 				}
+			}
+			if (Double.toString(latitude).equals("0.0")
+					&& Double.toString(longitude).equals("0.0")) {
+				sendNoLoc();
 			}
 			sendLoc();
 		} catch (Exception e) {
@@ -345,6 +358,8 @@ public class GPSTracker extends Service implements LocationListener {
 	public void onLocationChanged(Location location) {
 		gpsFix = true;
 		updateLocation(location);
+		locationManager.removeUpdates(this);
+
 	}
 
 	public void updateLocation(Location location) {
@@ -374,7 +389,6 @@ public class GPSTracker extends Service implements LocationListener {
 	public IBinder onBind(Intent arg0) {
 		return null;
 	}
-
 
 	private class MyListener implements GpsStatus.Listener {
 		GpsStatus.Listener gpsStatusListener = new GpsStatus.Listener() {

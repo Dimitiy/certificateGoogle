@@ -88,6 +88,7 @@ public class Request {
 			FileLog.writeLog("request: IOException. Return -1.");
 			
 			addLine(postRequest);
+			
 			e.printStackTrace();
 			return -1;
 		}

