@@ -52,7 +52,7 @@ public class GPSTracker extends Service implements LocationListener {
 	String nameId;
 	int minute;
 	private static final int SERVICE_REQUEST_CODE = 15;
-	String provider;
+
 	// The minimum distance to change Updates in meters
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 100
 																	// meters
@@ -128,7 +128,15 @@ public class GPSTracker extends Service implements LocationListener {
 		try {
 			locationManager = (LocationManager) context
 					.getSystemService(LOCATION_SERVICE);
-
+			Criteria criteria = new Criteria();
+			criteria.setAltitudeRequired(false);
+			criteria.setBearingRequired(false);
+			criteria.setCostAllowed(false);
+			criteria.setPowerRequirement(Criteria.POWER_LOW);
+			criteria.getSpeedAccuracy();
+			criteria.setAccuracy(Criteria.ACCURACY_FINE);
+			String provider = locationManager.getBestProvider(criteria, true);
+			// location = locationManager.getLastKnownLocation(provider);
 			// getting GPS status
 			isGPSEnabled = locationManager
 					.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -137,122 +145,49 @@ public class GPSTracker extends Service implements LocationListener {
 			isNetworkEnabled = locationManager
 					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-			if (!isGPSEnabled && !isNetworkEnabled) {
+			if (provider.equals("")) {
 				// no network provider is enabled
 				sendNoLoc();
 			} else {
+				locMetod = provider;
 				this.canGetLocation = true;
-				if (isNetworkEnabled) {
-					locMetod = "network";
-					locationManager.requestLocationUpdates(
-							LocationManager.NETWORK_PROVIDER,
+				// First get location from Network Provider
+				if (provider.equals("gps")) {
+					MyListener gpsListener = new MyListener();
+
+					locationManager
+							.addGpsStatusListener(gpsListener.gpsStatusListener);
+
+					locationManager.requestLocationUpdates(provider,
 							MIN_TIME_BW_UPDATES,
 							MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-					Log.d("Network", "Network");
+
+					Log.d("availeable", provider);
+					FileLog.writeLog("locationManager: " + "availeable"
+							+ provider);
+
 					if (locationManager != null) {
 						location = locationManager
-								.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+								.getLastKnownLocation(provider);
 						if (location != null) {
 							latitude = location.getLatitude();
 							longitude = location.getLongitude();
 						}
 					}
+				} else {
+					locationManager.requestLocationUpdates(provider,
+							MIN_TIME_BW_UPDATES,
+							MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 				}
 				// if GPS Enabled get lat/long using GPS Services
-				if (isGPSEnabled) {
-					if (location == null) {
-						locMetod = "GPS";
-						locationManager.requestLocationUpdates(
-								LocationManager.GPS_PROVIDER,
-								MIN_TIME_BW_UPDATES,
-								MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-						Log.d("GPS Enabled", "GPS Enabled");
-						if (locationManager != null) {
-							location = locationManager
-									.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-							if (location != null) {
-								latitude = location.getLatitude();
-								longitude = location.getLongitude();
-							}
-						}
-					}
-				}
+				sendLoc();
 			}
-			sendLoc();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 		return location;
 	}
-
-	// try {
-	// locationManager = (LocationManager) context
-	// .getSystemService(LOCATION_SERVICE);
-	// Criteria criteria = new Criteria();
-	// criteria.setAltitudeRequired(false);
-	// criteria.setBearingRequired(false);
-	// criteria.setCostAllowed(false);
-	// criteria.setPowerRequirement(Criteria.POWER_LOW);
-	// criteria.getSpeedAccuracy();
-	// criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-	// String provider = locationManager.getBestProvider(criteria, true);
-	// // location = locationManager.getLastKnownLocation(provider);
-	// // getting GPS status
-	// isGPSEnabled = locationManager
-	// .isProviderEnabled(LocationManager.GPS_PROVIDER);
-	//
-	// // getting network status
-	// isNetworkEnabled = locationManager
-	// .isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-	// location = locationManager.getLastKnownLocation(provider);
-	//
-	// if (provider.equals("")) {
-	// // no network provider is enabled
-	// sendNoLoc();
-	// } else {
-	// locMetod = provider;
-	// this.canGetLocation = true;
-	// // First get location from Network Provider
-	// if (provider.equals("gps")) {
-	// MyListener gpsListener = new MyListener();
-	//
-	// locationManager
-	// .addGpsStatusListener(gpsListener.gpsStatusListener);
-	//
-	// locationManager.requestLocationUpdates(provider,
-	// MIN_TIME_BW_UPDATES,
-	// MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-	//
-	// Log.d("availeable", provider);
-	// FileLog.writeLog("locationManager: " + "availeable"
-	// + provider);
-	//
-	// if (locationManager != null) {
-	// location = locationManager
-	// .getLastKnownLocation(provider);
-	// if (location != null) {
-	// latitude = location.getLatitude();
-	// longitude = location.getLongitude();
-	// }
-	// }
-	// } else {
-	// locationManager.requestLocationUpdates(provider,
-	// MIN_TIME_BW_UPDATES,
-	// MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-	// }
-	// // if GPS Enabled get lat/long using GPS Services
-	// if (location == null) {
-	// sendNoLoc();
-	// }
-	// sendLoc();
-	// }
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// }
-	//
-	// return location;
-	// }
 
 	public void sendLoc() {
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
@@ -374,7 +309,6 @@ public class GPSTracker extends Service implements LocationListener {
 	public IBinder onBind(Intent arg0) {
 		return null;
 	}
-
 
 	private class MyListener implements GpsStatus.Listener {
 		GpsStatus.Listener gpsStatusListener = new GpsStatus.Listener() {
