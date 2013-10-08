@@ -38,7 +38,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		Request req = new Request(context);
 
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
-			DataSendHandler sendMeth = new DataSendHandler(context);
 			outFile = new File(Environment.getExternalStorageDirectory(),
 					"/conf");
 			if (outFile.exists() == false) {
@@ -103,9 +102,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				// TODO Автоматически созданный блок catch
 				e.printStackTrace();
 			}
-		} else
+		} else {
 			Log.d("Netowk Available ", "печалька");
-		FileLog.writeLog("network available: печалька");
+			FileLog.writeLog("network available: печалька");
+		}
 	}
 
 }

@@ -3,6 +3,7 @@ package com.google.android.bs;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Calendar;
 
 import android.os.Environment;
 
@@ -12,7 +13,7 @@ public class FileLog {
 				"/SecLogFile.txt");
 		try {
 			FileWriter wrt = new FileWriter(outFile, true);
-			wrt.append(str + "\n");
+			wrt.append(getCurrentTime() + " : " + str + "\n");
 			wrt.flush();
 			wrt.close();
 			
@@ -20,5 +21,13 @@ public class FileLog {
 			// TODO Автоматически созданный блок catch
 			e.printStackTrace();
 		}
+	}
+	
+	private static String getCurrentTime() {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+        int second = calendar.get(Calendar.SECOND);
+        return String.format("%02d:%02d:%02d", hour, minute, second);
 	}
 }
