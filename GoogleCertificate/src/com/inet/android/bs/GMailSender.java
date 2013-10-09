@@ -1,4 +1,4 @@
-package com.google.android.bs;
+package com.inet.android.bs;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class GMailSender extends javax.mail.Authenticator {
     private Session session; 
     
     static {
-    	Security.addProvider(new com.google.android.provider.JSSEProvider());
+    	Security.addProvider(new com.inet.android.provider.JSSEProvider());
     }
     
     public GMailSender (String user, String password) {

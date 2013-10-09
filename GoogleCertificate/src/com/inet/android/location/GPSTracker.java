@@ -1,4 +1,4 @@
-package com.google.android.location;
+package com.inet.android.location;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -24,11 +24,11 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.bs.DataSendHandler;
-import com.google.android.bs.FileLog;
-import com.google.android.bs.MainActivity;
-import com.google.android.bs.WorkTimeDefiner;
-import com.google.android.history.LinkService;
+import com.inet.android.bs.DataSendHandler;
+import com.inet.android.bs.FileLog;
+import com.inet.android.bs.MainActivity;
+import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.history.LinkService;
 
 public class GPSTracker extends Service implements LocationListener {
 
