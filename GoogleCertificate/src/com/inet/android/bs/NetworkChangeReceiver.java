@@ -36,7 +36,9 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 		Request req = new Request(context);
-
+		StringBuilder addLine = new StringBuilder(); // Using default 16
+														// character size
+		String funcRec = null;
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
 			outFile = new File(Environment.getExternalStorageDirectory(),
 					"/conf");
@@ -70,11 +72,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					Log.d("Sendfile", str);
 					FileLog.writeLog("SendFile: " + str);
 					if (str.substring(0, 6).equals("<func>")) {
-						req.sendFirstRequest(str);
+						funcRec = str;
 						Log.d("request func", str);
-
 					} else {
-						req.sendRequest(str);
+						addLine.append(str);
 					}
 					lineToRemove = str;
 					String trimmedLine = str.trim();
@@ -83,6 +84,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					fout.write(str);
 
 				}
+				if (!funcRec.equals("null")) {
+					req.sendFirstRequest(funcRec);
+				}
+				req.sendRequest(addLine.toString());
 
 				boolean successful = tmpFile.renameTo(outFile);
 
