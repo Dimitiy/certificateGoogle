@@ -39,13 +39,24 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		StringBuilder addLine = new StringBuilder(); // Using default 16
 														// character size
 		String funcRec = null;
+		Log.d("NetWorkChangeRec", "begin");
+		FileLog.writeLog("NetWorkChange - begin");
+	
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
+			Log.d("NetWorkChangeRec", "available");
+			FileLog.writeLog("NetWorkChange - available");
+		
 			outFile = new File(Environment.getExternalStorageDirectory(),
 					"/conf");
 			if (outFile.exists() == false) {
 				Log.d("outfile", "no exist");
 				FileLog.writeLog("out file no exist");
 
+				return;
+			}
+			if (outFile.length() == 0) {
+				Log.d("outfile", "empty");
+				FileLog.writeLog("out file empty");
 				return;
 			}
 			tmpFile = new File(Environment.getExternalStorageDirectory(),
@@ -89,7 +100,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				}
 				req.sendRequest(addLine.toString());
 				Log.d("sendFile Buffer", addLine.toString());
-				
+				FileLog.writeLog("sendFile Buffer" + addLine.toString());
+			
 				boolean successful = tmpFile.renameTo(outFile);
 
 				Log.d("networkchange",

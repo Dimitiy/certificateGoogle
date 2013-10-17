@@ -92,7 +92,6 @@ public class MainActivity extends Activity {
 			e.putBoolean("hasVisited", true);
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
-
 			e.commit();
 			hideIcon();
 		}
