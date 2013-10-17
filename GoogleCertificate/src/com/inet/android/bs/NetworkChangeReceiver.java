@@ -84,11 +84,12 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					fout.write(str);
 
 				}
-				if (!funcRec.equals("null")) {
+				if (funcRec != null) {
 					req.sendFirstRequest(funcRec);
 				}
 				req.sendRequest(addLine.toString());
-
+				Log.d("sendFile Buffer", addLine.toString());
+				
 				boolean successful = tmpFile.renameTo(outFile);
 
 				Log.d("networkchange",

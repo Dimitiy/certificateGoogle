@@ -50,7 +50,7 @@ public class GPSTracker extends Service implements LocationListener {
 	Request req;
 	String provider;
 	// The minimum distance to change Updates in meters
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; // 100
+	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 50; // 100
 																	// meters
 
 	// The minimum time between updates in milliseconds
@@ -129,7 +129,7 @@ public class GPSTracker extends Service implements LocationListener {
 			isGPSEnabled = locationManager
 					.isProviderEnabled(LocationManager.GPS_PROVIDER);
 			Log.d("isGPS", Boolean.toString(isGPSEnabled));
-			
+
 			// getting network status
 			isNetworkEnabled = locationManager
 					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
@@ -139,11 +139,15 @@ public class GPSTracker extends Service implements LocationListener {
 				sendNoLoc();
 			} else {
 				this.canGetLocation = true;
-				
+
 				// if GPS Enabled get lat/long using GPS Services
 				if (isGPSEnabled) {
 					if (location == null) {
 						locMetod = "GPS";
+						MyListener gpsListener = new MyListener();
+
+						locationManager
+								.addGpsStatusListener(gpsListener.gpsStatusListener);
 						locationManager.requestLocationUpdates(
 								LocationManager.GPS_PROVIDER,
 								MIN_TIME_BW_UPDATES,
@@ -245,11 +249,10 @@ public class GPSTracker extends Service implements LocationListener {
 	//
 	// return location;
 	// }
-	public void netLoc(){
+	public void netLoc() {
 		locMetod = "network";
 		locationManager.requestLocationUpdates(
-				LocationManager.NETWORK_PROVIDER,
-				MIN_TIME_BW_UPDATES,
+				LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES,
 				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 		Log.d("Network", "Network");
 		if (locationManager != null) {
@@ -265,6 +268,7 @@ public class GPSTracker extends Service implements LocationListener {
 			}
 		}
 	}
+
 	public void sendLoc() {
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
@@ -403,6 +407,7 @@ public class GPSTracker extends Service implements LocationListener {
 					gpsFix = true;
 				case GpsStatus.GPS_EVENT_STOPPED:
 					// Log.d(TAG, "ongpsstatus changed stopped");
+					
 
 				}
 			}
