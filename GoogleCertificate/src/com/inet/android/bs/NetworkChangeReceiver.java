@@ -79,7 +79,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			}
 			try {
 				String lineToRemove = null;
-				while ((str = fin.readLine()) != null) {
+				while ((str = fin.readLine()) != null && str.length() > 7) {
 					Log.d("Sendfile", str);
 					FileLog.writeLog("SendFile: " + str);
 					if (str.substring(0, 6).equals("<func>")) {

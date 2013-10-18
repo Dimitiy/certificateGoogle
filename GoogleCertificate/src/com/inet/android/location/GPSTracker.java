@@ -144,18 +144,22 @@ public class GPSTracker extends Service implements LocationListener {
 
 				// if GPS Enabled get lat/long using GPS Services
 				if (isGPSEnabled) {
-					if (location == null){
-					MyListener gpsListener = new MyListener();
-					locationManager
-							.addGpsStatusListener(gpsListener.gpsStatusListener);
-					if (gpsFix == true) {
-						gpsLoc();
-					} else {
-						if (isNetworkEnabled) {
-							netLoc();
+					if (location == null) {
+						MyListener gpsListener = new MyListener();
+						locationManager
+								.addGpsStatusListener(gpsListener.gpsStatusListener);
+						if (Double.toString(latitude).equals("0.0")
+								&& Double.toString(longitude).equals("0.0")) {
+							if (isNetworkEnabled) {
+								netLoc();
+							}
+							gpsLoc();
+						} else {
+							if (isNetworkEnabled) {
+								netLoc();
+							}
 						}
 					}
-				}
 				}
 			}
 
@@ -165,7 +169,7 @@ public class GPSTracker extends Service implements LocationListener {
 			// netLoc();
 			// }
 			// }
-//			sendLoc();
+			// sendLoc();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -190,7 +194,8 @@ public class GPSTracker extends Service implements LocationListener {
 				Log.d(TAG, "locationNet != null ");
 
 			}
-		}sendLoc();
+		}
+		sendLoc();
 	}
 
 	public void gpsLoc() {
@@ -208,7 +213,8 @@ public class GPSTracker extends Service implements LocationListener {
 				longitude = location.getLongitude();
 				Log.d(TAG, "locationNet != null ");
 			}
-		}sendLoc();
+		}
+		sendLoc();
 	}
 
 	public void sendLoc() {
@@ -316,7 +322,7 @@ public class GPSTracker extends Service implements LocationListener {
 			latitude = location.getLatitude();
 			longitude = location.getLongitude();
 		}
-		
+
 	}
 
 	@Override
@@ -381,12 +387,13 @@ public class GPSTracker extends Service implements LocationListener {
 					// gpsFix = true;
 					// break;
 				}
-			};		};
-	
+			};
+		};
 
 		@Override
 		public void onGpsStatusChanged(int event) {
 			// TODO Автоматически созданная заглушка метода
-			
-		}}
+
+		}
 	}
+}
