@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
 		e.putString("ABOUT", aboutDev);
 		e.commit();
 
-		// hideIcon();
+		// hideIcon(); //
 
 		// провер€ем, первый ли раз открываетс€ программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
