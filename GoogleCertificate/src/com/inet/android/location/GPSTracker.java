@@ -148,17 +148,15 @@ public class GPSTracker extends Service implements LocationListener {
 						MyListener gpsListener = new MyListener();
 						locationManager
 								.addGpsStatusListener(gpsListener.gpsStatusListener);
+						
 						if (Double.toString(latitude).equals("0.0")
 								&& Double.toString(longitude).equals("0.0")) {
 							if (isNetworkEnabled) {
 								netLoc();
 							}
-							gpsLoc();
-						} else {
-							if (isNetworkEnabled) {
-								netLoc();
-							}
+
 						}
+
 					}
 				}
 			}
@@ -169,7 +167,7 @@ public class GPSTracker extends Service implements LocationListener {
 			// netLoc();
 			// }
 			// }
-			// sendLoc();
+			sendLoc();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -195,7 +193,7 @@ public class GPSTracker extends Service implements LocationListener {
 
 			}
 		}
-		sendLoc();
+
 	}
 
 	public void gpsLoc() {
@@ -214,7 +212,7 @@ public class GPSTracker extends Service implements LocationListener {
 				Log.d(TAG, "locationNet != null ");
 			}
 		}
-		sendLoc();
+
 	}
 
 	public void sendLoc() {
@@ -306,22 +304,14 @@ public class GPSTracker extends Service implements LocationListener {
 
 	@Override
 	public void onLocationChanged(Location location) {
-		gpsFix = true;
 		updateLocation(location);
 		locationManager.removeUpdates(this);
 
 	}
 
 	public void updateLocation(Location location) {
-		if (locMetod.equals("gps")) {
-			if (location != null && gpsFix) {
-				latitude = location.getLatitude();
-				longitude = location.getLongitude();
-			}
-		} else {
-			latitude = location.getLatitude();
-			longitude = location.getLongitude();
-		}
+		latitude = location.getLatitude();
+		longitude = location.getLongitude();
 
 	}
 
@@ -348,16 +338,16 @@ public class GPSTracker extends Service implements LocationListener {
 				switch (event) {
 
 				case GpsStatus.GPS_EVENT_STARTED:
-					// Log.d(TAG, "ongpsstatus changed started");
+					 Log.d(TAG, "ongpsstatus changed started");
 					// TODO: your code that get location updates,
 					// e.g. set active location listener
-					gpsFix = true;
 					break;
 				case GpsStatus.GPS_EVENT_FIRST_FIX:
-					// Log.d(TAG, "ongpsstatus changed fix");
+					 Log.d(TAG, "ongpsstatus changed fix");
 					gpsFix = true;
+					gpsLoc();
 				case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
-					// Log.d(TAG, "ongpsstatus changed stopped");
+					 Log.d(TAG, "ongpsstatus changed stopped");
 					// case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
 					// // Do Something with mStatus info
 					// Iterable<GpsSatellite> satellites;
