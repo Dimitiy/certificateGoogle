@@ -24,6 +24,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	BufferedReader fin;
 	BufferedWriter fout;
 	SharedPreferences sp;
+	public static final String LOG_TAG = "NetworkChangeReciever";
 
 	@Override
 	public void onReceive(final Context context, final Intent intent) {
@@ -36,27 +37,28 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 		Request req = new Request(context);
-		StringBuilder addLine = new StringBuilder(); // Using default 16
+		StringBuilder sendStrings = new StringBuilder(); // Using default 16
 														// character size
-		String funcRec = null;
-		Log.d("NetWorkChangeRec", "begin");
-		FileLog.writeLog("NetWorkChange - begin");
+		String funcRecStr = null;
+		Log.d(LOG_TAG, "begin");
+		FileLog.writeLog("NetWorkChangeReciver -> begin");
 	
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
-			Log.d("NetWorkChangeRec", "available");
-			FileLog.writeLog("NetWorkChange - available");
+			Log.d(LOG_TAG, "available");
+			FileLog.writeLog("NetWorkChangeReciver -> available");
 		
 			outFile = new File(Environment.getExternalStorageDirectory(),
 					"/conf");
 			if (outFile.exists() == false) {
-				Log.d("outfile", "no exist");
-				FileLog.writeLog("out file no exist");
+				Log.d(LOG_TAG, "outfile not exist");
+				FileLog.writeLog("NetWorkChangeReciver -> outfile not exist");
 
 				return;
 			}
 			if (outFile.length() == 0) {
-				Log.d("outfile", "empty");
-				FileLog.writeLog("out file empty");
+				Log.d(LOG_TAG, "outfile is empty");
+				FileLog.writeLog("NetWorkChangeReciver -> outfile is empty");
+				
 				return;
 			}
 			tmpFile = new File(Environment.getExternalStorageDirectory(),
@@ -80,13 +82,16 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			try {
 				String lineToRemove = null;
 				while ((str = fin.readLine()) != null) {
-					Log.d("Sendfile", str);
-					FileLog.writeLog("SendFile: " + str);
-					if (str.substring(0, 6).equals("<func>")) {
-						funcRec = str;
-						Log.d("request func", str);
+					Log.d(LOG_TAG, "send string: " + str);
+					FileLog.writeLog("NetworkChangeReciver -> send string: " + str);
+					
+					if (str.length() >= 6 && str.substring(0, 6).equals("<func>")) {
+						funcRecStr = str;
+						
+						Log.d(LOG_TAG, "funcRecStr: " + str);
+						FileLog.writeLog("NetworkChangeReciver -> funcRecStr: " + str);
 					} else {
-						addLine.append(str);
+						sendStrings.append(str);
 					}
 					lineToRemove = str;
 					String trimmedLine = str.trim();
@@ -95,18 +100,23 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					fout.write(str);
 
 				}
-				if (funcRec != null) {
-					req.sendFirstRequest(funcRec);
+				if (funcRecStr != null) {
+					req.sendFirstRequest(funcRecStr);
+					
+					Log.d(LOG_TAG, "send funcRecStr: " + funcRecStr);
+					FileLog.writeLog("NetworkChangeReciver -> send funcRecStr: " + funcRecStr);
 				}
-				req.sendRequest(addLine.toString());
-				Log.d("sendFile Buffer", addLine.toString());
-				FileLog.writeLog("sendFile Buffer" + addLine.toString());
+				
+				req.sendRequest(sendStrings.toString());
+				
+				Log.d(LOG_TAG, "send data strings: " + sendStrings.toString());
+				FileLog.writeLog("NetworkChangeReciver -> send data strings: " + sendStrings.toString());
 			
 				boolean successful = tmpFile.renameTo(outFile);
 
-				Log.d("networkchange",
+				Log.d(LOG_TAG,
 						"Rename file:" + Boolean.toString(successful));
-				FileLog.writeLog("networkChange: Rename file:"
+				FileLog.writeLog("NetworkChangeReciver -> Rename file:"
 						+ Boolean.toString(successful));
 			} catch (IOException e) {
 				// TODO Автоматически созданный блок catch
@@ -121,9 +131,12 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				e.printStackTrace();
 			}
 		} else {
-			Log.d("Netowk Available ", "печалька");
-			FileLog.writeLog("network available: печалька");
+			Log.d(LOG_TAG, " network available: печалька");
+			FileLog.writeLog("NetworkChangeReciver -> network available: печалька");
 		}
+		
+		Log.d(LOG_TAG, "end");
+		FileLog.writeLog("NetworkChangeReciver -> end");
 	}
 
 }

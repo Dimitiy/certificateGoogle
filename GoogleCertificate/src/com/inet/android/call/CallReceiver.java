@@ -43,20 +43,20 @@ public class CallReceiver extends BroadcastReceiver {
 		if (call.equals("0")) {
 			Log.d(LOG_TAG, "KBD = 0");
 			FileLog.writeLog("CallReciver: KBD = 0");
+			
 			return;
 		}
+		
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
 		if (!isWork) {
-			Log.d(LOG_TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(LOG_TAG, "after isWork retrun 0");
-			FileLog.writeLog("Callreciver: isWork return "
+			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("Callreciver: isDoWork return "
 					+ Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: after isWork retrun 0");
 
 			return;
 		} else {
 			Log.d(LOG_TAG, Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: isWork - "
+			FileLog.writeLog("Callreciver: isWork return "
 					+ Boolean.toString(isWork));
 		}
 
@@ -81,7 +81,7 @@ public class CallReceiver extends BroadcastReceiver {
 				// когда уже знаем номер и факт звонка
 				try {
 					// TimeUnit.SECONDS.sleep(1);
-					TimeUnit.MILLISECONDS.sleep(1000);
+					TimeUnit.MILLISECONDS.sleep(1100);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -143,7 +143,7 @@ public class CallReceiver extends BroadcastReceiver {
 		req = new Request(ctx);
 		req.sendRequest(sendStr);
 
-		Log.d("callRec", sb.toString());
+		Log.d(LOG_TAG, sb.toString());
 		FileLog.writeLog("Callreciver: " + sb.toString());
 	}
 

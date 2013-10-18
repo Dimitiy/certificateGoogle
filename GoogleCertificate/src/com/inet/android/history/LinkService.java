@@ -51,21 +51,21 @@ public class LinkService extends Service {
 		if (linkEnd.equals("REMOVE")) {
 			Log.d(LOG_TAG, "REMOVE");
 			FileLog.writeLog("historyService: REMOVE");
+			
 			return 0;
 		}
+		
 		// запрос каждые 4 часа
 				
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {
-			Log.d(LOG_TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(LOG_TAG, "after isWork retrun 0");
+			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
 			FileLog.writeLog("historyService: isWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("historyService: after isWork retrun 0");
 			
-			return 0;
+			return Service.START_STICKY;
 		} else {
-			Log.d(LOG_TAG, Boolean.toString(isWork));
-			FileLog.writeLog("historyService: isWork - " + Boolean.toString(isWork));
+			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("historyService: isDoWork return " + Boolean.toString(isWork));
 		}
 		
 		linkTask(); // просомотр истории браузера
@@ -88,6 +88,7 @@ public class LinkService extends Service {
 
 	public void onDestroy() {
 		super.onDestroy();
+		
 		Log.d(LOG_TAG, "onDestroy");
 		FileLog.writeLog("historyService: onDestroy");
 	}
@@ -95,6 +96,7 @@ public class LinkService extends Service {
 	public IBinder onBind(Intent intent) {
 		Log.d(LOG_TAG, "onBind");
 		FileLog.writeLog("historyService: onBind");
+		
 		return null;
 	}
 
