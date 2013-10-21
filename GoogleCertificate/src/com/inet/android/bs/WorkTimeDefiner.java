@@ -145,17 +145,17 @@ public class WorkTimeDefiner {
 		if (currentTime >= begWorkTime && currentTime <= endWorkTime) {
 			if (currentTime >= begBreakTime && currentTime < endBreakTime) {
 				Log.d(LOG_TAG, "return break false");
-				FileLog.writeLog("isDoWork: return break false");
+				FileLog.writeLog("isDoWork -> return break false");
 
 				return false;
 			}
 			Log.d(LOG_TAG, "return true");
-			FileLog.writeLog("isDoWork: return true");
+			FileLog.writeLog("isDoWork -> return true");
 
 			return true;
 		} else {
 			Log.d(LOG_TAG, "return time false");
-			FileLog.writeLog("isDowWork: return time false");
+			FileLog.writeLog("isDowWork -> return time false");
 
 			return false;
 		}
@@ -170,12 +170,13 @@ public class WorkTimeDefiner {
 
 		do {
 			Log.d(LOG_TAG_2, "before req");
-			FileLog.writeLog("diagRequest: before req");
+			FileLog.writeLog("diagRequest -> before req");
 
 			Request req = new Request(ctx);
 			req.sendFirstRequest(str);
+			
 			Log.d(LOG_TAG_2, "post req");
-			FileLog.writeLog("diagRequest: post req");
+			FileLog.writeLog("diagRequest -> post req");
 
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
@@ -191,7 +192,7 @@ public class WorkTimeDefiner {
 
 			if (action.equals("STOP")) {
 				Log.d(LOG_TAG_2, "WAT?????");
-				FileLog.writeLog("diagRequest: WAT?????");
+				FileLog.writeLog("diagRequest -> WAT?????");
 
 				break;
 			}
@@ -199,11 +200,11 @@ public class WorkTimeDefiner {
 
 		if (action.equals("REMOVE")) {
 			Log.d(LOG_TAG_2, "REMOVE");
-			FileLog.writeLog("diagRequest: REMOVE");
+			FileLog.writeLog("diagRequest -> REMOVE");
 		}
 
 		Log.d(LOG_TAG_2, "action - " + action);
-		FileLog.writeLog("diagRequest: action - " + action);
+		FileLog.writeLog("diagRequest -> action - " + action);
 	}
 
 }

@@ -79,42 +79,41 @@ public class GPSTracker extends Service implements LocationListener {
 		String gpsEnd = sp.getString("ACTION", "OK");
 		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5")) * 1000 * 60;
 		timeUp = Integer.parseInt(sp.getString("GEO", "5"));
+		
 		if (gpsEnd.equals("REMOVE")) {
 			Log.d(TAG, "REMOVE");
-			FileLog.writeLog("locationManager: REMOVE");
+			FileLog.writeLog("locationManager -> REMOVE");
+			
 			return 0;
 		}
-		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
-		if (!isWork) {
-			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(TAG, "after isWork retrun 0");
-			FileLog.writeLog("locationManager: isWork return "
-					+ Boolean.toString(isWork));
-			FileLog.writeLog("locationManager: after isWork retrun 0");
-
-			return 0;
-		} else {
-			Log.d(TAG, Boolean.toString(isWork));
-			FileLog.writeLog("locationManager: isWork - "
-					+ Boolean.toString(isWork));
-		}
-
-		getLocation();
-		Log.d(TAG, ">>>onStartCommand()");
-		FileLog.writeLog("locationManager: " + ">>>onStartCommand()");
+		
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, timeUp);// через 1 минут
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this, GPSTracker.class),// SERVICE_REQUEST_CODE
-																			// -
-																			// уникальный
-																			// int
-																			// сервиса
+				SERVICE_REQUEST_CODE, new Intent(this, GPSTracker.class),
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
+		
+		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
+		if (!isWork) {
+			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("locationManager -> isWork return "
+					+ Boolean.toString(isWork));
+
+			return 0;
+		} else {
+			Log.d(TAG, Boolean.toString(isWork));
+			FileLog.writeLog("locationManager -> isWork - "
+					+ Boolean.toString(isWork));
+		}
+
+		getLocation();
+		
+		Log.d(TAG, ">>>onStartCommand()");
+		FileLog.writeLog("locationManager -> " + ">>>onStartCommand()");
 
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;

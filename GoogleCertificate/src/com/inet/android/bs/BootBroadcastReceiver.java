@@ -19,6 +19,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	Context mContext;
 	private final String BOOT_ACTION = "android.intent.action.BOOT_COMPLETED";
 	SharedPreferences sp;
+	private static final String LOG_TAG = "BootBroadcastReceiver";
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
@@ -29,6 +30,10 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
 			// для Service
+			
+			Log.d(LOG_TAG, "start services after boot");
+			FileLog.writeLog(LOG_TAG + " -> start services after boot");
+			
 			Intent linkServiceIntent = new Intent(context, LinkService.class);
 			context.startService(linkServiceIntent);
 			Intent locServiceIntent = new Intent(context, GPSTracker.class);
@@ -45,8 +50,8 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
 			Request req = new Request(context);
 			req.sendRequest(diag);
-			Log.d("main diagPost", "post req");
-			FileLog.writeLog("diagRequest: post req");
+			Log.d(LOG_TAG, "end start services after boot");
+			FileLog.writeLog(LOG_TAG + " -> end start services after boot");
 		}
 	}
 
