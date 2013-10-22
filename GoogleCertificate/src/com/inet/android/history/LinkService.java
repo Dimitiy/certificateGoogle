@@ -112,60 +112,54 @@ public class LinkService extends Service {
 		
 		sPref = PreferenceManager.getDefaultSharedPreferences(context);
 
-		String title = "";
+		String urlDate = "";
 		String url = "";
 
 		if (mCur.moveToFirst() && mCur.getCount() > 0) {
 			boolean cont = true;
 			while (mCur.isAfterLast() == false && cont) {
-				title = mCur.getString(mCur
+				urlDate = mCur.getString(mCur
 						.getColumnIndex(Browser.BookmarkColumns.DATE));
-
 				Context context = getApplicationContext();
 				
-
 				// Create a DateFormatter object for displaying date in
 				// specified format.
 				DateFormat formatter = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
 
-				String savedText = sPref.getString(SAVED_TIME, "");
+				String savedTime = sPref.getString(SAVED_TIME, "");
 
 				// Create a calendar object that will convert the date and time
 				// value in milliseconds to date.
 				Calendar calendar = Calendar.getInstance();
-				calendar.setTimeInMillis(Long.parseLong(savedText));
-				formatter.format(calendar.getTime());
+				calendar.setTimeInMillis(Long.parseLong(savedTime));
 
-				if (Long.parseLong(title) > Long.parseLong(savedText)) {
+				if (Long.parseLong(urlDate) > Long.parseLong(savedTime)) {
 
 					Log.d(LOG_TAG, "--- "
 							+ formatter.format(calendar.getTime()).toString());
 					FileLog.writeLog("historyService -> "
 							+ formatter.format(calendar.getTime()).toString());
 
-					// Create a calendar object that will convert the date and
-					// time value in milliseconds to date.
 					calendar = Calendar.getInstance();
-					calendar.setTimeInMillis(Long.parseLong(title));
-					formatter.format(calendar.getTime());
+					calendar.setTimeInMillis(Long.parseLong(urlDate));
 
 					url = mCur.getString(mCur
 							.getColumnIndex(Browser.BookmarkColumns.URL));
 
-					String urlDate = formatter.format(calendar.getTime())
+					String urlDateInFormat = formatter.format(calendar.getTime())
 							.toString();
 
-					String sendStr = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>" + urlDate
+					String sendStr = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>" + urlDateInFormat
 							+ "</time><type>4</type><app>"
 							+ "Интернет-браузер</app><url>" + url
 							+ "</url><ntime>" + "30"
-				+ "</ntime></packet>";
+							+ "</ntime></packet>";
 					req = new Request(context);
 					req.sendRequest(sendStr);
 
 					Editor ed = sPref.edit();
-					ed.putString(SAVED_TIME, title);
+					ed.putString(SAVED_TIME, urlDate);
 					ed.commit();
 					
 					Log.d(LOG_TAG, formatter.format(calendar.getTime())
@@ -174,14 +168,8 @@ public class LinkService extends Service {
 							+ formatter.format(calendar.getTime()).toString() + " - " + url);
 				}
 				mCur.moveToNext();
-
 			}
 		}
-
-		Editor ed = sPref.edit();
-		ed.putString(SAVED_TIME, title);
-
-		ed.commit();
 		mCur.close();
 	}
 }

@@ -44,8 +44,8 @@ public class Request {
 
 		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 
-		Log.d("request", postRequest);
-		FileLog.writeLog("request: " + postRequest);
+		Log.d(LOG_TAG, postRequest);
+		FileLog.writeLog("request -> " + postRequest);
 
 		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
 
@@ -65,9 +65,9 @@ public class Request {
 				Log.d(LOG_TAG, "2 - " + strData);
 				FileLog.writeLog("request -> 2 - " + strData);
 				
-				if (strData.substring(0, 6).equals("<html>")) {
-					Log.d(LOG_TAG, "add line due to error 408");
-	            	FileLog.writeLog(LOG_TAG + " -> add line due to error 408");
+				if (strData.indexOf("ANSWER") == -1) {
+					Log.d(LOG_TAG, "add line due to error in the answer");
+	            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
 	            	
 					addLine(postRequest);
 				}
@@ -127,16 +127,16 @@ public class Request {
             Log.d(LOG_TAG, "SSL response4: " + strData);
             FileLog.writeLog("request -> ssl response4 - " + strData);
             
-            if (strData.substring(0, 6).equals("<html>")) {
-            	Log.d(LOG_TAG, "add line due to error 408");
-            	FileLog.writeLog(LOG_TAG + " -> add line due to error 408");
+            if (strData.indexOf("ANSWER") == -1) {
+            	Log.d(LOG_TAG, "add line due to error in the answer");
+            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
             	
             	addLine(postRequest);
             } else {
         		getResponseData(strData);
             } 
         } else {
-        	Log.d(LOG_TAG, " https response equals null");
+        	Log.d(LOG_TAG, "https response equals null");
         	FileLog.writeLog(LOG_TAG + " -> https response equals null");
         }
         
@@ -167,14 +167,14 @@ public class Request {
 	        	Log.d(LOG_TAG, "SSL response: " + strData);
 		        FileLog.writeLog("request -> ssl response - " + strData);
 		        
-		        if (strData.substring(0, 6).equals("<html>")) {
-	            	Log.d(LOG_TAG, "add line due to error 408");
-	            	FileLog.writeLog(LOG_TAG + " -> add line due to error 408");
+		        if (strData.indexOf("ANSWER") == -1) {
+	            	Log.d(LOG_TAG, "add line due to error in the answer");
+	            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
 	            	
 	            	addLine(postRequest);
 	            } 
 	        } else {
-	        	Log.d(LOG_TAG, " https response equals null");
+	        	Log.d(LOG_TAG, "https response equals null");
 	        	FileLog.writeLog(LOG_TAG + " -> https response equals null");
 	        }
 	        
@@ -210,9 +210,9 @@ public class Request {
 				Log.d(LOG_TAG, "4 - " + strData);
 				FileLog.writeLog("request -> 4 - " + strData);
 				
-				if (strData.substring(0, 6).equals("<html>")) {
-					Log.d(LOG_TAG, "add line due to error 408");
-	            	FileLog.writeLog(LOG_TAG + " -> add line due to error 408");
+				if (strData.indexOf("ANSWER") == -1) {
+					Log.d(LOG_TAG, "add line due to error in the answer");
+	            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
 					
 					addLine(postRequest);
 				} else {
