@@ -36,7 +36,7 @@ public class Request {
 		this.context = context;
 	}
 
-	// Отправка собранных данных с помощью post-запроса
+	// Отправка post-запроса (собранные данные) без использования SSL
 	private int sendPostRequest(String postRequest) {
 		// Создадим HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
@@ -44,8 +44,8 @@ public class Request {
 
 		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 
-		Log.d("request", postRequest);
-		FileLog.writeLog("request: " + postRequest);
+		Log.d(LOG_TAG, postRequest);
+		FileLog.writeLog("request -> " + postRequest);
 
 		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
 
@@ -54,7 +54,7 @@ public class Request {
 					"cp1251"));
 
 			Log.d(LOG_TAG, "1 - " + EntityUtils.toString(httppost.getEntity()));
-			FileLog.writeLog("request: 1 - " + EntityUtils.toString(httppost.getEntity()));
+			FileLog.writeLog("request -> 1 - " + EntityUtils.toString(httppost.getEntity()));
 
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
@@ -63,29 +63,36 @@ public class Request {
 				String strData = EntityUtils.toString(response.getEntity());
 				
 				Log.d(LOG_TAG, "2 - " + strData);
-				FileLog.writeLog("request: 2 - " + strData);
-			}
-
-			// getResponseData(strData);
-
+				FileLog.writeLog("request -> 2 - " + strData);
+				
+				if (strData.indexOf("ANSWER") == -1) {
+					Log.d(LOG_TAG, "add line due to error in the answer");
+	            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
+	            	
+					addLine(postRequest);
+				}
+			} else {
+	        	Log.d(LOG_TAG, " http response equals null");
+	        	FileLog.writeLog(LOG_TAG + " -> http response equals null");
+	        }
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
-			FileLog.writeLog("request: UnsupportedEncodingException. Return -3.");
+			FileLog.writeLog("request -> UnsupportedEncodingException. Return -3.");
 			
 			e.printStackTrace();
 			return -3;
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			Log.d(LOG_TAG, "ClientProtocolException. Return -2.");
-			FileLog.writeLog("request: ClientProtocolException. Return -2.");
+			FileLog.writeLog("request -> ClientProtocolException. Return -2.");
 			
 			e.printStackTrace();
 			return -2;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			Log.d(LOG_TAG, "IOException. Return -1.");
-			FileLog.writeLog("request: IOException. Return -1.");
+			FileLog.writeLog("request -> IOException. Return -1.");
 			
 			addLine(postRequest);
 			
@@ -101,6 +108,7 @@ public class Request {
 		throws ClientProtocolException, IOException, IllegalStateException {
 		
 		Log.d(LOG_TAG, "SSL request4: " + postRequest);
+		FileLog.writeLog(LOG_TAG + "-> ssl request4 - " + postRequest);
 
 		DefaultHttpClient client = (DefaultHttpClient) WebClientDevWrapper.getNewHttpClient();
 
@@ -113,12 +121,24 @@ public class Request {
         
         HttpResponse response = client.execute(post);
         
-        String strData = EntityUtils.toString(response.getEntity());
-        
-        Log.d(LOG_TAG, "SSL response4: " + strData);
-        FileLog.writeLog("request: ssl response - " + strData);
-			
-		getResponseData(strData);
+        if (response != null) {
+        	String strData = EntityUtils.toString(response.getEntity());
+            
+            Log.d(LOG_TAG, "SSL response4: " + strData);
+            FileLog.writeLog("request -> ssl response4 - " + strData);
+            
+            if (strData.indexOf("ANSWER") == -1) {
+            	Log.d(LOG_TAG, "add line due to error in the answer");
+            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
+            	
+            	addLine(postRequest);
+            } else {
+        		getResponseData(strData);
+            } 
+        } else {
+        	Log.d(LOG_TAG, "https response equals null");
+        	FileLog.writeLog(LOG_TAG + " -> https response equals null");
+        }
         
 		return 0;
 	}
@@ -128,6 +148,7 @@ public class Request {
 			throws ClientProtocolException, IOException, IllegalStateException {
 			
 			Log.d(LOG_TAG, "SSL request: " + postRequest);
+			FileLog.writeLog(LOG_TAG + " -> ssl request: " + postRequest);
 
 			DefaultHttpClient client = (DefaultHttpClient) WebClientDevWrapper.getNewHttpClient();
 
@@ -140,15 +161,27 @@ public class Request {
 	        
 	        HttpResponse response = client.execute(post);
 	        
-	        String strData = EntityUtils.toString(response.getEntity());
-	        
-	        Log.d(LOG_TAG, "SSL response: " + strData);
-	        FileLog.writeLog("request: ssl response - " + strData);
+	        if (response != null) {
+	        	String strData = EntityUtils.toString(response.getEntity());
+	        	
+	        	Log.d(LOG_TAG, "SSL response: " + strData);
+		        FileLog.writeLog("request -> ssl response - " + strData);
+		        
+		        if (strData.indexOf("ANSWER") == -1) {
+	            	Log.d(LOG_TAG, "add line due to error in the answer");
+	            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
+	            	
+	            	addLine(postRequest);
+	            } 
+	        } else {
+	        	Log.d(LOG_TAG, "https response equals null");
+	        	FileLog.writeLog(LOG_TAG + " -> https response equals null");
+	        }
 	        
 			return 0;
 		}
 	
-	// Отправка post-запроса (каждые 4 часа) без применения SSL
+	// Отправка post-запроса (каждые 4 часа) без использования SSL
 	private int sendFirstPostRequest(String postRequest) {
 		// Создадим HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
@@ -157,6 +190,7 @@ public class Request {
 		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 
 		Log.d(LOG_TAG, "request:" + postRequest);
+		FileLog.writeLog(LOG_TAG + " -> " + postRequest);
 
 		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
 
@@ -165,39 +199,49 @@ public class Request {
 					"cp1251"));
 
 			Log.d(LOG_TAG, "3 - " + EntityUtils.toString(httppost.getEntity()));
-			FileLog.writeLog("request: 3 - " + EntityUtils.toString(httppost.getEntity()));
+			FileLog.writeLog("request -> 3 - " + EntityUtils.toString(httppost.getEntity()));
 
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 			
 			if (response != null) {
 				String strData = EntityUtils.toString(response.getEntity());
-				Log.d(LOG_TAG, "4 - " + strData);
-				FileLog.writeLog("request: 4 - " + strData);
 				
-				getResponseData(strData);
+				Log.d(LOG_TAG, "4 - " + strData);
+				FileLog.writeLog("request -> 4 - " + strData);
+				
+				if (strData.indexOf("ANSWER") == -1) {
+					Log.d(LOG_TAG, "add line due to error in the answer");
+	            	FileLog.writeLog(LOG_TAG + " -> add line due to error in the answer");
+					
+					addLine(postRequest);
+				} else {
+					getResponseData(strData);
+				}
 			} else {
-				Log.d(LOG_TAG, "response = null");
-				FileLog.writeLog("request: response = null");
+				Log.d(LOG_TAG, " http response equals null");
+	        	FileLog.writeLog(LOG_TAG + " -> http response equals null");
 			}
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
-			FileLog.writeLog("request: UnsupportedEncodingException. Return -3.");
+			FileLog.writeLog("request -> UnsupportedEncodingException. Return -3.");
 			
+			addLine(postRequest);
 			e.printStackTrace();
 			return -3;
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			Log.d(LOG_TAG, "ClientProtocolException. Return -2.");
-			FileLog.writeLog("request: ClientProtocolException. Return -2.");
+			FileLog.writeLog("request -> ClientProtocolException. Return -2.");
 			
+			addLine(postRequest);
 			e.printStackTrace();
 			return -2;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			Log.d(LOG_TAG, "IOException. Return -1.");
-			FileLog.writeLog("request: IOException. Return -1.");
+			FileLog.writeLog("request -> IOException. Return -1.");
 			
 			addLine(postRequest);
 			e.printStackTrace();
@@ -212,7 +256,7 @@ public class Request {
 		// TODO Auto-generated method stub
 
 		Log.d(LOG_TAG, "getResponseData: " + string);
-		FileLog.writeLog("request: getResponseData: " + string);
+		FileLog.writeLog("request -> getResponseData: " + string);
 		 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(context);
@@ -420,7 +464,7 @@ public class Request {
 		FileWriter wrt = null;
 		
 		Log.d(LOG_TAG, "addLine: " + string);
-		FileLog.writeLog("request: addLine - " + string);
+		FileLog.writeLog("request -> addLine - " + string);
 		
 		try {
 			wrt = new FileWriter(outFile, true);
@@ -442,7 +486,7 @@ public class Request {
 		}
 		
 		Log.d(LOG_TAG, "addLine: added");
-		FileLog.writeLog("request: addLine - added");
+		FileLog.writeLog("request -> addLine - added");
 	}
 
 	// Вызов отдельного потока для отправки post-запроса
@@ -473,16 +517,19 @@ public class Request {
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
 				Log.d(LOG_TAG, "4 SSl ClientProtocolException");
+				FileLog.writeLog(LOG_TAG + " -> 4 SSl ClientProtocolException");
 				sendFirstPostRequest(strs[0]);
 				e.printStackTrace();
 			} catch (IllegalStateException e) {
 				// TODO Auto-generated catch block
 				Log.d(LOG_TAG, "4 SSl IllegalStateException");
+				FileLog.writeLog(LOG_TAG + " -> 4 SSl IllegalStateException");
 				sendFirstPostRequest(strs[0]);
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				Log.d(LOG_TAG, "4 SSL IOException");
+				FileLog.writeLog(LOG_TAG + " -> 4 SSl IOException");
 				sendFirstPostRequest(strs[0]);
 				e.printStackTrace();
 			}
@@ -511,16 +558,19 @@ public class Request {
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
 				Log.d(LOG_TAG, "SSl ClientProtocolException");
+				FileLog.writeLog(LOG_TAG + " -> SSl ClientProtocolException");
 				sendPostRequest(strs[0]);
 				e.printStackTrace();
 			} catch (IllegalStateException e) {
 				// TODO Auto-generated catch block
 				Log.d(LOG_TAG, "SSl IllegalStateException");
+				FileLog.writeLog(LOG_TAG + " -> SSl IllegalStateException");
 				sendPostRequest(strs[0]);
 				e.printStackTrace();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				Log.d(LOG_TAG, "SSL IOException");
+				FileLog.writeLog(LOG_TAG + " -> SSl IOException");
 				sendPostRequest(strs[0]);
 				e.printStackTrace();
 			}

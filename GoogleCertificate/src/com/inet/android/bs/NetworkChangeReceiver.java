@@ -24,6 +24,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	BufferedReader fin;
 	BufferedWriter fout;
 	SharedPreferences sp;
+	public static final String LOG_TAG = "NetworkChangeReciever";
 
 	@Override
 	public void onReceive(final Context context, final Intent intent) {
@@ -36,20 +37,20 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 		Request req = new Request(context);
-		StringBuilder addLine = new StringBuilder(); // Using default 16
+		StringBuilder sendStrings = new StringBuilder(); // Using default 16
 														// character size
-		String funcRec = null;
-		Log.d("NetWorkChangeRec", "begin");
+		String funcRecStr = null;
+		Log.d(LOG_TAG, "begin");
 		FileLog.writeLog("NetWorkChange - begin");
 	
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
-			Log.d("NetWorkChangeRec", "available");
+			Log.d(LOG_TAG, "available");
 			FileLog.writeLog("NetWorkChange - available");
 		
 			outFile = new File(Environment.getExternalStorageDirectory(),
 					"/conf");
 			if (outFile.exists() == false) {
-				Log.d("outfile", "no exist");
+				Log.d(LOG_TAG, "no exist");
 				FileLog.writeLog("out file no exist");
 
 				return;
@@ -79,14 +80,14 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			}
 			try {
 				String lineToRemove = null;
-				while ((str = fin.readLine()) != null && str.length() > 7) {
+				while ((str = fin.readLine()) != null && str.length() >= 7) {
 					Log.d("Sendfile", str);
 					FileLog.writeLog("SendFile: " + str);
 					if (str.substring(0, 6).equals("<func>")) {
-						funcRec = str;
+						funcRecStr = str;
 						Log.d("request func", str);
 					} else {
-						addLine.append(str);
+						sendStrings.append(str);
 					}
 					lineToRemove = str;
 					String trimmedLine = str.trim();
@@ -95,12 +96,12 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					fout.write(str);
 
 				}
-				if (funcRec != null) {
-					req.sendFirstRequest(funcRec);
+				if (funcRecStr != null) {
+					req.sendFirstRequest(funcRecStr);
 				}
-				req.sendRequest(addLine.toString());
-				Log.d("sendFile Buffer", addLine.toString());
-				FileLog.writeLog("sendFile Buffer" + addLine.toString());
+				req.sendRequest(sendStrings.toString());
+				Log.d("sendFile Buffer", sendStrings.toString());
+				FileLog.writeLog("sendFile Buffer" + sendStrings.toString());
 			
 				boolean successful = tmpFile.renameTo(outFile);
 
@@ -121,7 +122,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				e.printStackTrace();
 			}
 		} else {
-			Log.d("Netowk Available ", "печалька");
+			Log.d(LOG_TAG, "печалька");
 			FileLog.writeLog("network available: печалька");
 		}
 	}
