@@ -91,6 +91,21 @@ public class GPSTracker extends Service implements LocationListener {
 			FileLog.writeLog("locationManager: REMOVE");
 			return 0;
 		}
+		Log.d(TAG, ">>>onStartCommand()");
+		FileLog.writeLog("locationManager: " + ">>>onStartCommand()");
+		Calendar cal = Calendar.getInstance();
+		cal.add(Calendar.MINUTE, timeUp);// через 1 минут
+		PendingIntent servicePendingIntent = PendingIntent.getService(this,
+				SERVICE_REQUEST_CODE, new Intent(this, GPSTracker.class),// SERVICE_REQUEST_CODE
+																			// -
+																			// уникальный
+																			// int
+																			// сервиса
+				PendingIntent.FLAG_UPDATE_CURRENT);
+
+		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+				servicePendingIntent);
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {
 			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
@@ -107,21 +122,6 @@ public class GPSTracker extends Service implements LocationListener {
 		}
 
 		getLocation();
-		Log.d(TAG, ">>>onStartCommand()");
-		FileLog.writeLog("locationManager: " + ">>>onStartCommand()");
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, timeUp);// через 1 минут
-		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this, GPSTracker.class),// SERVICE_REQUEST_CODE
-																			// -
-																			// уникальный
-																			// int
-																			// сервиса
-				PendingIntent.FLAG_UPDATE_CURRENT);
-
-		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
-				servicePendingIntent);
 
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
@@ -205,12 +205,13 @@ public class GPSTracker extends Service implements LocationListener {
 					bestResult = location;
 					bestAccuracy = accuracy;
 					bestTime = time;
-					SimpleDateFormat TIMESTAMP = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					 
-			        // Выводим Дату по шаблону
-			        String date1 = TIMESTAMP.format(bestTime);
-					Log.d(TAG, "bestAccuracy" + date1 + " "
-							+ accuracy + " " + bestResult);
+					SimpleDateFormat TIMESTAMP = new SimpleDateFormat(
+							"yyyy-MM-dd HH:mm:ss");
+
+					// Выводим Дату по шаблону
+					String date1 = TIMESTAMP.format(bestTime);
+					Log.d(TAG, "bestAccuracy" + date1 + " " + accuracy + " "
+							+ bestResult);
 				} else if (time < minTime && bestAccuracy == Float.MAX_VALUE
 						&& time > bestTime) {
 					bestResult = location;
@@ -229,7 +230,7 @@ public class GPSTracker extends Service implements LocationListener {
 			}
 
 		}
-		
+
 	}
 
 	public void netLoc() {
@@ -238,23 +239,23 @@ public class GPSTracker extends Service implements LocationListener {
 				LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES,
 				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 		Log.d("Network", "Network");
-//		if (locationManager != null) {
-//
-//			// location = locationManager
-//			// .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//			// Log.d(TAG, "locationMannet != null ");
-//
-//			if (location != null) {
-//				if (Double.toString(latitude).equals("0.0")
-//						&& Double.toString(longitude).equals("0.0")) {
-//
-//				} else {
-//					latitude = location.getLatitude();
-//					longitude = location.getLongitude();
-//					Log.d(TAG, "locationNet != null ");
-//				}
-//			}
-//		}
+		// if (locationManager != null) {
+		//
+		// // location = locationManager
+		// // .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		// // Log.d(TAG, "locationMannet != null ");
+		//
+		// if (location != null) {
+		// if (Double.toString(latitude).equals("0.0")
+		// && Double.toString(longitude).equals("0.0")) {
+		//
+		// } else {
+		// latitude = location.getLatitude();
+		// longitude = location.getLongitude();
+		// Log.d(TAG, "locationNet != null ");
+		// }
+		// }
+		// }
 	}
 
 	public void gpsLoc() {
@@ -262,22 +263,22 @@ public class GPSTracker extends Service implements LocationListener {
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
 				MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 		Log.d("GPS", "GPS");
-//		if (locationManager != null) {
-//			// location = locationManager
-//			// .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-//			// Log.d(TAG, "locationMannet != null ");
-//
-//			if (location != null) {
-//				if (Double.toString(latitude).equals("0.0")
-//						&& Double.toString(longitude).equals("0.0")) {
-//
-//				} else {
-//					latitude = location.getLatitude();
-//					longitude = location.getLongitude();
-//					Log.d(TAG, "locationGPS!= null ");
-//				}
-//			}
-//		}
+		// if (locationManager != null) {
+		// // location = locationManager
+		// // .getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+		// // Log.d(TAG, "locationMannet != null ");
+		//
+		// if (location != null) {
+		// if (Double.toString(latitude).equals("0.0")
+		// && Double.toString(longitude).equals("0.0")) {
+		//
+		// } else {
+		// latitude = location.getLatitude();
+		// longitude = location.getLongitude();
+		// Log.d(TAG, "locationGPS!= null ");
+		// }
+		// }
+		// }
 
 	}
 
@@ -385,7 +386,7 @@ public class GPSTracker extends Service implements LocationListener {
 		} else {
 			Log.d(TAG, "loc change = else");
 			updateLocation(location);
-//			locationManager.removeUpdates(this);
+			// locationManager.removeUpdates(this);
 
 		}
 
