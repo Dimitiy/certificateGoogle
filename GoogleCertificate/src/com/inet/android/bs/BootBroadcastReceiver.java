@@ -39,7 +39,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 					+ "</id><time>" + logTime() + "</time><type>1</type><ttl>"
 					+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
 					+ "</ttl><cls>" + sp.getString("IMEI", "0000")
-					+ "</cls><app>Диагностическая информация</app><url>"
+					+ "</cls><url>"
 					+ Long.toString(System.currentTimeMillis())
 					+ sp.getString("ABOUT", "about") + "</url></packet>";
 

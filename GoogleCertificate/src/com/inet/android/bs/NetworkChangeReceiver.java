@@ -60,6 +60,12 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				FileLog.writeLog("out file empty");
 				return;
 			}
+			if (outFile.length() == 1){
+				outFile.delete();
+				Log.d("outfile", "consist /n && exist file" + outFile.exists());
+				FileLog.writeLog("out file consist /n");
+				return;
+			}
 			tmpFile = new File(Environment.getExternalStorageDirectory(),
 					"/tmpSendFile.txt");
 
