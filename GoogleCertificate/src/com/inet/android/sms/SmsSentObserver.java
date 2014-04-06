@@ -26,6 +26,7 @@ public class SmsSentObserver extends ContentObserver {
 	private Context mContext;
 	Request req;
 	private static long id = 0;
+	
 
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
