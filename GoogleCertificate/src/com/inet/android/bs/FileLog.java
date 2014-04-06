@@ -7,6 +7,11 @@ import java.util.Calendar;
 
 import android.os.Environment;
 
+/** Класс записи логов в файл
+ * 
+ * @author johny homicide
+ *
+ */
 public class FileLog { 
 	public static void writeLog(String str) {
 		File outFile = new File(Environment.getExternalStorageDirectory(),

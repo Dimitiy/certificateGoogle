@@ -22,6 +22,11 @@ import com.inet.android.bs.FileLog;
 import com.inet.android.bs.Request;
 import com.inet.android.bs.WorkTimeDefiner;
 
+/** Класс сбора звонков
+ * 
+ * @author johny homicide
+ *
+ */
 public class CallReceiver extends BroadcastReceiver {
 	String phoneNumber = "";
 	File outFile;

@@ -11,7 +11,11 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-
+/** Класс сервиса отправки периодического запроса
+ * 
+ * @author johny homicide
+ *
+ */
 public class Request4 extends Service {
 
 		private static final int SERVICE_REQUEST_CODE = 35;

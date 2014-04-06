@@ -28,6 +28,11 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+/** Класс отправки запросов
+ * 
+ * @author johny homicide
+ *
+ */
 public class Request {
 	private final String LOG_TAG = "request";
 	Context context;

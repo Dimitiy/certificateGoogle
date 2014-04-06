@@ -36,10 +36,11 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+		
 		Request req = new Request(context);
-		StringBuilder sendStrings = new StringBuilder(); // Using default 16
-														// character size
+		StringBuilder sendStrings = new StringBuilder(); 
 		String funcRecStr = null;
+		
 		Log.d(LOG_TAG, "begin");
 		FileLog.writeLog("NetWorkChange - begin");
 	
@@ -52,7 +53,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			if (outFile.exists() == false) {
 				Log.d(LOG_TAG, "no exist");
 				FileLog.writeLog("out file no exist");
-
 				return;
 			}
 			if (outFile.length() == 0) {

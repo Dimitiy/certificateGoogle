@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+
 public class WorkTimeDefiner {
 	private static SharedPreferences sp;
 	private static String LOG_TAG = "isDoWork";
@@ -92,7 +93,6 @@ public class WorkTimeDefiner {
 		if (timeTo.equals("")) {
 			timeTo = "00:00";
 		}
-
 		if (brkTimeFrom.equals("")) {
 			brkTimeFrom = "00:00";
 		}

