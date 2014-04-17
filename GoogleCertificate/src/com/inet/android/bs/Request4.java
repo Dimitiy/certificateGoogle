@@ -21,6 +21,7 @@ public class Request4 extends Service {
 		private static final int SERVICE_REQUEST_CODE = 35;
 		final String LOG_TAG = "requestService";
 		SharedPreferences sPref;
+		int period = 10; // периодичность запросов
 
 		public void onCreate() {
 			super.onCreate();
@@ -45,10 +46,10 @@ public class Request4 extends Service {
 			requestTask(); // запрос каждые 4 часа
 
 			Calendar cal = Calendar.getInstance();
-			cal.add(Calendar.MINUTE, 10);// через 240 минут
+			cal.add(Calendar.MINUTE, period);// через period минут
 
 			PendingIntent servicePendingIntent = PendingIntent.getService(this,
-					SERVICE_REQUEST_CODE, new Intent(this, Request4.class),// SERVICE_REQUEST_CODE - уникальный int сервиса
+					SERVICE_REQUEST_CODE, new Intent(this, Request4.class),
 					PendingIntent.FLAG_UPDATE_CURRENT);
 
 			AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
@@ -60,11 +61,10 @@ public class Request4 extends Service {
 		}
 
 		private void requestTask() {
-			// TODO Auto-generated method stub
 			Log.d(LOG_TAG, "requestTask start");
 			FileLog.writeLog(LOG_TAG + "-> requestTask start");
 			
-			WorkTimeDefiner.diagRequest(getApplicationContext());
+			RequestMakerImpl.diagRequest(getApplicationContext());
 			
 			Log.d(LOG_TAG, "requestTask end");
 			FileLog.writeLog(LOG_TAG + "-> requestTask end");

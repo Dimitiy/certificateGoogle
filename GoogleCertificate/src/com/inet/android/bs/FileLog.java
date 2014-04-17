@@ -23,7 +23,6 @@ public class FileLog {
 			wrt.close();
 			
 		} catch (IOException e) {
-			// TODO Автоматически созданный блок catch
 			e.printStackTrace();
 		}
 	}

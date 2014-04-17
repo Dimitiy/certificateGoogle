@@ -21,7 +21,6 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	SharedPreferences sp;
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		// TODO Auto-generated method stub
 		mContext = context;
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(context);
@@ -43,8 +42,8 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 					+ Long.toString(System.currentTimeMillis())
 					+ sp.getString("ABOUT", "about") + "</url></packet>";
 
-			Request req = new Request(context);
-			req.sendRequest(diag);
+			RequestMakerImpl req = new RequestMakerImpl(context);
+			req.sendDataRequest(diag);
 			Log.d("main diagPost", "post req");
 			FileLog.writeLog("diagRequest: post req");
 		}

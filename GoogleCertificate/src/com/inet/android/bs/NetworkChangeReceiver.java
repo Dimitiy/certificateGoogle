@@ -37,7 +37,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 		
-		Request req = new Request(context);
+		RequestMakerImpl req = new RequestMakerImpl(context);
 		StringBuilder sendStrings = new StringBuilder(); 
 		String funcRecStr = null;
 		
@@ -75,12 +75,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				try {
 					fout = new BufferedWriter(new FileWriter(tmpFile));
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 
 				}
 			} catch (FileNotFoundException e) {
-				// TODO Автоматически созданный блок catch
 				e.printStackTrace();
 				return;
 			}
@@ -103,9 +101,9 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 				}
 				if (funcRecStr != null) {
-					req.sendFirstRequest(funcRecStr);
+					req.sendPeriodicRequest(funcRecStr);
 				}
-				req.sendRequest(sendStrings.toString());
+				req.sendDataRequest(sendStrings.toString());
 				Log.d("sendFile Buffer", sendStrings.toString());
 				FileLog.writeLog("sendFile Buffer" + sendStrings.toString());
 			
@@ -116,7 +114,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				FileLog.writeLog("networkChange: Rename file:"
 						+ Boolean.toString(successful));
 			} catch (IOException e) {
-				// TODO Автоматически созданный блок catch
 				e.printStackTrace();
 				return;
 			}
@@ -124,7 +121,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				fin.close();
 				fout.close();
 			} catch (IOException e) {
-				// TODO Автоматически созданный блок catch
 				e.printStackTrace();
 			}
 		} else {

