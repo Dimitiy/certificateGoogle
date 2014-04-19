@@ -15,7 +15,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
@@ -41,7 +40,7 @@ public class Request {
 		// Создадим HttpClient и PostHandler
 		try {
 			HttpClient httpclient = new DefaultHttpClient();
-			HttpPost httppost = new HttpPost("http://inp2.timespyder.com");
+			HttpPost httppost = new HttpPost("");
 
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 
