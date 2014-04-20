@@ -1,12 +1,10 @@
-package com.inet.android.bs;
+package com.inet.android.utils;
 
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 
 public class WorkTimeDefiner {
@@ -16,8 +14,6 @@ public class WorkTimeDefiner {
 
 	public static boolean isDoWork(String begTime, String endTime,
 			String begBrkTime, String endBrkTime) {
-		Log.d(LOG_TAG, "begin");
-		FileLog.writeLog("begin");
 
 		Calendar calendar = Calendar.getInstance();
 
@@ -62,24 +58,15 @@ public class WorkTimeDefiner {
 
 		if (currentTime >= begWorkTime && currentTime <= endWorkTime) {
 			if (currentTime >= begBreakTime && currentTime < endBreakTime) {
-				Log.d(LOG_TAG, "return break false");
-				FileLog.writeLog("return break false");
 				return false;
 			}
-			Log.d(LOG_TAG, "return true");
-			FileLog.writeLog("return true");
 			return true;
 		} else {
-			Log.d(LOG_TAG, "return time false");
-			FileLog.writeLog("return time false");
 			return false;
 		}
 	}
 
 	public static boolean isDoWork(Context ctx) {
-		Log.d(LOG_TAG, "begin");
-		FileLog.writeLog("diagRequest: begin");
-
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		String timeFrom = sp.getString("TIME_FR", "00:00");
@@ -144,19 +131,10 @@ public class WorkTimeDefiner {
 
 		if (currentTime >= begWorkTime && currentTime <= endWorkTime) {
 			if (currentTime >= begBreakTime && currentTime < endBreakTime) {
-				Log.d(LOG_TAG, "return break false");
-				FileLog.writeLog("isDoWork: return break false");
-
 				return false;
 			}
-			Log.d(LOG_TAG, "return true");
-			FileLog.writeLog("isDoWork: return true");
-
 			return true;
 		} else {
-			Log.d(LOG_TAG, "return time false");
-			FileLog.writeLog("isDowWork: return time false");
-
 			return false;
 		}
 	}

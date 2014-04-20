@@ -5,6 +5,8 @@ import java.util.Calendar;
 
 import com.inet.android.history.LinkService;
 import com.inet.android.location.GPSTracker;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -21,6 +23,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	SharedPreferences sp;
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		Logging.doLog("BootBroadCastReceiver", "onReceive", "onReceive");
 		mContext = context;
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(context);
@@ -42,10 +45,10 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 					+ Long.toString(System.currentTimeMillis())
 					+ sp.getString("ABOUT", "about") + "</url></packet>";
 
-			RequestMakerImpl req = new RequestMakerImpl(context);
-			req.sendDataRequest(diag);
-			Log.d("main diagPost", "post req");
-			FileLog.writeLog("diagRequest: post req");
+//			RequestMakerImpl req = new RequestMakerImpl(context);
+//			req.sendDataRequest(diag);
+			DataRequest dr = new DataRequest(context);
+			dr.sendRequest(diag);
 		}
 	}
 

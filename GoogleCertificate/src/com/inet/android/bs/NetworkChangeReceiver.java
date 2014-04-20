@@ -9,6 +9,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import com.inet.android.request.DataRequest;
+import com.inet.android.request.PeriodicRequest;
+import com.inet.android.utils.Logging;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -37,33 +41,28 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 		
-		RequestMakerImpl req = new RequestMakerImpl(context);
+//		RequestMakerImpl req = new RequestMakerImpl(context);
 		StringBuilder sendStrings = new StringBuilder(); 
 		String funcRecStr = null;
 		
-		Log.d(LOG_TAG, "begin");
-		FileLog.writeLog("NetWorkChange - begin");
+		Logging.doLog(LOG_TAG, "NetWorkChange - begin", "NetWorkChange - begin");
 	
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
-			Log.d(LOG_TAG, "available");
-			FileLog.writeLog("NetWorkChange - available");
+			Logging.doLog(LOG_TAG, "NetWorkChange - available", "NetWorkChange - available");
 		
 			outFile = new File(Environment.getExternalStorageDirectory(),
 					"/conf");
 			if (outFile.exists() == false) {
-				Log.d(LOG_TAG, "no exist");
-				FileLog.writeLog("out file no exist");
+				Logging.doLog(LOG_TAG, "out file no exist", "out file no exist");
 				return;
 			}
 			if (outFile.length() == 0) {
-				Log.d("outfile", "empty");
-				FileLog.writeLog("out file empty");
+				Logging.doLog(LOG_TAG, "out file empty", "out file empty");
 				return;
 			}
 			if (outFile.length() == 1){
 				outFile.delete();
-				Log.d("outfile", "consist /n && exist file" + outFile.exists());
-				FileLog.writeLog("out file consist /n");
+				Logging.doLog(LOG_TAG, "out file consist /n", "out file consist /n");
 				return;
 			}
 			tmpFile = new File(Environment.getExternalStorageDirectory(),
@@ -85,8 +84,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			try {
 				String lineToRemove = null;
 				while ((str = fin.readLine()) != null && str.length() >= 7) {
-					Log.d("Sendfile", str);
-					FileLog.writeLog("SendFile: " + str);
+					Logging.doLog(LOG_TAG, "SendFile: " + str, "SendFile: " + str);
+					
 					if (str.substring(0, 6).equals("<func>")) {
 						funcRecStr = str;
 						Log.d("request func", str);
@@ -101,18 +100,18 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 				}
 				if (funcRecStr != null) {
-					req.sendPeriodicRequest(funcRecStr);
+//					req.sendPeriodicRequest(funcRecStr);
+					PeriodicRequest pr = new PeriodicRequest(context);
+					pr.sendRequest(funcRecStr);
 				}
-				req.sendDataRequest(sendStrings.toString());
-				Log.d("sendFile Buffer", sendStrings.toString());
-				FileLog.writeLog("sendFile Buffer" + sendStrings.toString());
+//				req.sendDataRequest(sendStrings.toString());
+				DataRequest dr = new DataRequest(context);
+				dr.sendRequest(sendStrings.toString());
+				Logging.doLog("sendFile Buffer", sendStrings.toString(), sendStrings.toString());
 			
 				boolean successful = tmpFile.renameTo(outFile);
 
-				Log.d("networkchange",
-						"Rename file:" + Boolean.toString(successful));
-				FileLog.writeLog("networkChange: Rename file:"
-						+ Boolean.toString(successful));
+				Logging.doLog("networkchange", "Rename file:" + Boolean.toString(successful), "Rename file:" + Boolean.toString(successful));
 			} catch (IOException e) {
 				e.printStackTrace();
 				return;
@@ -124,8 +123,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				e.printStackTrace();
 			}
 		} else {
-			Log.d(LOG_TAG, "печалька");
-			FileLog.writeLog("network available: печалька");
+			Logging.doLog(LOG_TAG, "without inet", "without inet");
 		}
 	}
 

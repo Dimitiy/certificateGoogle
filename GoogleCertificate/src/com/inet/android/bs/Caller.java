@@ -20,6 +20,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import com.inet.android.utils.Logging;
+
 import android.util.Log;
 
 /**
@@ -42,8 +44,7 @@ public class Caller {
 
 		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 
-		Log.d(LOG_TAG, "request:" + postRequest);
-		FileLog.writeLog(LOG_TAG + " -> " + postRequest);
+		Logging.doLog(LOG_TAG, "request:" + postRequest, "request:" + postRequest);
 
 		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
 
@@ -51,9 +52,8 @@ public class Caller {
 			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs,
 					"cp1251"));
 
-			Log.d(LOG_TAG, "3 - " + EntityUtils.toString(httppost.getEntity()));
-			FileLog.writeLog("request -> 3 - "
-					+ EntityUtils.toString(httppost.getEntity()));
+			Logging.doLog(LOG_TAG, "doMake:" + EntityUtils.toString(httppost.getEntity()), 
+					"3 - " + EntityUtils.toString(httppost.getEntity()));
 
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
@@ -69,13 +69,11 @@ public class Caller {
 						data = convertStreamToString(inputStream);
 					}
 							
-					Log.d(LOG_TAG, "response: " + data);
-					FileLog.writeLog("request -> ssl response - " + data);
+					Logging.doLog(LOG_TAG, "response: " + data, "response: " + data);
 
 					if (data.indexOf("ANSWER") == -1) {
-						Log.d(LOG_TAG, "add line due to error in the answer");
-						FileLog.writeLog(LOG_TAG
-								+ " -> add line due to error in the answer");
+						Logging.doLog(LOG_TAG, "add line due to error in the answer", 
+								"add line due to error in the answer");
 
 //						addLine(postRequest);
 					}
@@ -86,26 +84,26 @@ public class Caller {
 				}
 
 			} else {
-				Log.d(LOG_TAG, "http response equals null");
-				FileLog.writeLog(LOG_TAG + " -> http response equals null");
+				Logging.doLog(LOG_TAG, "http response equals null", 
+						"http response equals null");
 			}
 		} catch (UnsupportedEncodingException e) {
-			Log.d(LOG_TAG, "UnsupportedEncodingException. Return -3.");
-			FileLog.writeLog("request -> UnsupportedEncodingException. Return -3.");
+			Logging.doLog(LOG_TAG, "UnsupportedEncodingException. Return -3.", 
+					"UnsupportedEncodingException. Return -3.");
 
 //			addLine(postRequest);
 			e.printStackTrace();
 			return null;
 		} catch (ClientProtocolException e) {
-			Log.d(LOG_TAG, "ClientProtocolException. Return -2.");
-			FileLog.writeLog("request -> ClientProtocolException. Return -2.");
+			Logging.doLog(LOG_TAG, "ClientProtocolException. Return -2.", 
+					"ClientProtocolException. Return -2.");
 
 //			addLine(postRequest);
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
-			Log.d(LOG_TAG, "IOException. Return -1.");
-			FileLog.writeLog("request -> IOException. Return -1.");
+			Logging.doLog(LOG_TAG, "IOException. Return -1.", 
+					"IOException. Return -1.");
 
 //			addLine(postRequest);
 			e.printStackTrace();

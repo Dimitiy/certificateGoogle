@@ -1,4 +1,4 @@
-package com.inet.android.bs;
+package com.inet.android.utils;
 
 import java.io.IOException;
 import java.net.InetAddress;

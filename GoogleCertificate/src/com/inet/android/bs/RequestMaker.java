@@ -18,18 +18,18 @@ package com.inet.android.bs;
  */
 public interface RequestMaker {
 
-	/**
-	 * Make periodic request<br> 
-	 */
-	void sendPeriodicRequest(String str);   
+//	/**
+//	 * Make periodic request<br> 
+//	 */
+//	void sendPeriodicRequest(String str);   
 	
-	/**
-	 * Make request with data<br>
-	 */
-	void sendDataRequest(String str);
+//	/**
+//	 * Make request with data<br>
+//	 */
+//	void sendDataRequest(String str);
 	
-	/**
-	 * Make start request<br>
-	 */
-	void sendStartRequest(String str);
+//	/**
+//	 * Make start request<br>
+//	 */
+//	void sendStartRequest(String str);
 }
