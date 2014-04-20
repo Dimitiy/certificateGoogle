@@ -28,6 +28,7 @@ import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.inet.android.archive.sms.ArchiveSms;
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
 import com.inet.android.info.GetInfo;
@@ -74,6 +75,8 @@ public class MainActivity extends Activity {
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
 		GetInfo getInfo = new  GetInfo(context);
 		getInfo.getInfo();
+//		ArchiveSms arhSms = new ArchiveSms(context);
+//		arhSms.getSms();
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
