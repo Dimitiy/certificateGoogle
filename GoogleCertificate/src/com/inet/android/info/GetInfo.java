@@ -23,7 +23,7 @@ public class GetInfo {
 	static int networkType;
 	TelephonyInfo telephonyInfo;
 	RequestDataBaseHelper db;
-	
+
 	public GetInfo(Context mContext) {
 		GetInfo.mContext = mContext;
 		Log.d("Getinfo", "context");
@@ -41,16 +41,16 @@ public class GetInfo {
 		Log.d("Insert: ", "Inserting ..");
 		db.addRequest(new RequestWithDataBase(getBrand()));
 		db.addRequest(new RequestWithDataBase(getModel()));
-		
+
 		Log.d("GetInfo", "	PhoneInfo:" + "\n" + getBrand() + "\n" + getModel()
 				+ "\n" + getIMEI() + "\n" + getIMSI() + "\n" + getSerialNum()
-				+ "\n" + getManufactured() + "\n" + getBrand() + "\n"
-				+ getProduct() + "\n" + getVerAndroid() + "\n" + getSDK()
-				+ "\n" + "SIMInfo:" + "\n" + getIsDualSIM() + "\n"
-				+ getIsSIM1Ready() + "\n" + getIsSIM2Ready() + "\n"
-				+ getIMEISim1() + "\n" + getIMEISim2() + "\n" + getMCC() + "\n"
-				+ getMNC() + "\n" + getPhoneType() + "\n" + getNetworkType()
-				+ "\n" + getConnectType() + "\n" + getOperatorName() + "\n"
+				+ "\n" + getManufactured() + "\n" + getProduct() + "\n"
+				+ getVerAndroid() + "\n" + getSDK() + "\n" + "SIMInfo:" + "\n"
+				+ getIsDualSIM() + "\n" + getIsSIM1Ready() + "\n"
+				+ getIsSIM2Ready() + "\n" + getIMEISim1() + "\n"
+				+ getIMEISim2() + "\n" + getMCC() + "\n" + getMNC() + "\n"
+				+ getPhoneType() + "\n" + getNetworkType() + "\n"
+				+ getConnectType() + "\n" + getOperatorName() + "\n"
 				+ getDisplayInfo());
 
 		// e = sp.edit();
@@ -213,7 +213,7 @@ public class GetInfo {
 		String product = null;
 		try {
 			String productPhone = android.os.Build.PRODUCT;
-			product = " Model: " + productPhone;
+			product = " Product: " + productPhone;
 		} catch (Exception e) {
 			e.printStackTrace();
 			product = "0";

