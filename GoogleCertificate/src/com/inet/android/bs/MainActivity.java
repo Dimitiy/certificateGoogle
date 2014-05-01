@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		setContentView(R.layout.activity_main);
+		//setContentView(R.layout.activity_main);
 		context = getApplicationContext();
 		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 	
