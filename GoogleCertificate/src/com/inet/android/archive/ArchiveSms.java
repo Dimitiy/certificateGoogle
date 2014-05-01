@@ -1,4 +1,4 @@
-package com.inet.android.archive.sms;
+package com.inet.android.archive;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,7 +9,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.inet.android.covertdate.ConvertDate;
+import com.inet.android.convertdate.ConvertDate;
 
 /**
  * Archive Sms. Watch sms
@@ -20,14 +20,6 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 	ConvertDate date;
 	Context mContext;
 	private static final String TAG = "ArchiveSMS";
-
-	// private static long id = 0;
-
-	// public ArchiveSms(Context context) {
-	// // TODO јвтоматически созданна€ заглушка конструктора
-	// ArchiveSms.mContext = context;
-	// Log.d("Getinfo", "context");
-	// }
 
 	public void getSmsLogs() {
 		try {

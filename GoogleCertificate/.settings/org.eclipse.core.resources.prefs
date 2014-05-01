@@ -1,3 +1,4 @@
 eclipse.preferences.version=1
-encoding//src/com/inet/android/bs/Request.java=UTF-8
+
+encoding//src/com/inet/android/bs/RequestMakerImpl.java=UTF-8
 encoding//src/com/inet/android/sms/SMSBroadcastReceiver.java=UTF-8

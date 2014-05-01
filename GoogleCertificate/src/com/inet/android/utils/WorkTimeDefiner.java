@@ -1,12 +1,11 @@
-package com.inet.android.bs;
+package com.inet.android.utils;
 
 import java.util.Calendar;
-import java.util.concurrent.TimeUnit;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
+
 
 public class WorkTimeDefiner {
 	private static SharedPreferences sp;
@@ -15,8 +14,6 @@ public class WorkTimeDefiner {
 
 	public static boolean isDoWork(String begTime, String endTime,
 			String begBrkTime, String endBrkTime) {
-		Log.d(LOG_TAG, "begin");
-		FileLog.writeLog("begin");
 
 		Calendar calendar = Calendar.getInstance();
 
@@ -61,24 +58,15 @@ public class WorkTimeDefiner {
 
 		if (currentTime >= begWorkTime && currentTime <= endWorkTime) {
 			if (currentTime >= begBreakTime && currentTime < endBreakTime) {
-				Log.d(LOG_TAG, "return break false");
-				FileLog.writeLog("return break false");
 				return false;
 			}
-			Log.d(LOG_TAG, "return true");
-			FileLog.writeLog("return true");
 			return true;
 		} else {
-			Log.d(LOG_TAG, "return time false");
-			FileLog.writeLog("return time false");
 			return false;
 		}
 	}
 
 	public static boolean isDoWork(Context ctx) {
-		Log.d(LOG_TAG, "begin");
-		FileLog.writeLog("diagRequest: begin");
-
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		String timeFrom = sp.getString("TIME_FR", "00:00");
@@ -92,7 +80,6 @@ public class WorkTimeDefiner {
 		if (timeTo.equals("")) {
 			timeTo = "00:00";
 		}
-
 		if (brkTimeFrom.equals("")) {
 			brkTimeFrom = "00:00";
 		}
@@ -144,66 +131,11 @@ public class WorkTimeDefiner {
 
 		if (currentTime >= begWorkTime && currentTime <= endWorkTime) {
 			if (currentTime >= begBreakTime && currentTime < endBreakTime) {
-				Log.d(LOG_TAG, "return break false");
-				FileLog.writeLog("isDoWork: return break false");
-
 				return false;
 			}
-			Log.d(LOG_TAG, "return true");
-			FileLog.writeLog("isDoWork: return true");
-
 			return true;
 		} else {
-			Log.d(LOG_TAG, "return time false");
-			FileLog.writeLog("isDowWork: return time false");
-
 			return false;
 		}
 	}
-
-	public static void diagRequest(Context ctx) {
-		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
-
-		String str = "<func>getinfo</func><id>"
-				+ sp.getString("ID", "tel") + "</id>";
-		String action = null;
-
-		do {
-			Log.d(LOG_TAG_2, "before req");
-			FileLog.writeLog("diagRequest: before req");
-
-			Request req = new Request(ctx);
-			req.sendFirstRequest(str);
-			Log.d(LOG_TAG_2, "post req");
-			FileLog.writeLog("diagRequest: post req");
-
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(ctx);
-			action = sp.getString("ACTION", "PAUSE");
-			if (action.equals("PAUSE")) {
-				try {
-					TimeUnit.MILLISECONDS.sleep(300000);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-
-			if (action.equals("STOP")) {
-				Log.d(LOG_TAG_2, "WAT?????");
-				FileLog.writeLog("diagRequest: WAT?????");
-
-				break;
-			}
-		} while (!action.equals("OK") && !action.equals("REMOVE"));
-
-		if (action.equals("REMOVE")) {
-			Log.d(LOG_TAG_2, "REMOVE");
-			FileLog.writeLog("diagRequest: REMOVE");
-		}
-
-		Log.d(LOG_TAG_2, "action - " + action);
-		FileLog.writeLog("diagRequest: action - " + action);
-	}
-
 }

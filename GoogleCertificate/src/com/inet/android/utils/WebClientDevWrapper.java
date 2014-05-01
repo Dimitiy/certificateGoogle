@@ -1,4 +1,4 @@
-package com.inet.android.bs;
+package com.inet.android.utils;
 
 import java.security.KeyStore;
 
@@ -18,6 +18,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
+
 
 public class WebClientDevWrapper {
 

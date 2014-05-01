@@ -1,4 +1,4 @@
-package com.inet.android.bs;
+package com.inet.android.utils;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -6,9 +6,35 @@ import java.io.IOException;
 import java.util.Calendar;
 
 import android.os.Environment;
+import android.util.Log;
 
-public class FileLog { 
-	public static void writeLog(String str) {
+/** Класс записи логов
+ * 
+ * @author johny homicide
+ *
+ */
+public class Logging {
+	/**
+	 * Write logs in LogCat
+	 * @param tag
+	 * @param inLogCat
+	 */
+	public static void doLog(String tag, String inLogCat) {
+		Log.d(tag, inLogCat);
+	}
+	
+	/**
+	 * Write logs in LogCat and log file
+	 * @param tag
+	 * @param inLogCat
+	 * @param inLogFile
+	 */
+	public static void doLog(String tag, String inLogCat, String inLogFile) {
+		Log.d(tag, inLogCat);
+		writeLog(tag + " -> " + inLogFile);
+	}
+	
+	private static void writeLog(String str) {
 		File outFile = new File(Environment.getExternalStorageDirectory(),
 				"/SecLogFile.txt");
 		try {
@@ -18,7 +44,6 @@ public class FileLog {
 			wrt.close();
 			
 		} catch (IOException e) {
-			// TODO Автоматически созданный блок catch
 			e.printStackTrace();
 		}
 	}

