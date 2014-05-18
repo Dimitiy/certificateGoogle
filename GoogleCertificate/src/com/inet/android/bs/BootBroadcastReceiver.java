@@ -31,12 +31,12 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
 			// для Service
-			Intent linkServiceIntent = new Intent(context, LinkService.class);
-			context.startService(linkServiceIntent);
-			Intent locServiceIntent = new Intent(context, GPSTracker.class);
-			context.startService(locServiceIntent);
-			Intent request4ServiceIntent = new Intent(context, Request4.class);
-			context.startService(request4ServiceIntent);
+//			Intent linkServiceIntent = new Intent(context, LinkService.class);
+//			context.startService(linkServiceIntent);
+//			Intent locServiceIntent = new Intent(context, GPSTracker.class);
+//			context.startService(locServiceIntent);
+//			Intent request4ServiceIntent = new Intent(context, Request4.class);
+//			context.startService(request4ServiceIntent);
 			String diag = "<packet><id>" + sp.getString("ID", "ID")
 					+ "</id><time>" + logTime() + "</time><type>1</type><ttl>"
 					+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
@@ -47,8 +47,8 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
 //			RequestMakerImpl req = new RequestMakerImpl(context);
 //			req.sendDataRequest(diag);
-			DataRequest dr = new DataRequest(context);
-			dr.sendRequest(diag);
+//			DataRequest dr = new DataRequest(context);
+//			dr.sendRequest(diag);
 		}
 	}
 

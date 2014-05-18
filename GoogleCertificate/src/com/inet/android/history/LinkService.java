@@ -4,6 +4,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -48,20 +52,20 @@ public class LinkService extends Service {
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		
-		Logging.doLog(LOG_TAG, "onStartCommand - " + sp.getString("ID", "ID"), 
-				"onStartCommand - " + sp.getString("ID", "ID"));
+		Logging.doLog(LOG_TAG, "onStartCommand - " + sp.getString("account", "ID"), 
+				"onStartCommand - " + sp.getString("account", "ID"));
 		
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
-		String linkEnd = sp.getString("ACTION", "OK");
+		String linkEnd = sp.getString("code", "2");
 
-		if (linkEnd.equals("REMOVE")) {
-			Logging.doLog(LOG_TAG, "REMOVE", "REMOVE");
+		if (linkEnd.equals("3")) {
+			Logging.doLog(LOG_TAG, "code : 3", "code : 3");
 			
 			return 0;
 		}
 		
 		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, 1);// через 1 минут
+		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));// через 1 минут
 
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
 				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),
@@ -149,14 +153,36 @@ public class LinkService extends Service {
 //							+ "Интернет-браузер</app><url>" + url
 //							+ "</url><ntime>" + "30"
 //							+ "</ntime></packet>";
-					String sendJSONStr = "\"id\":\"" + sp.getString("ID", "0000") + "\","
-							+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
-							+ "\"time\":\"" + urlDateInFormat + "\","
-							+ "\"type\":\"4\","
-							+ "\"url\":\"" + url + "\","
-							+ "\"duration\":\"" + 30 + "\"}";
-//					RequestMakerImpl req = new RequestMakerImpl(context);
-//					req.sendDataRequest(sendJSONStr);
+//					String sendJSONStr = "\"id\":\"" + sp.getString("ID", "0000") + "\","
+//							+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
+//							+ "\"time\":\"" + urlDateInFormat + "\","
+//							+ "\"type\":\"4\","
+//							+ "\"url\":\"" + url + "\","
+//							+ "\"duration\":\"" + 30 + "\"}";
+					
+					String sendJSONStr = null;
+					JSONObject jsonObject = new JSONObject();
+					JSONArray data = new JSONArray();
+					JSONObject info = new JSONObject();
+					JSONObject object = new JSONObject();
+					try {
+						jsonObject.put("account", sp.getString("account", "0000"));
+						jsonObject.put("device", sp.getString("device", "0000"));
+						jsonObject.put("imei", sp.getString("imei", "0000"));
+						jsonObject.put("key", System.currentTimeMillis());
+						
+						info.put("url", url);
+						info.put("duration", "30");
+						
+						object.put("time", urlDateInFormat);
+						object.put("type", "7");
+						object.put("info", info);
+						data.put(object);
+						jsonObject.put("data", data);
+						sendJSONStr = jsonObject.toString();
+					} catch (JSONException e) {
+						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+					}
 					
 					DataRequest dr = new DataRequest(context);
 					dr.sendRequest(sendJSONStr);

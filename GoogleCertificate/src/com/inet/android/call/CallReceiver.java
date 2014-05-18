@@ -1,11 +1,12 @@
 package com.inet.android.call;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -27,23 +28,18 @@ import com.inet.android.utils.WorkTimeDefiner;
  *
  */
 public class CallReceiver extends BroadcastReceiver {
-	String phoneNumber = "";
-	File outFile;
-	FileWriter wrt;
-	String str = "";
-	FileReader fin;
-	Context ctx;
-	String date;
-	SharedPreferences sp;
+	private Context ctx;
+	private String date;
+	private SharedPreferences sp;
 	private static String LOG_TAG = "callReciver";
 
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
 		sp = PreferenceManager.getDefaultSharedPreferences(arg0);
-		String call = sp.getString("KBD", "0");
+		String call = sp.getString("call", "0");
 
 		if (call.equals("0")) {
-			Logging.doLog(LOG_TAG, "KBD = 0", "KBD = 0");
+			Logging.doLog(LOG_TAG, "call : 0", "call : 0");
 			return;
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
@@ -105,23 +101,23 @@ public class CallReceiver extends BroadcastReceiver {
 		String phNumber = managedCursor.getString(number);
 		String callType = managedCursor.getString(type);
 		String callDuration = managedCursor.getString(duration);
-		if (Integer.parseInt(callDuration) < 30) {
-			callDuration = "30";
-		}
+//		if (Integer.parseInt(callDuration) < 30) {
+//			callDuration = "5";
+//		}
 		String callTypeStr = null;
 		int dircode = Integer.parseInt(callType);
 
 		switch (dircode) {
 		case CallLog.Calls.OUTGOING_TYPE:
-			callTypeStr = "Outgoing";
+			callTypeStr = "3";
 			break;
 
 		case CallLog.Calls.INCOMING_TYPE:
-			callTypeStr = "Incoming";
+			callTypeStr = "2";
 			break;
 
 		case CallLog.Calls.MISSED_TYPE:
-			callTypeStr = "Missed";
+			callTypeStr = "4";
 			break;
 		}
 
@@ -135,20 +131,42 @@ public class CallReceiver extends BroadcastReceiver {
 //				+ "</id><time>" + date + "</time><type>4</type><app>" + callType
 //				+ "</app><ttl>" + phNumber + "</ttl><ntime>" + callDuration
 //				+ "</ntime></packet>";
-		String sendJSONStr = "\"id\":\"" + sp.getString("ID", "0000") + "\","
-				+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
-				+ "\"time\":\"" + date + "\","
-				+ "\"type\":\"2\","
-				+ "\"app\":\"" + callTypeStr + "\","
-				+ "\"tel\":\"" + phNumber + "\","
-				+ "\"duration\":\"" + callDuration + "\"}";
-//		RequestMakerImpl req = new RequestMakerImpl(ctx);
-//		req.sendDataRequest(sendJSONStr);
+//		String sendJSONStr = "{\"id\":\"" + sp.getString("ID", "0000") + "\","
+//				+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
+//				+ "\"time\":\"" + date + "\","
+//				+ "\"type\":\"2\","
+//				+ "\"app\":\"" + callTypeStr + "\","
+//				+ "\"tel\":\"" + phNumber + "\","
+//				+ "\"duration\":\"" + callDuration + "\"}";
+		String sendJSONStr = null;
+		JSONObject jsonObject = new JSONObject();
+		JSONArray data = new JSONArray();
+		JSONObject info = new JSONObject();
+		JSONObject object = new JSONObject();
+		try {
+			jsonObject.put("account", sp.getString("account", "0000"));
+			jsonObject.put("device", sp.getString("device", "0000"));
+			jsonObject.put("imei", sp.getString("imei", "0000"));
+			jsonObject.put("key", System.currentTimeMillis());
+			
+			info.put("tel", phNumber);
+			info.put("duration", callDuration);
+			
+			object.put("time", date);
+			object.put("type", callTypeStr);
+			object.put("info", info);
+			data.put(object);
+			jsonObject.put("data", data);
+			sendJSONStr = jsonObject.toString();
+		} catch (JSONException e) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+		}
 		
 		DataRequest dr = new DataRequest(ctx);
 		dr.sendRequest(sendJSONStr);
 
 		Logging.doLog(LOG_TAG, sb.toString(), sb.toString());
+		Logging.doLog(LOG_TAG, sendJSONStr);
 	}
 
 	@SuppressLint("SimpleDateFormat")

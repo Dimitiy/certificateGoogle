@@ -8,9 +8,7 @@ import android.preference.PreferenceManager;
 
 
 public class WorkTimeDefiner {
-	private static SharedPreferences sp;
-	private static String LOG_TAG = "isDoWork";
-	private static String LOG_TAG_2 = "diagRequest";
+//	private static String LOG_TAG = "isDoWork";
 
 	public static boolean isDoWork(String begTime, String endTime,
 			String begBrkTime, String endBrkTime) {
@@ -43,7 +41,7 @@ public class WorkTimeDefiner {
 				.indexOf(":") + 1))
 				+ Integer.parseInt(endBrkTime.substring(0,
 						endBrkTime.indexOf(":"))) * 60;
-
+		
 		if (begWorkTime > endWorkTime) {
 			if (currentTime < endWorkTime) {
 				currentTime += 3600;
@@ -69,10 +67,10 @@ public class WorkTimeDefiner {
 	public static boolean isDoWork(Context ctx) {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
-		String timeFrom = sp.getString("TIME_FR", "00:00");
-		String timeTo = sp.getString("TIME_TO", "23:59");
-		String brkTimeFrom = sp.getString("BRK1_FR", "00:00");
-		String brkTimeTo = sp.getString("BRK1_TO", "00:00");
+		String timeFrom = sp.getString("time_from", "00:00");
+		String timeTo = sp.getString("time_to", "00:00");
+		String brkTimeFrom = sp.getString("brk_from", "00:00");
+		String brkTimeTo = sp.getString("brk_to", "00:00");
 
 		if (timeFrom.equals("")) {
 			timeFrom = "00:00";
@@ -116,7 +114,7 @@ public class WorkTimeDefiner {
 				.indexOf(":") + 1))
 				+ Integer.parseInt(brkTimeTo.substring(0,
 						brkTimeTo.indexOf(":"))) * 60;
-
+		
 		if (begWorkTime > endWorkTime) {
 			if (currentTime < endWorkTime) {
 				currentTime += 3600;

