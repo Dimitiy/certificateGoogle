@@ -4,12 +4,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.inet.android.bs.Caller;
+import com.inet.android.bs.MainActivity;
+import com.inet.android.bs.Request4;
 import com.inet.android.utils.Logging;
 
 /**
@@ -42,7 +45,13 @@ public class StartRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String postRequest) {
-		getRequestData(Caller.doMake(postRequest));
+		String str = Caller.doMake(postRequest, "initial/");
+		if (str != null) {
+			getRequestData(str);
+		} else {
+			Logging.doLog(LOG_TAG, "ответа от сервера нет или статус ответа плох", 
+					"ответа от сервера нет или статус ответа плох");
+		}
 	}
 
 	@Override
@@ -57,7 +66,10 @@ public class StartRequest extends DefaultRequest {
 		try {
 			jsonObject = new JSONObject(string);
 		} catch (JSONException e) {
-			e.printStackTrace();
+			if (string == null) {
+				Logging.doLog(LOG_TAG, "json null", "json null");
+			}
+			return;
 		}
 		
 		String str = null;
@@ -69,7 +81,7 @@ public class StartRequest extends DefaultRequest {
 		if (str != null) {
 			ed.putString("code", str);
 		} else {
-			ed.putString("code", "");
+			ed.putString("code", "code");
 		}
 				
 		if (str.equals("1")) {
@@ -79,9 +91,9 @@ public class StartRequest extends DefaultRequest {
 				e.printStackTrace();
 			}
 			if (str != null) {
-				ed.putString("ID", str);
+				ed.putString("device", str);
 			} else {
-				ed.putString("ID", "");
+				ed.putString("device", "device");
 			}	
 		}
 		
@@ -89,12 +101,12 @@ public class StartRequest extends DefaultRequest {
 			try {
 				str = jsonObject.getString("error");
 			} catch (JSONException e) {
-				e.printStackTrace();
+				str = null;
 			}
 			if (str != null) {
 				ed.putString("error", str);
 			} else {
-				ed.putString("error", "");
+				ed.putString("error", "error");
 			}
 			if (str.equals("0")) 
 				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
