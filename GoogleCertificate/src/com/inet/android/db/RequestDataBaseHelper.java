@@ -113,7 +113,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	/**
 	 *  Число запросов в Базе
 	*/
-	public int getContactsCount() {
+	public int getRequestCount() {
 		String countQuery = "SELECT  * FROM " + DATABASE_TABLE;
 		SQLiteDatabase db = this.getReadableDatabase();
 		Cursor cursor = db.rawQuery(countQuery, null);
@@ -125,7 +125,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	/**
 	 *  Обновить запрос
 	*/
-	public int updateContact(RequestWithDataBase request) {
+	public int updateRequest(RequestWithDataBase request) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
 		ContentValues values = new ContentValues();
@@ -139,7 +139,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	/**
 	 *  Удалить запрос
 	*/
-	public void deleteContact(RequestWithDataBase request) {
+	public void deleteRequest(RequestWithDataBase request) {
 		SQLiteDatabase db = this.getWritableDatabase();
 		db.delete(DATABASE_TABLE, COLUMN_ID + " = ?",
 				new String[] { String.valueOf(request.getID()) });

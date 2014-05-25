@@ -5,24 +5,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
-
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import com.inet.android.utils.Logging;
-
-import android.util.Log;
 
 /**
  * 
@@ -31,38 +28,58 @@ import android.util.Log;
  */
 public class Caller {
 	private final static String LOG_TAG = "Caller";
-
+	
 	/**
 	 * Performs HTTP POST
 	 */
-	public static String doMake(String postRequest){
+	public static String doMake(String postRequest, String addition){
 		String data = null;
 		
 		// Создадим HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
-		HttpPost httppost = new HttpPost("http://inp2.timespyder.com");
+		URI uri = null;
+		HttpPost httppost = null;
+		try {
+			uri = new URI("http://188.226.208.100/" + addition);
+			Logging.doLog(LOG_TAG, uri.toASCIIString());
+			httppost = new HttpPost(uri);
+			httppost.setHeader("Accept", "application/json");
+			httppost.setHeader(HTTP.CONTENT_TYPE, "application/json");
+		} catch (URISyntaxException e1) {
+			Logging.doLog(LOG_TAG, "bad in uri");
+			e1.printStackTrace();
+		}
+		
+		Logging.doLog(LOG_TAG, "request: " + postRequest, "request: " + postRequest);
 
-		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-
-		Logging.doLog(LOG_TAG, "request:" + postRequest, "request:" + postRequest);
-
-		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
+//		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+//		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
+		
+		
 
 		try {
-			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs,
-					"cp1251"));
+//			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs,
+//					"cp1251"));
+//			StringEntity se = new StringEntity("{\"account\":\"3\",\"model\":\"iphone\",\"imei\":\"1234567890\"}");
+			StringEntity se = new StringEntity(postRequest);
+			se.setContentType("application/json");
+			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+//			httppost.setEntity(new ByteArrayEntity(postRequest.getBytes()));
+			httppost.setEntity(se);
+			
+			
 
-			Logging.doLog(LOG_TAG, "doMake:" + EntityUtils.toString(httppost.getEntity()), 
-					"3 - " + EntityUtils.toString(httppost.getEntity()));
+			Logging.doLog(LOG_TAG, "doMake: " + EntityUtils.toString(httppost.getEntity()), 
+					"doMake: " + EntityUtils.toString(httppost.getEntity()));
 
 			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 
 			if (response != null) {
-				try {
-//					data = EntityUtils.toString(response.getEntity());
-							
+				try {							
 					HttpEntity httpEntity = response.getEntity();
+					
+//					data = EntityUtils.toString(response.getEntity());
 							
 					if(httpEntity != null){
 						InputStream inputStream = httpEntity.getContent();
@@ -71,10 +88,10 @@ public class Caller {
 							
 					Logging.doLog(LOG_TAG, "response: " + data, "response: " + data);
 
-					if (data.indexOf("ANSWER") == -1) {
-						Logging.doLog(LOG_TAG, "add line due to error in the answer", 
-								"add line due to error in the answer");
-
+					if (data.indexOf("code") == -1) {
+						Logging.doLog(LOG_TAG, "something wrong in the answer", 
+								"something wrong in the answer");
+						return null;
 //						addLine(postRequest);
 					}
 				} catch (ParseException e) {
