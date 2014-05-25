@@ -23,18 +23,18 @@ import com.inet.android.utils.Logging;
 public class StartRequest extends DefaultRequest {
 	private final String LOG_TAG = "StartRequest";
 	Context ctx;
-	
+
 	public StartRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
 	}
-	
+
 	@Override
 	public void sendRequest(String str) {
 		RequestTask srt = new RequestTask();
 		srt.execute(str);
 	}
-	
+
 	class RequestTask extends AsyncTask<String, Void, Void> {
 		@Override
 		protected Void doInBackground(String... strs) {
@@ -49,8 +49,8 @@ public class StartRequest extends DefaultRequest {
 		if (str != null) {
 			getRequestData(str);
 		} else {
-			Logging.doLog(LOG_TAG, "ответа от сервера нет или статус ответа плох", 
-					"ответа от сервера нет или статус ответа плох");
+			Logging.doLog(LOG_TAG, "Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ ГЁГ«ГЁ Г±ГІГ ГІГіГ± Г®ГІГўГҐГІГ  ГЇГ«Г®Гµ", 
+					"Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ ГЁГ«ГЁ Г±ГІГ ГІГіГ± Г®ГІГўГҐГІГ  ГЇГ«Г®Гµ");
 		}
 	}
 
@@ -61,7 +61,7 @@ public class StartRequest extends DefaultRequest {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
-		
+
 		JSONObject jsonObject = null;
 		try {
 			jsonObject = new JSONObject(string);
@@ -71,7 +71,7 @@ public class StartRequest extends DefaultRequest {
 			}
 			return;
 		}
-		
+
 		String str = null;
 		try {
 			str = jsonObject.getString("code");
@@ -83,7 +83,7 @@ public class StartRequest extends DefaultRequest {
 		} else {
 			ed.putString("code", "code");
 		}
-				
+
 		if (str.equals("1")) {
 			try {
 				str = jsonObject.getString("device");
@@ -96,7 +96,7 @@ public class StartRequest extends DefaultRequest {
 				ed.putString("device", "device");
 			}	
 		}
-		
+
 		if (str.equals("0")) {
 			try {
 				str = jsonObject.getString("error");
@@ -109,15 +109,15 @@ public class StartRequest extends DefaultRequest {
 				ed.putString("error", "error");
 			}
 			if (str.equals("0")) 
-				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
+				Logging.doLog(LOG_TAG, "account Г­ГҐ Г­Г Г©Г¤ГҐГ­", "account Г­ГҐ Г­Г Г©Г¤ГҐГ­");
 			if (str.equals("1"))
-				Logging.doLog(LOG_TAG, "imei отсутствует или имеет неверный формат", 
-						"imei отсутствует или имеет неверный формат");
+				Logging.doLog(LOG_TAG, "imei Г®ГІГ±ГіГІГ±ГІГўГіГҐГІ ГЁГ«ГЁ ГЁГ¬ГҐГҐГІ Г­ГҐГўГҐГ°Г­Г»Г© ГґГ®Г°Г¬Г ГІ", 
+						"imei Г®ГІГ±ГіГІГ±ГІГўГіГҐГІ ГЁГ«ГЁ ГЁГ¬ГҐГҐГІ Г­ГҐГўГҐГ°Г­Г»Г© ГґГ®Г°Г¬Г ГІ");
 			if (str.equals("2")) 
-				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть", 
-						"устройство с указанным imei уже есть");
+				Logging.doLog(LOG_TAG, "ГіГ±ГІГ°Г®Г©Г±ГІГўГ® Г± ГіГЄГ Г§Г Г­Г­Г»Г¬ imei ГіГ¦ГҐ ГҐГ±ГІГј", 
+						"ГіГ±ГІГ°Г®Г©Г±ГІГўГ® Г± ГіГЄГ Г§Г Г­Г­Г»Г¬ imei ГіГ¦ГҐ ГҐГ±ГІГј");
 		}
-				
+
 		ed.commit();
 	}
 }

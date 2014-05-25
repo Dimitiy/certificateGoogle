@@ -28,14 +28,14 @@ import com.inet.android.utils.Logging;
  */
 public class Caller {
 	private final static String LOG_TAG = "Caller";
-	
+
 	/**
 	 * Performs HTTP POST
 	 */
 	public static String doMake(String postRequest, String addition){
 		String data = null;
-		
-		// Создадим HttpClient и PostHandler
+
+		// Г‘Г®Г§Г¤Г Г¤ГЁГ¬ HttpClient ГЁ PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
 		URI uri = null;
 		HttpPost httppost = null;
@@ -49,13 +49,13 @@ public class Caller {
 			Logging.doLog(LOG_TAG, "bad in uri");
 			e1.printStackTrace();
 		}
-		
+
 		Logging.doLog(LOG_TAG, "request: " + postRequest, "request: " + postRequest);
 
 //		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
 //		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
-		
-		
+
+
 
 		try {
 //			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs,
@@ -66,26 +66,26 @@ public class Caller {
 			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
 //			httppost.setEntity(new ByteArrayEntity(postRequest.getBytes()));
 			httppost.setEntity(se);
-			
-			
+
+
 
 			Logging.doLog(LOG_TAG, "doMake: " + EntityUtils.toString(httppost.getEntity()), 
 					"doMake: " + EntityUtils.toString(httppost.getEntity()));
 
-			// Выполним запрос
+			// Г‚Г»ГЇГ®Г«Г­ГЁГ¬ Г§Г ГЇГ°Г®Г±
 			HttpResponse response = httpclient.execute(httppost);
 
 			if (response != null) {
 				try {							
 					HttpEntity httpEntity = response.getEntity();
-					
+
 //					data = EntityUtils.toString(response.getEntity());
-							
+
 					if(httpEntity != null){
 						InputStream inputStream = httpEntity.getContent();
 						data = convertStreamToString(inputStream);
 					}
-							
+
 					Logging.doLog(LOG_TAG, "response: " + data, "response: " + data);
 
 					if (data.indexOf("code") == -1) {

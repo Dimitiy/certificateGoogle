@@ -8,21 +8,19 @@ import android.preference.PreferenceManager;
 
 
 public class WorkTimeDefiner {
-	private static SharedPreferences sp;
-	private static String LOG_TAG = "isDoWork";
-	private static String LOG_TAG_2 = "diagRequest";
+//	private static String LOG_TAG = "isDoWork";
 
 	public static boolean isDoWork(String begTime, String endTime,
 			String begBrkTime, String endBrkTime) {
 
 		Calendar calendar = Calendar.getInstance();
 
-		// текущее время
+		// ГІГҐГЄГіГ№ГҐГҐ ГўГ°ГҐГ¬Гї
 		int calendarHour = calendar.get(Calendar.HOUR_OF_DAY);
 		int calendarMinute = calendar.get(Calendar.MINUTE);
 		int currentTime = calendarMinute + calendarHour * 60;
 
-		// время рабочего дня
+		// ГўГ°ГҐГ¬Гї Г°Г ГЎГ®Г·ГҐГЈГ® Г¤Г­Гї
 		int begWorkTime = Integer.parseInt(begTime.substring(begTime
 				.indexOf(":") + 1))
 				+ Integer.parseInt(begTime.substring(0, begTime.indexOf(":")))
@@ -33,7 +31,7 @@ public class WorkTimeDefiner {
 				+ Integer.parseInt(endTime.substring(0, endTime.indexOf(":")))
 				* 60;
 
-		// время перерыва
+		// ГўГ°ГҐГ¬Гї ГЇГҐГ°ГҐГ°Г»ГўГ 
 		int begBreakTime = Integer.parseInt(begBrkTime.substring(begBrkTime
 				.indexOf(":") + 1))
 				+ Integer.parseInt(begBrkTime.substring(0,
@@ -69,10 +67,10 @@ public class WorkTimeDefiner {
 	public static boolean isDoWork(Context ctx) {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
-		String timeFrom = sp.getString("TIME_FR", "00:00");
-		String timeTo = sp.getString("TIME_TO", "23:59");
-		String brkTimeFrom = sp.getString("BRK1_FR", "00:00");
-		String brkTimeTo = sp.getString("BRK1_TO", "00:00");
+		String timeFrom = sp.getString("time_from", "00:00");
+		String timeTo = sp.getString("time_to", "00:00");
+		String brkTimeFrom = sp.getString("brk_from", "00:00");
+		String brkTimeTo = sp.getString("brk_to", "00:00");
 
 		if (timeFrom.equals("")) {
 			timeFrom = "00:00";
@@ -89,12 +87,12 @@ public class WorkTimeDefiner {
 
 		Calendar calendar = Calendar.getInstance();
 
-		// текущее время
+		// ГІГҐГЄГіГ№ГҐГҐ ГўГ°ГҐГ¬Гї
 		int calendarHour = calendar.get(Calendar.HOUR_OF_DAY);
 		int calendarMinute = calendar.get(Calendar.MINUTE);
 		int currentTime = calendarMinute + calendarHour * 60;
 
-		// время рабочего дня
+		// ГўГ°ГҐГ¬Гї Г°Г ГЎГ®Г·ГҐГЈГ® Г¤Г­Гї
 		int begWorkTime = Integer.parseInt(timeFrom.substring(timeFrom
 				.indexOf(":") + 1))
 				+ Integer
@@ -106,7 +104,7 @@ public class WorkTimeDefiner {
 				+ Integer.parseInt(timeTo.substring(0, timeTo.indexOf(":")))
 				* 60;
 
-		// время перерыва
+		// ГўГ°ГҐГ¬Гї ГЇГҐГ°ГҐГ°Г»ГўГ 
 		int begBreakTime = Integer.parseInt(brkTimeFrom.substring(brkTimeFrom
 				.indexOf(":") + 1))
 				+ Integer.parseInt(brkTimeFrom.substring(0,

@@ -20,7 +20,7 @@ import android.preference.PreferenceManager;
 public class DataRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
 	Context ctx;
-	
+
 	public DataRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
@@ -31,7 +31,7 @@ public class DataRequest extends DefaultRequest {
 		RequestTask mt = new RequestTask();
 		mt.execute(request);
 	}
-	
+
 	class RequestTask extends AsyncTask<String, Void, Void> {
 
 		@Override
@@ -57,14 +57,14 @@ public class DataRequest extends DefaultRequest {
 		if (str != null) {
 			getRequestData(str);
 		} else {
-			Logging.doLog(LOG_TAG, "ответа от сервера нет", "ответа от сервера нет");
+			Logging.doLog(LOG_TAG, "Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ", "Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ");
 		}
 	}
 
 	@Override
 	protected void getRequestData(String response) {
 		String postRequest = null;
-		
+
 		Logging.doLog(LOG_TAG, "getResponseData: " + response, "getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
@@ -79,7 +79,7 @@ public class DataRequest extends DefaultRequest {
 			e.printStackTrace();
 		}
 		postRequest = json.toString();
-		
+
 		JSONObject jsonObject = null;
 		String str = null;
 		try {
@@ -88,19 +88,19 @@ public class DataRequest extends DefaultRequest {
 		} catch (JSONException e) {
 			str = null;
 		}
-		
+
 		Editor ed = sp.edit();
 		if (str != null) {
 			ed.putString("code", str);
 		} else {
 			ed.putString("code", "");
 		}
-		
+
 		if (str.equals("2")) {
 			PeriodicRequest pr = new PeriodicRequest(ctx);
 			pr.sendRequest(postRequest);
 		}
-		
+
 		if (str.equals("0")) {
 			String errstr = null;
 			try {
