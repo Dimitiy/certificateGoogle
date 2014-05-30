@@ -60,20 +60,20 @@ public class CallReceiver extends BroadcastReceiver {
 
 		if (intent.getAction()
 				.equals("android.intent.action.NEW_OUTGOING_CALL")) {
-			// ïîëó÷àåì èñõîäÿùèé íîìåð
+			// получаем исходящий номер
 		} else if (intent.getAction().equals(
 				"android.intent.action.PHONE_STATE")) {
 			String phoneState = intent
 					.getStringExtra(TelephonyManager.EXTRA_STATE);
 			if (phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-				// òåëåôîí çâîíèò, ïîëó÷àåì âõîäÿùèé íîìåð
+				// телефон звонит, получаем входящий номер
 
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-				// òåëåôîí íàõîäèòñÿ â ðåæèìå çâîíêà (íàáîð íîìåðà / ðàçãîâîð)
+				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-				// òåëåôîí íàõîäèòñÿ â æäóùåì ðåæèìå (ñîáûòèå íàñòóïàåò ïî
-				// îêîí÷àíèè ðàçãîâîðà,
-				// êîãäà óæå çíàåì íîìåð è ôàêò çâîíêà
+				//  телефон находится в режиме звонка (набор номера / разговор)
+				// окончании разговора,
+				// когда уже знаем номер и факт звонка
 				try {
 					// TimeUnit.SECONDS.sleep(1);
 					TimeUnit.MILLISECONDS.sleep(1000);
@@ -159,7 +159,7 @@ public class CallReceiver extends BroadcastReceiver {
 			jsonObject.put("data", data);
 			sendJSONStr = jsonObject.toString();
 		} catch (JSONException e) {
-			Logging.doLog(LOG_TAG, "json ñëîìàëñÿ", "json ñëîìàëñÿ");
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}
 
 		DataRequest dr = new DataRequest(ctx);

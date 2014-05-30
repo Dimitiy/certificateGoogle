@@ -53,11 +53,11 @@ public class DataRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		String str = Caller.doMake(request, "informative");
+		String str = Caller.doMake(request, "informative", ctx);
 		if (str != null) {
 			getRequestData(str);
 		} else {
-			Logging.doLog(LOG_TAG, "îòâåòà îò ñåðâåðà íåò", "îòâåòà îò ñåðâåðà íåò");
+			Logging.doLog(LOG_TAG, "ответа от сервера нет", "ответа от сервера нет");
 		}
 	}
 
@@ -85,6 +85,7 @@ public class DataRequest extends DefaultRequest {
 		try {
 			jsonObject = new JSONObject(response);
 			str = jsonObject.getString("code");
+			Logging.doLog(LOG_TAG, "request: " + str);
 		} catch (JSONException e) {
 			str = null;
 		}

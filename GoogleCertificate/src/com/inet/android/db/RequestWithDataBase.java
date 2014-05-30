@@ -3,25 +3,30 @@ package com.inet.android.db;
 import android.util.Log;
 
 public class RequestWithDataBase {
-	// Создание геттеров-сеттеров
+	// РЎРѕР·РґР°РЅРёРµ РіРµС‚С‚РµСЂРѕРІ-СЃРµС‚С‚РµСЂРѕРІ
 	private int _id;
 	private String request;
 
-	// Пустой конструктор
+	// РџСѓСЃС‚РѕР№ РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ
 	public RequestWithDataBase() {
 
 	}
 
 	/**
-	 * Конструктор с параметрами
+	 * РљРѕРЅСЃС‚СЂСѓРєС‚РѕСЂ СЃ РїР°СЂР°РјРµС‚СЂР°РјРё
 	 */
 	public RequestWithDataBase(int id, String request) {
 		this._id = id;
 		this.request = request;
 	}
 
+	public RequestWithDataBase(int id) {
+		this._id = id;
+
+	}
+
 	public RequestWithDataBase(String request) {
-		Log.d("RequestWithDataBase","request");
+		Log.d("RequestWithDataBase", "request");
 		this.request = request;
 	}
 
@@ -34,14 +39,14 @@ public class RequestWithDataBase {
 	}
 
 	/**
-	 * Получить запрос
+	 * РџРѕР»СѓС‡РёС‚СЊ Р·Р°РїСЂРѕСЃ
 	 */
 	public String getRequest() {
 		return this.request;
 	}
 
 	/**
-	 * Записать запрос
+	 * Р—Р°РїРёСЃР°С‚СЊ Р·Р°РїСЂРѕСЃ
 	 */
 	public void setRequest(String request) {
 		this.request = request;

@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -19,26 +20,28 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
+import android.content.Context;
+import android.text.method.QwertyKeyListener;
+
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
 
-/**
- * 
- * @author johny homicide
- *
- */
 public class Caller {
 	private final static String LOG_TAG = "Caller";
-
+	static RequestDataBaseHelper db;
+	static Context mContext;
 	/**
 	 * Performs HTTP POST
 	 */
-	public static String doMake(String postRequest, String addition){
+	public static String doMake(String postRequest, String addition, Context context) {
 		String data = null;
-
-		// Ñîçäàäèì HttpClient è PostHandler
+		mContext = context;
+		// Создадим HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
 		URI uri = null;
 		HttpPost httppost = null;
+
 		try {
 			uri = new URI("http://188.226.208.100/" + addition);
 			Logging.doLog(LOG_TAG, uri.toASCIIString());
@@ -50,87 +53,95 @@ public class Caller {
 			e1.printStackTrace();
 		}
 
-		Logging.doLog(LOG_TAG, "request: " + postRequest, "request: " + postRequest);
+		Logging.doLog(LOG_TAG, "request: " + postRequest, "request: "
+				+ postRequest);
 
-//		List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-//		nameValuePairs.add(new BasicNameValuePair("content", postRequest));
-
-
+		// List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+		// nameValuePairs.add(new BasicNameValuePair("content", postRequest));
 
 		try {
-//			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs,
-//					"cp1251"));
-//			StringEntity se = new StringEntity("{\"account\":\"3\",\"model\":\"iphone\",\"imei\":\"1234567890\"}");
+			// httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs,
+			// "cp1251"));
+			// StringEntity se = new
+			// StringEntity("{\"account\":\"3\",\"model\":\"iphone\",\"imei\":\"1234567890\"}");
 			StringEntity se = new StringEntity(postRequest);
 			se.setContentType("application/json");
-			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-//			httppost.setEntity(new ByteArrayEntity(postRequest.getBytes()));
+			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
+					"application/json"));
+			// httppost.setEntity(new ByteArrayEntity(postRequest.getBytes()));
 			httppost.setEntity(se);
 
-
-
-			Logging.doLog(LOG_TAG, "doMake: " + EntityUtils.toString(httppost.getEntity()), 
+			Logging.doLog(LOG_TAG,
+					"doMake: " + EntityUtils.toString(httppost.getEntity()),
 					"doMake: " + EntityUtils.toString(httppost.getEntity()));
 
-			// Âûïîëíèì çàïðîñ
+			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 
 			if (response != null) {
-				try {							
+				try {
 					HttpEntity httpEntity = response.getEntity();
 
-//					data = EntityUtils.toString(response.getEntity());
+					// data = EntityUtils.toString(response.getEntity());
 
-					if(httpEntity != null){
+					if (httpEntity != null) {
 						InputStream inputStream = httpEntity.getContent();
 						data = convertStreamToString(inputStream);
 					}
 
-					Logging.doLog(LOG_TAG, "response: " + data, "response: " + data);
+					Logging.doLog(LOG_TAG, "response: " + data, "response: "
+							+ data);
 
 					if (data.indexOf("code") == -1) {
-						Logging.doLog(LOG_TAG, "something wrong in the answer", 
+						Logging.doLog(LOG_TAG, "something wrong in the answer",
 								"something wrong in the answer");
+						db = new RequestDataBaseHelper(mContext);
+						db.addRequest(new RequestWithDataBase(postRequest));
+						// addLine(postRequest);
 						return null;
-//						addLine(postRequest);
 					}
 				} catch (ParseException e) {
-							e.printStackTrace();
+					e.printStackTrace();
 				} catch (IOException e) {
-							e.printStackTrace();
+					e.printStackTrace();
 				}
 
 			} else {
-				Logging.doLog(LOG_TAG, "http response equals null", 
+				Logging.doLog(LOG_TAG, "http response equals null",
 						"http response equals null");
 			}
 		} catch (UnsupportedEncodingException e) {
-			Logging.doLog(LOG_TAG, "UnsupportedEncodingException. Return -3.", 
+			Logging.doLog(LOG_TAG, "UnsupportedEncodingException. Return -3.",
 					"UnsupportedEncodingException. Return -3.");
-
-//			addLine(postRequest);
+			db = new RequestDataBaseHelper(mContext);
+			db.addRequest(new RequestWithDataBase(postRequest));
+			// addLine(postRequest);
 			e.printStackTrace();
 			return null;
 		} catch (ClientProtocolException e) {
-			Logging.doLog(LOG_TAG, "ClientProtocolException. Return -2.", 
+			Logging.doLog(LOG_TAG, "ClientProtocolException. Return -2.",
 					"ClientProtocolException. Return -2.");
-
-//			addLine(postRequest);
+			db = new RequestDataBaseHelper(mContext);
+			db.addRequest(new RequestWithDataBase(postRequest));
+			// addLine(postRequest);
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
-			Logging.doLog(LOG_TAG, "IOException. Return -1.", 
+			Logging.doLog(LOG_TAG, "IOException. Return -1.",
 					"IOException. Return -1.");
-
-//			addLine(postRequest);
+			db = new RequestDataBaseHelper(mContext);
+			db.addRequest(new RequestWithDataBase(postRequest));
+			// addLine(postRequest);
 			e.printStackTrace();
 			return null;
-		}		
+		}
+		
 		return data;
 	}
 
 	private static String convertStreamToString(InputStream inputStream) {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				inputStream));
 		StringBuilder sb = new StringBuilder();
 
 		String line = null;

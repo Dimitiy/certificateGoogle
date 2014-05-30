@@ -8,7 +8,7 @@ import java.util.Calendar;
 import android.os.Environment;
 import android.util.Log;
 
-/** Êëàññ çàïèñè ëîãîâ
+/** Класс записи логов
  * 
  * @author johny homicide
  *

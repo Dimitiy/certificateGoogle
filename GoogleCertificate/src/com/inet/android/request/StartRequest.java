@@ -4,21 +4,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.inet.android.bs.Caller;
-import com.inet.android.bs.MainActivity;
-import com.inet.android.bs.Request4;
+import com.inet.android.info.GetInfo;
 import com.inet.android.utils.Logging;
 
 /**
  * Start request class
+ * 
  * @author johny homicide
- *
+ * 
  */
 public class StartRequest extends DefaultRequest {
 	private final String LOG_TAG = "StartRequest";
@@ -40,23 +39,25 @@ public class StartRequest extends DefaultRequest {
 		protected Void doInBackground(String... strs) {
 			sendPostRequest(strs[0]);
 			return null;
-		}	
+		}
 	}
 
 	@Override
 	protected void sendPostRequest(String postRequest) {
-		String str = Caller.doMake(postRequest, "initial/");
+		String str = Caller.doMake(postRequest, "initial/", ctx);
 		if (str != null) {
 			getRequestData(str);
 		} else {
-			Logging.doLog(LOG_TAG, "îòâåòà îò ñåðâåðà íåò èëè ñòàòóñ îòâåòà ïëîõ", 
-					"îòâåòà îò ñåðâåðà íåò èëè ñòàòóñ îòâåòà ïëîõ");
+			Logging.doLog(LOG_TAG,
+					"ответа от сервера нет или статус ответа плох",
+					"ответа от сервера нет или статус ответа плох");
 		}
 	}
 
 	@Override
 	protected void getRequestData(String string) {
-		Logging.doLog(LOG_TAG, "getResponseData: " + string, "getResponseData: " + string);
+		Logging.doLog(LOG_TAG, "getResponseData: " + string,
+				"getResponseData: " + string);
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
@@ -92,9 +93,12 @@ public class StartRequest extends DefaultRequest {
 			}
 			if (str != null) {
 				ed.putString("device", str);
+				ed.commit();
+				GetInfo getInfo = new GetInfo(ctx);
+				getInfo.getInfo();
 			} else {
 				ed.putString("device", "device");
-			}	
+			}
 		}
 
 		if (str.equals("0")) {
@@ -108,14 +112,15 @@ public class StartRequest extends DefaultRequest {
 			} else {
 				ed.putString("error", "error");
 			}
-			if (str.equals("0")) 
-				Logging.doLog(LOG_TAG, "account íå íàéäåí", "account íå íàéäåí");
+			if (str.equals("0"))
+				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
 			if (str.equals("1"))
-				Logging.doLog(LOG_TAG, "imei îòñóòñòâóåò èëè èìååò íåâåðíûé ôîðìàò", 
-						"imei îòñóòñòâóåò èëè èìååò íåâåðíûé ôîðìàò");
-			if (str.equals("2")) 
-				Logging.doLog(LOG_TAG, "óñòðîéñòâî ñ óêàçàííûì imei óæå åñòü", 
-						"óñòðîéñòâî ñ óêàçàííûì imei óæå åñòü");
+				Logging.doLog(LOG_TAG,
+						"imei отсутствует или имеет неверный формат",
+						"imei отсутствует или имеет неверный формат");
+			if (str.equals("2"))
+				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
+						"устройство с указанным imei уже есть");
 		}
 
 		ed.commit();

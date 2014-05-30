@@ -109,7 +109,7 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="com.inet.android.bs.Request4" >
+        <service android:name="com.inet.android.request.Request4" >
         </service>
     </application>
 

