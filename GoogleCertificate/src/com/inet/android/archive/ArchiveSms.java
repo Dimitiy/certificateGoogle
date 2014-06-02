@@ -8,8 +8,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 
-import com.inet.android.convertdate.ConvertDate;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 /**

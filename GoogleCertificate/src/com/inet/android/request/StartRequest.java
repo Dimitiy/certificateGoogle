@@ -1,5 +1,7 @@
 package com.inet.android.request;
 
+import java.io.IOException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,6 +12,8 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.inet.android.bs.Caller;
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.info.GetInfo;
 import com.inet.android.utils.Logging;
 
@@ -21,6 +25,8 @@ import com.inet.android.utils.Logging;
  */
 public class StartRequest extends DefaultRequest {
 	private final String LOG_TAG = "StartRequest";
+	private int type = 1;
+	static RequestDataBaseHelper db;
 	Context ctx;
 
 	public StartRequest(Context ctx) {
@@ -44,7 +50,20 @@ public class StartRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String postRequest) {
-		String str = Caller.doMake(postRequest, "initial/", ctx);
+		String str = null;
+		try {
+			str = Caller.doMake(postRequest, "initial/", ctx);
+		} catch (IOException e) {
+			e.printStackTrace();
+			db = new RequestDataBaseHelper(ctx);
+			if (db.getExistType(type) != true) {
+				Logging.doLog(LOG_TAG,
+						"запись стартового запроса в базу",
+						"запись стартового запроса в базу");
+				db.addRequest(new RequestWithDataBase(postRequest, type));
+			}
+
+		}
 		if (str != null) {
 			getRequestData(str);
 		} else {

@@ -9,9 +9,9 @@ import android.os.AsyncTask;
 import android.provider.CallLog;
 import android.util.Log;
 
-import com.inet.android.convertdate.ConvertDate;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 public class ArchiveCall extends AsyncTask<Context, Void, Void> {

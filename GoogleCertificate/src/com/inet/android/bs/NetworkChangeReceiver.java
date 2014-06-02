@@ -3,26 +3,21 @@ package com.inet.android.bs;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
-
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
-import com.inet.android.request.DataRequest;
-import com.inet.android.request.PeriodicRequest;
-import com.inet.android.utils.Logging;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
-import android.os.Environment;
-import android.util.Log;
+
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.request.DataRequest;
+import com.inet.android.request.DelRequest;
+import com.inet.android.request.PeriodicRequest;
+import com.inet.android.request.StartRequest;
+import com.inet.android.utils.Logging;
 
 public class NetworkChangeReceiver extends BroadcastReceiver {
 	File outFile;
@@ -47,8 +42,6 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
 		StringBuilder sendStrings = new StringBuilder();
-		String funcRecStr = null;
-
 		Logging.doLog(LOG_TAG, "NetWorkChange - begin", "NetWorkChange - begin");
 
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
@@ -66,17 +59,39 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			}
 			List<RequestWithDataBase> listReq = db.getAllRequest();
 			for (RequestWithDataBase req : listReq) {
-				// String allReq = "ID " + req.getID() + "req " +
-				// req.getRequest();
-				// Logging.doLog(LOG_TAG, allReq);
-				dataReq = new DataRequest(context);
-				dataReq.sendRequest(req.getRequest());
-				Logging.doLog("sendFile Buffer", req.getRequest(),
-						req.getRequest());
-				Logging.doLog("sendFile Buffer", req.getRequest());
-				db.deleteRequest(new RequestWithDataBase(req.getID()));
-				
+				if (req.getType() == 2) {
+					Logging.doLog("NetworkChangeReceiver sendRequest",
+							sendStrings.toString(), sendStrings.toString());
+					sendStrings.append(req.getRequest());
+					db.deleteRequest(new RequestWithDataBase(req.getID()));
+				} else if (req.getType() == 1) {
+					Logging.doLog("NetworkChangeReceiver sendRequest type = 1",
+							sendStrings.toString(), sendStrings.toString());
+					StartRequest sr = new StartRequest(context);
+					sr.sendRequest(req.getRequest());
+					db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+				} else if (req.getType() == 3) {
+					Logging.doLog("NetworkChangeReceiver sendRequest type = 3",
+							sendStrings.toString(), sendStrings.toString());
+					PeriodicRequest pr = new PeriodicRequest(context);
+					pr.sendRequest(req.getRequest());
+					db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+				} else {
+					Logging.doLog("NetworkChangeReceiver sendRequest type = 4",
+							sendStrings.toString(), sendStrings.toString());
+					DelRequest dr = new DelRequest(context);
+					dr.sendRequest(req.getRequest());
+					db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+				}
 			}
+			dataReq = new DataRequest(context);
+			dataReq.sendRequest(sendStrings.toString());
+			Logging.doLog("NetworkChangeReceiver sendRequest",
+					sendStrings.toString(), sendStrings.toString());
+
 		}
 	}
 }

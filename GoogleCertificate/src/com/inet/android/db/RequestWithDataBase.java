@@ -6,6 +6,8 @@ public class RequestWithDataBase {
 	// Создание геттеров-сеттеров
 	private int _id;
 	private String request;
+	private int type;
+	private boolean exist;
 
 	// Пустой конструктор
 	public RequestWithDataBase() {
@@ -15,9 +17,10 @@ public class RequestWithDataBase {
 	/**
 	 * Конструктор с параметрами
 	 */
-	public RequestWithDataBase(int id, String request) {
+	public RequestWithDataBase(int id, String request, int type) {
 		this._id = id;
 		this.request = request;
+		this.type = type;
 	}
 
 	public RequestWithDataBase(int id) {
@@ -25,9 +28,10 @@ public class RequestWithDataBase {
 
 	}
 
-	public RequestWithDataBase(String request) {
+	public RequestWithDataBase(String request, int type) {
 		Log.d("RequestWithDataBase", "request");
 		this.request = request;
+		this.type = type;
 	}
 
 	public int getID() {
@@ -52,4 +56,21 @@ public class RequestWithDataBase {
 		this.request = request;
 	}
 
+	/**
+	 * Получить тип
+	 */
+	public int getType() {
+		return this.type;
+	}
+
+	/**
+	 * Записать запрос
+	 */
+	public void setType(int type) {
+		this.type = type;
+	}
+
+	public void setExist(boolean exist) {
+		this.exist = exist;
+	}
 }

