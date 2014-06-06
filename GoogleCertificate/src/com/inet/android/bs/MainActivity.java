@@ -28,7 +28,7 @@ import android.widget.EditText;
 
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
-import com.inet.android.location.GPSTracker;
+import com.inet.android.location.LocationTracker;
 import com.inet.android.request.DataRequest;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
@@ -36,7 +36,7 @@ import com.inet.android.utils.Logging;
 public class MainActivity extends Activity {
 	Button install;
 	Button exit;
-	GPSTracker gps;
+	LocationTracker gps;
 	LinkService link;
 	AlertDialog.Builder ad;
 	Context context;
@@ -214,7 +214,7 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 
-		startService(new Intent(MainActivity.this, GPSTracker.class));
+		startService(new Intent(MainActivity.this, LocationTracker.class));
 		// startService(new Intent(MainActivity.this, LinkService.class));
 
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");

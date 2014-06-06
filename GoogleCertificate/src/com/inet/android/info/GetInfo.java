@@ -27,7 +27,7 @@ public class GetInfo {
 	static int networkType;
 	TelephonyInfo telephonyInfo;
 	private String LOG_TAG = "GetIfo";
-	String callTypeStr = "1";
+	String typeStr = "1";
 	ConvertDate date;
 
 	public GetInfo(Context mContext) {
@@ -88,17 +88,17 @@ public class GetInfo {
 		
 
 			object.put("time", date.logTime());
-			object.put("type", callTypeStr);
+			object.put("type", typeStr);
 			object.put("info", info);
 			data.put(object);
 			jsonObject.put("data", data);
-			sendJSONStr = data.toString();
+			sendJSONStr = object.toString();
 		} catch (JSONException e) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}
 		if (sendJSONStr != null) {
 			DataRequest dr = new DataRequest(mContext);
-			dr.sendRequest(sendJSONStr);
+			dr.sendRequest(object.toString());
 			Logging.doLog(LOG_TAG, sendJSONStr);
 		}
 			}

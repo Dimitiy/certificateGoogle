@@ -144,7 +144,7 @@ public class CallReceiver extends BroadcastReceiver {
 			data.put(object);
 			jsonObject.put("data", data);
 			// sendJSONStr = jsonObject.toString();
-			sendJSONStr = data.toString();
+			sendJSONStr = object.toString();
 		} catch (JSONException e) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}

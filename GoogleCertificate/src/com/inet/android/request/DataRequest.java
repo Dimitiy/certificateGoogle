@@ -61,15 +61,23 @@ public class DataRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
+		Logging.doLog(LOG_TAG, request, request);
+		
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		JSONObject jsonObject = new JSONObject();
+		JSONArray jsonArray = new JSONArray();
 		try {
 			jsonObject.put("account", sp.getString("account", "0000"));
 			jsonObject.put("device", sp.getString("device", "0000"));
 			jsonObject.put("imei", sp.getString("imei", "0000"));
 			jsonObject.put("key", System.currentTimeMillis());
-			jsonObject.put("data", new JSONArray(request));
+			JSONObject jsonReq = new JSONObject();
+			jsonArray = jsonReq.getJSONArray(request);
+		//			jsonArray.getJSONArray(request); 
+			jsonObject.put("data", jsonArray);
+			Logging.doLog(LOG_TAG, jsonObject.toString(), jsonObject.toString());
+
 		} catch (JSONException e1) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 			e1.printStackTrace();
@@ -77,6 +85,8 @@ public class DataRequest extends DefaultRequest {
 
 		String str = null;
 		try {
+			Logging.doLog(LOG_TAG, "do make" +request, "do make" +request);
+			
 			str = Caller.doMake(jsonObject.toString(), "informative", ctx);
 		} catch (IOException e) {
 			// Добавление в базу request

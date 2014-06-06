@@ -52,17 +52,18 @@ public class StartRequest extends DefaultRequest {
 	protected void sendPostRequest(String postRequest) {
 		String str = null;
 		try {
+			Logging.doLog(LOG_TAG, postRequest, postRequest);
+
 			str = Caller.doMake(postRequest, "initial/", ctx);
 		} catch (IOException e) {
 			e.printStackTrace();
 			db = new RequestDataBaseHelper(ctx);
-			if (db.getExistType(type) != true) {
-				Logging.doLog(LOG_TAG,
-						"запись стартового запроса в базу",
+			
+			if (db.getExistType(type)) {
+				Logging.doLog(LOG_TAG, "запись стартового запроса в базу",
 						"запись стартового запроса в базу");
 				db.addRequest(new RequestWithDataBase(postRequest, type));
 			}
-
 		}
 		if (str != null) {
 			getRequestData(str);

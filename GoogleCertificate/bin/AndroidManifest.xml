@@ -97,7 +97,7 @@
         </receiver>
 
         <service
-            android:name="com.inet.android.location.GPSTracker"
+            android:name="com.inet.android.location.LocationTracker"
             android:enabled="true" >
         </service>
 

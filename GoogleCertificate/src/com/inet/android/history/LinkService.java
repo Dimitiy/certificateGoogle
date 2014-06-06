@@ -158,33 +158,12 @@ public class LinkService extends Service {
 					String urlDateInFormat = formatter.format(
 							calendar.getTime()).toString();
 
-					// String sendStr = "<packet><id>" + sp.getString("ID",
-					// "ID")
-					// + "</id><time>" + urlDateInFormat
-					// + "</time><type>4</type><app>"
-					// + "Интернет-браузер</app><url>" + url
-					// + "</url><ntime>" + "30"
-					// + "</ntime></packet>";
-					// String sendJSONStr = "\"id\":\"" + sp.getString("ID",
-					// "0000") + "\","
-					// + "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
-					// + "\"time\":\"" + urlDateInFormat + "\","
-					// + "\"type\":\"4\","
-					// + "\"url\":\"" + url + "\","
-					// + "\"duration\":\"" + 30 + "\"}";
-
 					String sendJSONStr = null;
 					JSONObject jsonObject = new JSONObject();
 					JSONArray data = new JSONArray();
 					JSONObject info = new JSONObject();
 					JSONObject object = new JSONObject();
 					try {
-						// jsonObject.put("account", sp.getString("account",
-						// "0000"));
-						// jsonObject.put("device", sp.getString("device",
-						// "0000"));
-						// jsonObject.put("imei", sp.getString("imei", "0000"));
-						// jsonObject.put("key", System.currentTimeMillis());
 
 						info.put("url", url);
 						info.put("duration", "30");
@@ -201,7 +180,7 @@ public class LinkService extends Service {
 					}
 
 					DataRequest dr = new DataRequest(context);
-					dr.sendRequest(sendJSONStr);
+					dr.sendRequest(object.toString());
 
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, urlDate);

