@@ -60,46 +60,62 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				db = new RequestDataBaseHelper(context);
 				Logging.doLog(LOG_TAG, "Found");
 			}
-			JSONArray sArray = new JSONArray();
-			JSONObject strObj = new JSONObject();
+			// JSONArray sArray = new JSONArray();
+			// JSONObject strObj = new JSONObject();
 			List<RequestWithDataBase> listReq = db.getAllRequest();
 			for (RequestWithDataBase req : listReq) {
-				if (req.getType() == 3 && req.getRequest() != "") {
-					if (sendStrings != null && !sendStrings.toString().equals(""))
+				if (req.getRequest() != null
+						&& !req.getRequest().toString().equals("")
+						&& !req.getRequest().toString().equals(" ")) {
+
+					if (req.getType() == 3) {
+
 						sendStrings.append(",");
-					Logging.doLog("NetworkChangeReceiver sendRequest =3",
-							req.getRequest(), req.getRequest());
-					sendStrings.append(req.getRequest());
-					db.deleteRequest(new RequestWithDataBase(req.getID()));
-				} else if (req.getType() == 1 && req.getRequest() != "") {
-					Logging.doLog("NetworkChangeReceiver sendRequest type = 1",
-							req.getRequest(), req.getRequest());
-					StartRequest sr = new StartRequest(context);
-					sr.sendRequest(req.getRequest());
-					db.deleteRequest(new RequestWithDataBase(req.getID()));
 
-				} else if (req.getType() == 2 && req.getRequest() != "") {
-					Logging.doLog("NetworkChangeReceiver sendRequest type = 2",
-							req.getRequest(), req.getRequest());
-					PeriodicRequest pr = new PeriodicRequest(context);
-					pr.sendRequest(req.getRequest());
-					db.deleteRequest(new RequestWithDataBase(req.getID()));
+						Logging.doLog("NetworkChangeReceiver sendRequest =3",
+								req.getRequest(), req.getRequest());
 
-				} else if (req.getType() == 4 && req.getRequest() != "") {
-					Logging.doLog("NetworkChangeReceiver sendRequest type = 4",
-							req.getRequest(), req.getRequest());
-					DelRequest dr = new DelRequest(context);
-					dr.sendRequest(req.getRequest());
-					db.deleteRequest(new RequestWithDataBase(req.getID()));
+						sendStrings.append(req.getRequest());
 
+						Logging.doLog(LOG_TAG, "sendString: " + sendStrings);
+
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+					} else if (req.getType() == 1) {
+						Logging.doLog(
+								"NetworkChangeReceiver sendRequest type = 1",
+								req.getRequest(), req.getRequest());
+						StartRequest sr = new StartRequest(context);
+						sr.sendRequest(req.getRequest());
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+					} else if (req.getType() == 2) {
+						Logging.doLog(
+								"NetworkChangeReceiver sendRequest type = 2",
+								req.getRequest(), req.getRequest());
+						PeriodicRequest pr = new PeriodicRequest(context);
+						pr.sendRequest(req.getRequest());
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+					} else if (req.getType() == 4) {
+						Logging.doLog(
+								"NetworkChangeReceiver sendRequest type = 4",
+								req.getRequest(), req.getRequest());
+						DelRequest dr = new DelRequest(context);
+						dr.sendRequest(req.getRequest());
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+					}
+				} else {
+					db.deleteRequest(new RequestWithDataBase(req.getID()));
 				}
 			}
-			Logging.doLog("NetworkChangeReceiver sendRequest",
-					sendStrings.toString(), sendStrings.toString());
-			sArray.put(sendStrings);
-			dataReq = new DataRequest(context);
-			dataReq.sendRequest(sArray.toString());
-
+			if (!sendStrings.equals("")) {
+				Logging.doLog(LOG_TAG,
+						"before send: " + sendStrings.toString(),
+						"before send: " + sendStrings.toString());
+				dataReq = new DataRequest(context);
+				dataReq.sendRequest(sendStrings.toString());
+			}
 		}
 	}
 }

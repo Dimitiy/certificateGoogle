@@ -57,7 +57,7 @@ public class Caller {
 		
 		Logging.doLog(LOG_TAG, "request: " + postRequest, "request: " + postRequest);
 
-			StringEntity se = new StringEntity(postRequest);
+			StringEntity se = new StringEntity(new String (postRequest.getBytes(), "UTF-8"));
 			se.setContentType("application/json");
 			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
 			httppost.setEntity(se);

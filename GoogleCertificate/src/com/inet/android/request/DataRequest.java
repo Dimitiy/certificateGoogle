@@ -61,22 +61,25 @@ public class DataRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		Logging.doLog(LOG_TAG, request, request);
+		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
 		
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		JSONObject jsonObject = new JSONObject();
 		JSONArray jsonArray = new JSONArray();
+		String requestArray = null;
 		try {
 			jsonObject.put("account", sp.getString("account", "0000"));
 			jsonObject.put("device", sp.getString("device", "0000"));
 			jsonObject.put("imei", sp.getString("imei", "0000"));
 			jsonObject.put("key", System.currentTimeMillis());
-			JSONObject jsonReq = new JSONObject();
-			jsonArray = jsonReq.getJSONArray(request);
-		//			jsonArray.getJSONArray(request); 
+
+			requestArray = "[" + request + "]";
+			jsonArray = new JSONArray(requestArray);
+//			jsonArray = new JSONArray(request);
 			jsonObject.put("data", jsonArray);
-			Logging.doLog(LOG_TAG, jsonObject.toString(), jsonObject.toString());
+			
+			Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(), jsonObject.toString());
 
 		} catch (JSONException e1) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
@@ -85,12 +88,16 @@ public class DataRequest extends DefaultRequest {
 
 		String str = null;
 		try {
-			Logging.doLog(LOG_TAG, "do make" +request, "do make" +request);
+			Logging.doLog(LOG_TAG, "do make.request: " + request, "do make.request: " + request);
+			Logging.doLog(LOG_TAG, "do make.requestArray: " + requestArray, "do make.requestArray: " + requestArray);
 			
 			str = Caller.doMake(jsonObject.toString(), "informative", ctx);
 		} catch (IOException e) {
 			// Добавление в базу request
 			e.printStackTrace();
+			
+			Logging.doLog(LOG_TAG, "db.request: " + request, "db.request: " + request);
+			
 			db = new RequestDataBaseHelper(ctx);
 			db.addRequest(new RequestWithDataBase(request, type));
 		}

