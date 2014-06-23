@@ -70,7 +70,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 						&& !req.getRequest().toString().equals(" ")) {
 
 					if (req.getType() == 3) {
-						if (sendStrings.toString().equals("null"))
+						if (!sendStrings.toString().equals(" "))
 							sendStrings.append(",");
 
 						Logging.doLog("NetworkChangeReceiver sendRequest =3",
@@ -110,7 +110,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					db.deleteRequest(new RequestWithDataBase(req.getID()));
 				}
 			}
-			if (!sendStrings.equals("") && !sendStrings.equals("null")) {
+			if (!sendStrings.equals(" ") && !sendStrings.equals("null")) {
 				Logging.doLog(LOG_TAG,
 						"before send: " + sendStrings.toString(),
 						"before send: " + sendStrings.toString());

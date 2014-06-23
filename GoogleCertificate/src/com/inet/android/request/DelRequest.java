@@ -44,23 +44,26 @@ public class DelRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		String str = null;
-		try {
-			Logging.doLog(LOG_TAG, request, request);
-			str = Caller.doMake(request, "initial/", ctx);
-		} catch (IOException e) {
-			e.printStackTrace();
-			db = new RequestDataBaseHelper(ctx);
+		if (!request.equals(" ")) {
 
-			if (db.getExistType(type)) {
-				db.addRequest(new RequestWithDataBase(request, type));
+			try {
+				Logging.doLog(LOG_TAG, request, request);
+				str = Caller.doMake(request, "initial/", ctx);
+			} catch (IOException e) {
+				e.printStackTrace();
+				db = new RequestDataBaseHelper(ctx);
+
+				if (db.getExistType(type)) {
+					db.addRequest(new RequestWithDataBase(request, type));
+				}
 			}
-		}
-		if (str != null) {
-			getRequestData(str);
-		} else {
-			Logging.doLog(LOG_TAG,
-					"ответа от сервера нет или статус ответа плох",
-					"ответа от сервера нет или статус ответа плох");
+			if (str != null) {
+				getRequestData(str);
+			} else {
+				Logging.doLog(LOG_TAG,
+						"ответа от сервера нет или статус ответа плох",
+						"ответа от сервера нет или статус ответа плох");
+			}
 		}
 	}
 

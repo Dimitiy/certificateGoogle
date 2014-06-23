@@ -32,7 +32,6 @@ public class GetInfo {
 
 	public GetInfo(Context mContext) {
 		GetInfo.mContext = mContext;
-		Logging.doLog(LOG_TAG, "context");
 	}
 
 	public void getInfo() {
@@ -43,28 +42,14 @@ public class GetInfo {
 				.getSystemService(Context.TELEPHONY_SERVICE);
 		telephonyInfo = TelephonyInfo.getInstance(mContext);
 
-		// Вставляем контакты
-		Logging.doLog(LOG_TAG, "Insert: ", "Inserting ..");
-
-		Logging.doLog(LOG_TAG, "	PhoneInfo:" + "\n" + getBrand() + "\n"
-				+ getModel() + "\n" + getIMSI() + "\n" + getSerialNum() + "\n"
-				+ getManufactured() + "\n" + getProduct() + "\n"
-				+ getVerAndroid() + "\n" + getSDK() + "\n" + "SIMInfo:" + "\n"
-				+ getIsDualSIM() + "\n" + getIsSIM1Ready() + "\n"
-				+ getIsSIM2Ready() + "\n" + getIMEISim1() + "\n"
-				+ getIMEISim2() + "\n" + getMCC() + "\n" + getMNC() + "\n"
-				+ getPhoneType() + "\n" + getNetworkType() + "\n"
-				+ getConnectType() + "\n" + getOperatorName() + "\n"
-				+ getDisplayInfo());
-		
-		//-------initial json line----------------------
+		// -------initial json line----------------------
 		String sendJSONStr = null;
 		JSONObject jsonObject = new JSONObject();
 		JSONArray data = new JSONArray();
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
 		try {
-		
+
 			info.put("brand", getBrand());
 			info.put("model", getModel());
 			info.put("imsi", getIMSI());
@@ -85,7 +70,6 @@ public class GetInfo {
 			info.put("operator_name", getOperatorName());
 			info.put("screen_size", getDisplayInfo());
 			info.put("ver_app", sp.getString("BUILD", "V_000.1"));
-		
 
 			object.put("time", date.logTime());
 			object.put("type", typeStr);
@@ -101,7 +85,7 @@ public class GetInfo {
 			dr.sendRequest(object.toString());
 			Logging.doLog(LOG_TAG, sendJSONStr);
 		}
-			}
+	}
 
 	/**
 	 * get getSimOperatorName

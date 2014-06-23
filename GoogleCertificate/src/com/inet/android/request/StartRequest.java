@@ -16,7 +16,6 @@ import android.widget.Toast;
 import com.inet.android.bs.Caller;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
-import com.inet.android.info.GetInfo;
 import com.inet.android.utils.DialogShower;
 import com.inet.android.utils.Logging;
 
@@ -77,8 +76,13 @@ public class StartRequest extends DefaultRequest {
 
 	@Override
 	public void sendRequest(String str) {
+		if (!str.equals(" ")) {
 		RequestTask srt = new RequestTask();
-		srt.execute(str);
+		srt.execute(str);}
+		else{
+			Logging.doLog(LOG_TAG, "str = null", "str = null");
+        	
+		}
 	}
 
 	class RequestTask extends AsyncTask<String, Void, Void> {
