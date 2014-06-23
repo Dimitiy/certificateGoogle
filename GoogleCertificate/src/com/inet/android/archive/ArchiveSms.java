@@ -26,7 +26,8 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 		try {
 			// формируем JSONobj
 			JSONObject AllSmsJson = new JSONObject();
-			JSONObject archiveSMSJson = null;
+			JSONObject archiveSMSJson = new JSONObject();
+			;
 			date = new ConvertDate();
 			String sType = "null";
 			Uri uri = Uri.parse("content://sms");
@@ -64,7 +65,6 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 										+ sType);
 
 						try {
-							archiveSMSJson = new JSONObject();
 							infoCallJson = new JSONObject();
 
 							archiveSMSJson
@@ -72,7 +72,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 											date.getData(sms_sent_cursor.getLong(sms_sent_cursor
 													.getColumnIndexOrThrow("date"))));
 							archiveSMSJson.put("type", sType);
-							infoCallJson.put("tel",
+							infoCallJson.put("number",
 									sms_sent_cursor.getColumnIndex("address"));
 							infoCallJson.put("duration",
 									sms_sent_cursor.getColumnIndex("body"));

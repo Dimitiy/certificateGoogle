@@ -187,6 +187,12 @@ public class StartRequest extends DefaultRequest {
 			if (str.equals("2"))
 				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
 						"устройство с указанным imei уже есть");
+			if (str.equals("3")) 
+				Logging.doLog(LOG_TAG, "отсутствует ключ",
+						"отсутствует ключ");
+			if (str.equals("4")) 
+				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
+						"отсутствует или неверный type");
 		}
 
 		ed.commit();

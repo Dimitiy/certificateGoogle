@@ -64,8 +64,7 @@ public class ListApp {
 				// object.put("time", date.logTime());
 				object.put("type", ListAppTypeStr);
 				object.put("info", info);
-				data.put(object);
-
+				
 			} catch (PackageManager.NameNotFoundException e) {
 				e.printStackTrace();
 			} catch (JSONException e) {
@@ -73,14 +72,7 @@ public class ListApp {
 			}
 
 		}
-		try {
-
-			jsonObject.put("data", data);
-
-		} catch (JSONException e1) {
-			// TODO Автоматически созданный блок catch
-			e1.printStackTrace();
-		}
+		
 		sendJSONStr = data.toString();
 		if (sendJSONStr != null) {
 			DataRequest dr = new DataRequest(context);

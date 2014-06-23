@@ -116,7 +116,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 				JSONObject object = new JSONObject();
 				try {
 
-					info.put("tel", phNumber);
+					info.put("number", phNumber);
 					info.put("data", bodyText.toString());
 
 					object.put("time", date.logTime());

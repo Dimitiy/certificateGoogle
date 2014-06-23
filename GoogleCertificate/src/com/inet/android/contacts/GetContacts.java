@@ -204,9 +204,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				jsonInfo.put("im", jsonImId);
 				jsonInfo.put("org", jsonOrganization);
 				jsonObject.put("info", jsonInfo);
-				data.put(jsonObject);
-				jsonAllContact.put("data", data);
-				sendJSONStr = data.toString();
+				sendJSONStr = jsonObject.toString();
 			}
 			if (jsonAllContact != null) {
 				DataRequest dr = new DataRequest(mContext);

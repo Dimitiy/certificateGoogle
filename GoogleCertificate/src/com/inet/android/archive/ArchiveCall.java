@@ -45,8 +45,8 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 				android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
 
 		if (callLogCursor != null) {
-			JSONObject archiveCallJson = null;
-			JSONObject infoCallJson;
+			JSONObject archiveCallJson = new JSONObject();;
+			JSONObject infoCallJson = null;
 
 			// Проходим в цикле, пока не дойдём до последней записи
 			Logging.doLog(LOG_TAG, "callogCursor != 0 ..");
@@ -95,12 +95,12 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 				// + dateString + " " + duration + " " + callType + " "
 				// + isNew);
 				try {
-					archiveCallJson = new JSONObject();
+					
 					infoCallJson = new JSONObject();
 
 					archiveCallJson.put("time", dateString);
 					archiveCallJson.put("type", iType);
-					infoCallJson.put("tel", number);
+					infoCallJson.put("number", number);
 					infoCallJson.put("duration", duration);
 					archiveCallJson.put("info", infoCallJson);
 					AllCallJson.put("data", archiveCallJson);

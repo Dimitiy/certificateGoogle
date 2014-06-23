@@ -45,6 +45,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
 
 		StringBuilder sendStrings = new StringBuilder();
+		Logging.doLog(LOG_TAG, sendStrings.toString(), sendStrings.toString());
 		Logging.doLog(LOG_TAG, "NetWorkChange - begin", "NetWorkChange - begin");
 
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
@@ -69,8 +70,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 						&& !req.getRequest().toString().equals(" ")) {
 
 					if (req.getType() == 3) {
-
-						sendStrings.append(",");
+						if (sendStrings.toString().equals("null"))
+							sendStrings.append(",");
 
 						Logging.doLog("NetworkChangeReceiver sendRequest =3",
 								req.getRequest(), req.getRequest());
@@ -109,7 +110,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					db.deleteRequest(new RequestWithDataBase(req.getID()));
 				}
 			}
-			if (!sendStrings.equals("")) {
+			if (!sendStrings.equals("") && !sendStrings.equals("null")) {
 				Logging.doLog(LOG_TAG,
 						"before send: " + sendStrings.toString(),
 						"before send: " + sendStrings.toString());
