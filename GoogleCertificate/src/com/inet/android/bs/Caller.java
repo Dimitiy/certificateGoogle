@@ -32,15 +32,14 @@ public class Caller {
 	static Context mContext;
 
 	/**
-	 * Performs HTTP POST
+	 * Performs HTTP POST request
 	 * @throws IOException 
 	 * @throws ParseException 
 	 */
 	public static String doMake(String postRequest, String addition, Context context) throws IOException{
 		String data = null;
 		mContext = context;
-	
-		// Создадим HttpClient и PostHandler
+
 		HttpClient httpclient = new DefaultHttpClient();
 		URI uri = null;
 		HttpPost httppost = null;
@@ -65,7 +64,6 @@ public class Caller {
 			Logging.doLog(LOG_TAG, "doMake: " + EntityUtils.toString(httppost.getEntity()), 
 					"doMake: " + EntityUtils.toString(httppost.getEntity()));
 
-			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 
 			if (response != null) {
@@ -84,7 +82,6 @@ public class Caller {
 								"something wrong in the answer");
 											
 						return null;
-//						addLine(postRequest);
 					}
 				} catch (ParseException e) {
 							e.printStackTrace();
