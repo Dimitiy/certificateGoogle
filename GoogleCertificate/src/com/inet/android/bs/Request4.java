@@ -17,10 +17,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-<<<<<<< HEAD
-=======
-import android.util.Log;
->>>>>>> refs/remotes/origin/war
 
 /** Класс сервиса отправки периодического запроса
  * 
@@ -35,32 +31,12 @@ public class Request4 extends Service {
 
 		public void onCreate() {
 			super.onCreate();
-<<<<<<< HEAD
 
 			Logging.doLog(LOG_TAG, "onCreate", "onCreate");
-=======
-			Log.d(LOG_TAG, "onCreate Request4");
-			FileLog.writeLog(LOG_TAG + "-> onCreate Request4");
->>>>>>> refs/remotes/origin/war
 		}
 
 		public int onStartCommand(Intent intent, int flags, int startId) {
-<<<<<<< HEAD
 			Logging.doLog(LOG_TAG, "onStartCommand", "onStartCommand");
-=======
-			Log.d(LOG_TAG, "onStartCommand Request4");
-			FileLog.writeLog(LOG_TAG + "-> onStartCommand Request4");
-			
-			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-			String linkEnd = sp.getString("ACTION", "OK");
-
-			if (linkEnd.equals("REMOVE")) {
-				Log.d(LOG_TAG, "REMOVE");
-				FileLog.writeLog("historyService -> REMOVE");
-				
-				return 0;
-			}
->>>>>>> refs/remotes/origin/war
 			
 			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 			String code = sp.getString("code", "-1");
@@ -93,11 +69,7 @@ public class Request4 extends Service {
 			}
 
 			Calendar cal = Calendar.getInstance();
-<<<<<<< HEAD
 			cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "120")));// через period минут
-=======
-			cal.add(Calendar.MINUTE, 10);// через 240 минут
->>>>>>> refs/remotes/origin/war
 
 			PendingIntent servicePendingIntent = PendingIntent.getService(this,
 					SERVICE_REQUEST_CODE, new Intent(this, Request4.class),
@@ -111,7 +83,6 @@ public class Request4 extends Service {
 			return Service.START_STICKY;
 		}
 
-<<<<<<< HEAD
 //		private void requestTask() {
 //			Logging.doLog(LOG_TAG, "requestTask start", "requestTask start");
 //			RequestMakerImpl.diagRequest(getApplicationContext());
@@ -123,12 +94,6 @@ public class Request4 extends Service {
 		 */
 		private void sendStartRequest() {
 			Logging.doLog(LOG_TAG, "send start request", "send start request");
-=======
-		private void requestTask() {
-			// TODO Auto-generated method stub
-			Log.d(LOG_TAG, "requestTask start");
-			FileLog.writeLog(LOG_TAG + "-> requestTask start");
->>>>>>> refs/remotes/origin/war
 			
 			SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
 			JSONObject jsonObject = new JSONObject();
@@ -140,7 +105,6 @@ public class Request4 extends Service {
 				e.printStackTrace();
 			}
 			
-<<<<<<< HEAD
 			String str = jsonObject.toString();
 			StartRequest sr = new StartRequest(this);
 			sr.sendRequest(str);
@@ -218,28 +182,14 @@ public class Request4 extends Service {
 			String str = jsonObject.toString();
 			DelRequest dr = new DelRequest(this);
 			dr.sendRequest(str);
-=======
-			Log.d(LOG_TAG, "requestTask end");
-			FileLog.writeLog(LOG_TAG + "-> requestTask end");
->>>>>>> refs/remotes/origin/war
 		}
 
 		public void onDestroy() {
 			super.onDestroy();
-<<<<<<< HEAD
 			Logging.doLog(LOG_TAG, "onDestroy", "onDestroy");
-=======
-			Log.d(LOG_TAG, "onDestroy");
-			FileLog.writeLog(LOG_TAG + "-> onDestroy");
->>>>>>> refs/remotes/origin/war
 		}
 
 		public IBinder onBind(Intent intent) {
-<<<<<<< HEAD
-=======
-			Log.d(LOG_TAG, "onBind");
-			FileLog.writeLog(LOG_TAG + "-> onBind");
->>>>>>> refs/remotes/origin/war
 			return null;
 		}
 
