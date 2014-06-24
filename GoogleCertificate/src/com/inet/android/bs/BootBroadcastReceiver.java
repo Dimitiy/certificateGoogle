@@ -3,16 +3,17 @@ package com.inet.android.bs;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import com.inet.android.history.LinkService;
-import com.inet.android.location.GPSTracker;
-
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
+
+import com.inet.android.history.LinkService;
+import com.inet.android.info.GetInfo;
+import com.inet.android.location.LocationTracker;
+import com.inet.android.utils.Logging;
 
 public class BootBroadcastReceiver extends BroadcastReceiver {
 
@@ -22,7 +23,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	private static final String LOG_TAG = "BootBroadcastReceiver";
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		// TODO Auto-generated method stub
+		Logging.doLog("BootBroadCastReceiver", "onReceive", "onReceive");
 		mContext = context;
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(context);
@@ -36,22 +37,20 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 			
 			Intent linkServiceIntent = new Intent(context, LinkService.class);
 			context.startService(linkServiceIntent);
-			Intent locServiceIntent = new Intent(context, GPSTracker.class);
+			Intent locServiceIntent = new Intent(context, LocationTracker.class);
 			context.startService(locServiceIntent);
-			Intent request4ServiceIntent = new Intent(context, Request4.class);
-			context.startService(request4ServiceIntent);
-			String diag = "<packet><id>" + sp.getString("ID", "ID")
-					+ "</id><time>" + logTime() + "</time><type>1</type><ttl>"
-					+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
-					+ "</ttl><cls>" + sp.getString("IMEI", "0000")
-					+ "</cls><app>Диагностическая информация</app><url>"
-					+ Long.toString(System.currentTimeMillis())
-					+ sp.getString("ABOUT", "about") + "</url></packet>";
+			GetInfo getInfo = new GetInfo(mContext);
+			getInfo.getInfo();
+//			Intent request4ServiceIntent = new Intent(context, Request4.class);
+//			context.startService(request4ServiceIntent);
 
+<<<<<<< HEAD
+=======
 			Request req = new Request(context);
 			req.sendRequest(diag);
 			Log.d(LOG_TAG, "end start services after boot");
 			FileLog.writeLog(LOG_TAG + " -> end start services after boot");
+>>>>>>> refs/remotes/origin/war
 		}
 	}
 

