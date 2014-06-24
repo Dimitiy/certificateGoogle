@@ -15,12 +15,12 @@ public class WorkTimeDefiner {
 
 		Calendar calendar = Calendar.getInstance();
 
-		// текущее время
+		// С‚РµРєСѓС‰РµРµ РІСЂРµРјСЏ
 		int calendarHour = calendar.get(Calendar.HOUR_OF_DAY);
 		int calendarMinute = calendar.get(Calendar.MINUTE);
 		int currentTime = calendarMinute + calendarHour * 60;
 
-		// время рабочего дня
+		// РІСЂРµРјСЏ СЂР°Р±РѕС‡РµРіРѕ РґРЅСЏ
 		int begWorkTime = Integer.parseInt(begTime.substring(begTime
 				.indexOf(":") + 1))
 				+ Integer.parseInt(begTime.substring(0, begTime.indexOf(":")))
@@ -31,7 +31,7 @@ public class WorkTimeDefiner {
 				+ Integer.parseInt(endTime.substring(0, endTime.indexOf(":")))
 				* 60;
 
-		// время перерыва
+		// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		int begBreakTime = Integer.parseInt(begBrkTime.substring(begBrkTime
 				.indexOf(":") + 1))
 				+ Integer.parseInt(begBrkTime.substring(0,
@@ -87,12 +87,12 @@ public class WorkTimeDefiner {
 
 		Calendar calendar = Calendar.getInstance();
 
-		// текущее время
+		// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 		int calendarHour = calendar.get(Calendar.HOUR_OF_DAY);
 		int calendarMinute = calendar.get(Calendar.MINUTE);
 		int currentTime = calendarMinute + calendarHour * 60;
 
-		// время рабочего дня
+		// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ
 		int begWorkTime = Integer.parseInt(timeFrom.substring(timeFrom
 				.indexOf(":") + 1))
 				+ Integer
@@ -104,7 +104,7 @@ public class WorkTimeDefiner {
 				+ Integer.parseInt(timeTo.substring(0, timeTo.indexOf(":")))
 				* 60;
 
-		// время перерыва
+		// пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 		int begBreakTime = Integer.parseInt(brkTimeFrom.substring(brkTimeFrom
 				.indexOf(":") + 1))
 				+ Integer.parseInt(brkTimeFrom.substring(0,

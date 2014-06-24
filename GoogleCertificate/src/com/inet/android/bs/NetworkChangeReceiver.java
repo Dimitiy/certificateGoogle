@@ -3,23 +3,24 @@ package com.inet.android.bs;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.util.List;
 
-import com.inet.android.request.DataRequest;
-import com.inet.android.request.PeriodicRequest;
-import com.inet.android.utils.Logging;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
-import android.os.Environment;
-import android.util.Log;
+
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.request.DataRequest;
+import com.inet.android.request.DelRequest;
+import com.inet.android.request.PeriodicRequest;
+import com.inet.android.request.StartRequest;
+import com.inet.android.utils.Logging;
 
 public class NetworkChangeReceiver extends BroadcastReceiver {
 	File outFile;
@@ -28,6 +29,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	BufferedReader fin;
 	BufferedWriter fout;
 	SharedPreferences sp;
+	RequestDataBaseHelper db;
+	DataRequest dataReq;
 	public static final String LOG_TAG = "NetworkChangeReciever";
 
 	@Override
@@ -40,91 +43,80 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-		
-//		RequestMakerImpl req = new RequestMakerImpl(context);
-		StringBuilder sendStrings = new StringBuilder(); 
-		String funcRecStr = null;
-		
+
+		StringBuilder sendStrings = new StringBuilder();
+		Logging.doLog(LOG_TAG, sendStrings.toString(), sendStrings.toString());
 		Logging.doLog(LOG_TAG, "NetWorkChange - begin", "NetWorkChange - begin");
-	
+
 		if (wifi.isAvailable() || mobile.isConnectedOrConnecting()) {
-			Logging.doLog(LOG_TAG, "NetWorkChange - available", "NetWorkChange - available");
-		
-			outFile = new File(Environment.getExternalStorageDirectory(),
-					"/conf");
-			if (outFile.exists() == false) {
-				Logging.doLog(LOG_TAG, "out file no exist", "out file no exist");
-				return;
-			}
-			if (outFile.length() == 0) {
-				Logging.doLog(LOG_TAG, "out file empty", "out file empty");
-				return;
-			}
-			if (outFile.length() == 1){
-				outFile.delete();
-				Logging.doLog(LOG_TAG, "out file consist /n", "out file consist /n");
-				return;
-			}
-			tmpFile = new File(Environment.getExternalStorageDirectory(),
-					"/tmpSendFile.txt");
+			Logging.doLog(LOG_TAG, "NetWorkChange - available",
+					"NetWorkChange - available");
+			File database = context.getDatabasePath("request_database.db");
 
-			try {
-				fin = new BufferedReader(new InputStreamReader(
-						new FileInputStream(outFile)));
-				try {
-					fout = new BufferedWriter(new FileWriter(tmpFile));
-				} catch (IOException e) {
-					e.printStackTrace();
-
-				}
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
+			if (!database.exists() || database.length() == 0) {
+				// Database does not exist so copy it from assets here
+				Logging.doLog(LOG_TAG, "DataBase Not Found");
 				return;
+			} else {
+				db = new RequestDataBaseHelper(context);
+				Logging.doLog(LOG_TAG, "Found");
 			}
-			try {
-				String lineToRemove = null;
-				while ((str = fin.readLine()) != null && str.length() >= 7) {
-					Logging.doLog(LOG_TAG, "SendFile: " + str, "SendFile: " + str);
-					
-					if (str.substring(0, 6).equals("<func>")) {
-						funcRecStr = str;
-						Log.d("request func", str);
-					} else {
-						sendStrings.append(str);
+			// JSONArray sArray = new JSONArray();
+			// JSONObject strObj = new JSONObject();
+			List<RequestWithDataBase> listReq = db.getAllRequest();
+			for (RequestWithDataBase req : listReq) {
+				if (req.getRequest() != null
+						&& !req.getRequest().toString().equals("")
+						&& !req.getRequest().toString().equals(" ")) {
+
+					if (req.getType() == 3) {
+						if (!sendStrings.toString().equals(" "))
+							sendStrings.append(",");
+
+						Logging.doLog("NetworkChangeReceiver sendRequest =3",
+								req.getRequest(), req.getRequest());
+
+						sendStrings.append(req.getRequest());
+
+						Logging.doLog(LOG_TAG, "sendString: " + sendStrings);
+
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+					} else if (req.getType() == 1) {
+						Logging.doLog(
+								"NetworkChangeReceiver sendRequest type = 1",
+								req.getRequest(), req.getRequest());
+						StartRequest sr = new StartRequest(context);
+						sr.sendRequest(req.getRequest());
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+					} else if (req.getType() == 2) {
+						Logging.doLog(
+								"NetworkChangeReceiver sendRequest type = 2",
+								req.getRequest(), req.getRequest());
+						PeriodicRequest pr = new PeriodicRequest(context);
+						pr.sendRequest(req.getRequest());
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+
+					} else if (req.getType() == 4) {
+						Logging.doLog(
+								"NetworkChangeReceiver sendRequest type = 4",
+								req.getRequest(), req.getRequest());
+						DelRequest dr = new DelRequest(context);
+						dr.sendRequest(req.getRequest());
+						db.deleteRequest(new RequestWithDataBase(req.getID()));
+
 					}
-					lineToRemove = str;
-					String trimmedLine = str.trim();
-					if (trimmedLine.equals(lineToRemove))
-						continue;
-					fout.write(str);
-
+				} else {
+					db.deleteRequest(new RequestWithDataBase(req.getID()));
 				}
-				if (funcRecStr != null) {
-//					req.sendPeriodicRequest(funcRecStr);
-					PeriodicRequest pr = new PeriodicRequest(context);
-					pr.sendRequest(funcRecStr);
-				}
-//				req.sendDataRequest(sendStrings.toString());
-				DataRequest dr = new DataRequest(context);
-				dr.sendRequest(sendStrings.toString());
-				Logging.doLog("sendFile Buffer", sendStrings.toString(), sendStrings.toString());
-			
-				boolean successful = tmpFile.renameTo(outFile);
-
-				Logging.doLog("networkchange", "Rename file:" + Boolean.toString(successful), "Rename file:" + Boolean.toString(successful));
-			} catch (IOException e) {
-				e.printStackTrace();
-				return;
 			}
-			try {
-				fin.close();
-				fout.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+			if (!sendStrings.equals(" ") && !sendStrings.equals("null")) {
+				Logging.doLog(LOG_TAG,
+						"before send: " + sendStrings.toString(),
+						"before send: " + sendStrings.toString());
+				dataReq = new DataRequest(context);
+				dataReq.sendRequest(sendStrings.toString());
 			}
-		} else {
-			Logging.doLog(LOG_TAG, "without inet", "without inet");
 		}
 	}
-
 }

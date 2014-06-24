@@ -6,38 +6,33 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.inet.android.bs.Caller;
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.utils.Logging;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.bs.Caller;
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
-import com.inet.android.utils.Logging;
-
-/**
- * Data request class
- * 
- * @author johny homicide
- * 
- */
-public class DataRequest extends DefaultRequest {
-	private final String LOG_TAG = "DataRequest";
-	private final int type = 3;
+public class OnDemandRequest extends DefaultRequest {
+	private final String LOG_TAG = "OnDemandRequest";
+	private final int type = 4;
 	Context ctx;
 	static RequestDataBaseHelper db;
+	SharedPreferences sp;
 
-	public DataRequest(Context ctx) {
+	public OnDemandRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
 	}
 
 	@Override
 	public void sendRequest(String request) {
-		RequestTask mt = new RequestTask();
-		mt.execute(request);
+		RequestTask srt = new RequestTask();
+		srt.execute(request);
 	}
 
 	class RequestTask extends AsyncTask<String, Void, Void> {
@@ -63,6 +58,7 @@ public class DataRequest extends DefaultRequest {
 	protected void sendPostRequest(String request) {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
 		if (!request.equals(" ")) {
+
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			JSONObject jsonObject = new JSONObject();
@@ -73,17 +69,17 @@ public class DataRequest extends DefaultRequest {
 				jsonObject.put("device", sp.getString("device", "0000"));
 				jsonObject.put("imei", sp.getString("imei", "0000"));
 				jsonObject.put("key", System.currentTimeMillis());
+				jsonObject.put("version", sp.getString("version", "0"));
 
 				requestArray = "[" + request + "]";
 				jsonArray = new JSONArray(requestArray);
-				// jsonArray = new JSONArray(request);
 				jsonObject.put("data", jsonArray);
 
 				Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
 						jsonObject.toString());
 
 			} catch (JSONException e1) {
-				Logging.doLog(LOG_TAG, "json СЃР»РѕРјР°Р»СЃСЏ", "json СЃР»РѕРјР°Р»СЃСЏ");
+				Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 				e1.printStackTrace();
 			}
 
@@ -94,9 +90,9 @@ public class DataRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "do make.requestArray: " + requestArray,
 						"do make.requestArray: " + requestArray);
 
-				str = Caller.doMake(jsonObject.toString(), "informative", ctx);
+				str = Caller.doMake(jsonObject.toString(), "list", ctx);
 			} catch (IOException e) {
-				// Р”РѕР±Р°РІР»РµРЅРёРµ РІ Р±Р°Р·Сѓ request
+				// Добавление в базу request
 				e.printStackTrace();
 
 				Logging.doLog(LOG_TAG, "db.request: " + request, "db.request: "
@@ -108,87 +104,102 @@ public class DataRequest extends DefaultRequest {
 			if (str != null) {
 				getRequestData(str);
 			} else {
-				Logging.doLog(LOG_TAG, "РѕС‚РІРµС‚Р° РѕС‚ СЃРµСЂРІРµСЂР° РЅРµС‚",
-						"РѕС‚РІРµС‚Р° РѕС‚ СЃРµСЂРІРµСЂР° РЅРµС‚");
+				Logging.doLog(LOG_TAG, "ответа от сервера нет",
+						"ответа от сервера нет");
 			}
-		}else {
-			Logging.doLog(LOG_TAG, "request == null",
-					"request == null");
+		} else {
+
+			Logging.doLog(LOG_TAG, "request == null", "request == null");
+
 		}
 	}
 
 	@Override
 	protected void getRequestData(String response) {
-		String postRequest = null;
-
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
 
-		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(ctx);
+		Editor ed = sp.edit();
 
-		JSONObject json = new JSONObject();
+		JSONObject jsonObject = null;
 		try {
-			json.put("account", sp.getString("account", "0000"));
-			json.put("device", sp.getString("device", "0000"));
-			json.put("imei", sp.getString("imei", "0000"));
+			jsonObject = new JSONObject(response);
+		} catch (JSONException e) {
+			if (response == null) {
+				Logging.doLog(LOG_TAG, "json null", "json null");
+			}
+			return;
+		}
+
+		String str = null;
+		try {
+			str = jsonObject.getString("code");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		postRequest = json.toString();
-
-		JSONObject jsonObject = null;
-		String str = null;
-		try {
-			jsonObject = new JSONObject(response);
-			str = jsonObject.getString("code");
-		} catch (JSONException e) {
-			str = null;
-		}
-
-		Editor ed = sp.edit();
 		if (str != null) {
 			ed.putString("code", str);
 		} else {
-			ed.putString("code", "");
+			ed.putString("code", "code");
 		}
 
-		if (str.equals("2")) {
-			PeriodicRequest pr = new PeriodicRequest(ctx);
-			pr.sendRequest(postRequest);
+		if (str.equals("1")) {
+			try {
+				str = jsonObject.getString("version");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			if (str != null) {
+				ed.putString("version", str);
+				ed.commit();
+			} else {
+				ed.putString("version", "version");
+			}
 		}
 
 		if (str.equals("0")) {
-			String errstr = null;
 			try {
-				errstr = jsonObject.getString("error");
+				str = jsonObject.getString("error");
 			} catch (JSONException e) {
-				errstr = null;
+				str = null;
 			}
-			if (errstr != null) {
-				ed.putString("error", errstr);
+			if (str != null) {
+				ed.putString("error", str);
 			} else {
-				ed.putString("error", "");
+				ed.putString("error", "error");
 			}
-			ed.commit();
 			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "account РЅРµ РЅР°Р№РґРµРЅ", "account РЅРµ РЅР°Р№РґРµРЅ");
+				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
 
 				ed.putString("account", "account");
 			}
-			if (str.equals("1"))
+			if (str.equals("1")) {
 				Logging.doLog(LOG_TAG,
-						"imei РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РёР»Рё РёРјРµРµС‚ РЅРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚",
-						"imei РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РёР»Рё РёРјРµРµС‚ РЅРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚");
+						"imei отсутствует или имеет неверный формат",
+						"imei отсутствует или имеет неверный формат");
+			}
 			if (str.equals("2"))
-				Logging.doLog(LOG_TAG, "СѓСЃС‚СЂРѕР№СЃС‚РІРѕ СЃ СѓРєР°Р·Р°РЅРЅС‹Рј imei СѓР¶Рµ РµСЃС‚СЊ",
-						"СѓСЃС‚СЂРѕР№СЃС‚РІРѕ СЃ СѓРєР°Р·Р°РЅРЅС‹Рј imei СѓР¶Рµ РµСЃС‚СЊ");
+				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
+						"устройство с указанным imei уже есть");
 			if (str.equals("3"))
-				Logging.doLog(LOG_TAG, "РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РєР»СЋС‡", "РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РєР»СЋС‡");
-			if (str.equals("4"))
-				Logging.doLog(LOG_TAG, "РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РёР»Рё РЅРµРІРµСЂРЅС‹Р№ type",
-						"РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚ РёР»Рё РЅРµРІРµСЂРЅС‹Р№ type");
+				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
+			if (str.equals("4")) {
+				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
+						"отсутствует или неверный type");
+			}
+			if (str.equals("5")) {
+				Logging.doLog(LOG_TAG, "версия не найдена", "версия не найдена");
+			}
+			if (str.equals("6")) {
+				Logging.doLog(LOG_TAG,
+						"type пакета не совпадает с версией на сервере",
+						"type пакета не совпадает с версией на сервере");
+			}
+			if (str.equals("7")) {
+				Logging.doLog(LOG_TAG, "другое", "другое");
+			}
 		}
+
 		ed.commit();
 	}
 
