@@ -61,10 +61,9 @@ public class Caller {
 //			httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs,
 //					"cp1251"));
 //			StringEntity se = new StringEntity("{\"account\":\"3\",\"model\":\"iphone\",\"imei\":\"1234567890\"}");
-			StringEntity se = new StringEntity(postRequest);
+			StringEntity se = new StringEntity(postRequest, "UTF-8");
 			se.setContentType("application/json");
 			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
-//			httppost.setEntity(new ByteArrayEntity(postRequest.getBytes()));
 			httppost.setEntity(se);
 			
 			
