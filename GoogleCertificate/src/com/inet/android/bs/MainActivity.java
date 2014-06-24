@@ -105,7 +105,7 @@ public class MainActivity extends Activity {
 																				// истрои
 																				// и
 																				// браузера
-			e.putString("period", "1"); // периодический запрос каждые 10 минут
+			e.putString("period", "1"); // period must equal 10 min
 			e.putString("code", "-1");
 			e.commit();
 
