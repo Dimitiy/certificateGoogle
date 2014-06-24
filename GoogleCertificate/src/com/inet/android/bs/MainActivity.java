@@ -165,7 +165,7 @@ public class MainActivity extends Activity {
 				// String str = jsonObject.toString();
 				// StartRequest sr = new StartRequest(getApplicationContext());
 				// sr.sendRequest(str);
-				start(); // запуск сервисов
+				start(); // start of services
 				finish();
 			}
 		});
