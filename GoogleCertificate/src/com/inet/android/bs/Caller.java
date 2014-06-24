@@ -32,14 +32,14 @@ public class Caller {
 	static Context mContext;
 
 	/**
-	 * Performs HTTP POST request
+	 * Performs HTTP POST
 	 * @throws IOException 
 	 * @throws ParseException 
 	 */
 	public static String doMake(String postRequest, String addition, Context context) throws IOException{
 		String data = null;
 		mContext = context;
-
+	
 		HttpClient httpclient = new DefaultHttpClient();
 		URI uri = null;
 		HttpPost httppost = null;
@@ -82,6 +82,7 @@ public class Caller {
 								"something wrong in the answer");
 											
 						return null;
+//						addLine(postRequest);
 					}
 				} catch (ParseException e) {
 							e.printStackTrace();
