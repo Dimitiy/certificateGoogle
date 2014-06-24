@@ -92,7 +92,7 @@ public class MainActivity extends Activity {
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 		boolean getInfo = sp.getBoolean("getInfo", false);
 		if (!hasVisited) {
-			// проверка на первый запуск
+			// Is the first time?
 
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
