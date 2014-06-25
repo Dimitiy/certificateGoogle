@@ -25,7 +25,7 @@ import android.preference.PreferenceManager;
 public class Request4 extends Service {	
 	private static final int SERVICE_REQUEST_CODE = 35;
 		final String LOG_TAG = "request4";
-		SharedPreferences sPref;
+//		SharedPreferences sPref;
 		int period = 10; // периодичность запросов
 
 		public void onCreate() {

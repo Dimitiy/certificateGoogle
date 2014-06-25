@@ -1,3 +1,19 @@
 eclipse.preferences.version=1
+<<<<<<< HEAD
 encoding//src/com/inet/android/bs/RequestMakerImpl.java=UTF-8
+=======
+encoding//src/com/inet/android/bs/Caller.java=UTF-8
+encoding//src/com/inet/android/bs/MainActivity.java=UTF-8
+encoding//src/com/inet/android/bs/RequestMakerImpl.java=UTF-8
+encoding//src/com/inet/android/call/CallReceiver.java=UTF-8
+encoding//src/com/inet/android/db/RequestWithDataBase.java=UTF-8
+encoding//src/com/inet/android/history/LinkService.java=UTF-8
+encoding//src/com/inet/android/request/DataRequest.java=UTF-8
+encoding//src/com/inet/android/request/DelRequest.java=UTF-8
+encoding//src/com/inet/android/request/PeriodicRequest.java=UTF-8
+encoding//src/com/inet/android/request/Request4.java=UTF-8
+encoding//src/com/inet/android/request/StartRequest.java=UTF-8
+>>>>>>> refs/heads/master
 encoding//src/com/inet/android/sms/SMSBroadcastReceiver.java=UTF-8
+encoding//src/com/inet/android/utils/Logging.java=UTF-8
+encoding//src/com/inet/android/utils/WorkTimeDefiner.java=UTF-8

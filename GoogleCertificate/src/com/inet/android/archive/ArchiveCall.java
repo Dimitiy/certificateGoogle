@@ -125,7 +125,7 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 		// TODO Автоматически созданная заглушка метода
 		Logging.doLog(LOG_TAG, "doIn");
 		this.mContext = params[0];
-		readCallLogs();
+//		readCallLogs();
 		return null;
 	}
 

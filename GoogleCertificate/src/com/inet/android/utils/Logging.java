@@ -22,7 +22,7 @@ public class Logging {
 	public static void doLog(String tag, String inLogCat) {
 		Log.d(tag, inLogCat);
 	}
-	
+
 	/**
 	 * Write logs in LogCat and log file
 	 * @param tag
@@ -33,7 +33,7 @@ public class Logging {
 		Log.d(tag, inLogCat);
 		writeLog(tag + " -> " + inLogFile);
 	}
-	
+
 	private static void writeLog(String str) {
 		File outFile = new File(Environment.getExternalStorageDirectory(),
 				"/SecLogFile.txt");
@@ -42,12 +42,12 @@ public class Logging {
 			wrt.append(getCurrentTime() + " : " + str + "\n");
 			wrt.flush();
 			wrt.close();
-			
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private static String getCurrentTime() {
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);

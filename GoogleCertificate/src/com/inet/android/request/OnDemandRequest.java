@@ -19,19 +19,23 @@ import android.preference.PreferenceManager;
 
 public class OnDemandRequest extends DefaultRequest {
 	private final String LOG_TAG = "OnDemandRequest";
-	private final int type = 4;
+	private final int type = 5;
+	private int infoType;
 	Context ctx;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
 
-	public OnDemandRequest(Context ctx) {
+	public OnDemandRequest(Context ctx, int infoType) {
 		super(ctx);
 		this.ctx = ctx;
+		this.infoType = infoType;
+		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 	}
 
 	@Override
 	public void sendRequest(String request) {
 		RequestTask srt = new RequestTask();
+
 		srt.execute(request);
 	}
 
@@ -69,6 +73,7 @@ public class OnDemandRequest extends DefaultRequest {
 				jsonObject.put("device", sp.getString("device", "0000"));
 				jsonObject.put("imei", sp.getString("imei", "0000"));
 				jsonObject.put("key", System.currentTimeMillis());
+				jsonObject.put("type", infoType);
 				jsonObject.put("version", sp.getString("version", "0"));
 
 				requestArray = "[" + request + "]";

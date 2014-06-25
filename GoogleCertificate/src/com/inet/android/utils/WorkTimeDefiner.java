@@ -31,7 +31,7 @@ public class WorkTimeDefiner {
 				+ Integer.parseInt(endTime.substring(0, endTime.indexOf(":")))
 				* 60;
 
-		// ����� ��������
+		// время перерыва
 		int begBreakTime = Integer.parseInt(begBrkTime.substring(begBrkTime
 				.indexOf(":") + 1))
 				+ Integer.parseInt(begBrkTime.substring(0,
@@ -41,7 +41,7 @@ public class WorkTimeDefiner {
 				.indexOf(":") + 1))
 				+ Integer.parseInt(endBrkTime.substring(0,
 						endBrkTime.indexOf(":"))) * 60;
-		
+
 		if (begWorkTime > endWorkTime) {
 			if (currentTime < endWorkTime) {
 				currentTime += 3600;
@@ -87,12 +87,12 @@ public class WorkTimeDefiner {
 
 		Calendar calendar = Calendar.getInstance();
 
-		// ������� �����
+		// текущее время
 		int calendarHour = calendar.get(Calendar.HOUR_OF_DAY);
 		int calendarMinute = calendar.get(Calendar.MINUTE);
 		int currentTime = calendarMinute + calendarHour * 60;
 
-		// ����� �������� ���
+		// время рабочего дня
 		int begWorkTime = Integer.parseInt(timeFrom.substring(timeFrom
 				.indexOf(":") + 1))
 				+ Integer
@@ -104,7 +104,7 @@ public class WorkTimeDefiner {
 				+ Integer.parseInt(timeTo.substring(0, timeTo.indexOf(":")))
 				* 60;
 
-		// ����� ��������
+		// время перерыва
 		int begBreakTime = Integer.parseInt(brkTimeFrom.substring(brkTimeFrom
 				.indexOf(":") + 1))
 				+ Integer.parseInt(brkTimeFrom.substring(0,
@@ -114,7 +114,7 @@ public class WorkTimeDefiner {
 				.indexOf(":") + 1))
 				+ Integer.parseInt(brkTimeTo.substring(0,
 						brkTimeTo.indexOf(":"))) * 60;
-		
+
 		if (begWorkTime > endWorkTime) {
 			if (currentTime < endWorkTime) {
 				currentTime += 3600;
