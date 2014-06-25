@@ -62,7 +62,7 @@ public class OnDemandRequest extends DefaultRequest {
 	protected void sendPostRequest(String request) {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
 		if (!request.equals(" ")) {
-			// w
+//s
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			JSONObject jsonObject = new JSONObject();
