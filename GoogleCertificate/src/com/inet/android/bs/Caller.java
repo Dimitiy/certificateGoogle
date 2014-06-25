@@ -86,7 +86,6 @@ public class Caller {
 								"something wrong in the answer");
 											
 						return null;
-//						addLine(postRequest);
 					}
 				} catch (ParseException e) {
 							e.printStackTrace();
