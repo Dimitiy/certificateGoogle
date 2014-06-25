@@ -11,6 +11,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
@@ -57,9 +58,10 @@ public class Caller {
 		
 		Logging.doLog(LOG_TAG, "request: " + postRequest, "request: " + postRequest);
 
-			StringEntity se = new StringEntity(new String (postRequest.getBytes(), "UTF-8"));
+			StringEntity se = new StringEntity(postRequest, HTTP.UTF_8);
 			se.setContentType("application/json");
 			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
+			se.setContentType("");
 			httppost.setEntity(se);
 			
 			Logging.doLog(LOG_TAG, "doMake: " + EntityUtils.toString(httppost.getEntity()), 

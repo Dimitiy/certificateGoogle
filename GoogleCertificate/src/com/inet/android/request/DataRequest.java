@@ -62,7 +62,7 @@ public class DataRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
-		if (!request.equals(" ")) {
+		if (!request.equals(" ")&&!request.equals("")) {
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			JSONObject jsonObject = new JSONObject();

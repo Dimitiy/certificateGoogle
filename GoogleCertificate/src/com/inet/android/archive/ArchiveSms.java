@@ -111,7 +111,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 		Logging.doLog(LOG_TAG, "doIn");
 		this.mContext = params[0];
 		Logging.doLog(LOG_TAG, mContext.toString());
-		getSmsLogs();
+//		getSmsLogs();
 		return null;
 	}
 

