@@ -24,7 +24,7 @@ import android.content.Context;
 import com.inet.android.utils.Logging;
 
 /**
- * 
+ * Class idi na yuh
  * @author johny homicide
  *
  */
