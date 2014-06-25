@@ -41,7 +41,7 @@ public class Caller {
 		String data = null;
 		mContext = context;
 	
-		// Создадим HttpClient и PostHandler
+		// Create HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
 		URI uri = null;
 		HttpPost httppost = null;
