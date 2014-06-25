@@ -23,7 +23,7 @@ import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
 /**
- * Класс сбора звонков
+ * Class for calls
  * 
  * @author johny homicide
  * 
