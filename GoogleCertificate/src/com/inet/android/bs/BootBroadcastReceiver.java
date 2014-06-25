@@ -29,16 +29,13 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
-			// для Service
+			// for Service
 			Intent linkServiceIntent = new Intent(context, LinkService.class);
 			context.startService(linkServiceIntent);
 			Intent locServiceIntent = new Intent(context, LocationTracker.class);
 			context.startService(locServiceIntent);
 			GetInfo getInfo = new GetInfo(mContext);
 			getInfo.getInfo();
-//			Intent request4ServiceIntent = new Intent(context, Request4.class);
-//			context.startService(request4ServiceIntent);
-
 		}
 	}
 
