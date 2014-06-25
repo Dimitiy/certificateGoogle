@@ -24,7 +24,7 @@ import android.content.Context;
 import com.inet.android.utils.Logging;
 
 /**
- * 
+ * Class for make http post request
  * @author johny homicide
  *
  */
