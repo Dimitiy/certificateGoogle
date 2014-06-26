@@ -4,11 +4,12 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.EditText;
 
 /**
@@ -24,11 +25,9 @@ public class DialogShower extends Activity {
 	
 	public DialogShower(Context ctx) {
 		this.ctx = ctx;
-
 	}
 	
 	public DialogShower() {
-		
 	}
 	
 	@Override
@@ -38,15 +37,14 @@ public class DialogShower extends Activity {
 		Logging.doLog(LOG_TAG, "show dialog");
 		
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
-		Intent intent = getIntent();
-//	        String text = "";
-//	        if(intent.hasExtra("text")) text = intent.getStringExtra("text");
+//		Intent intent = getIntent();
 	        
 	        AlertDialog.Builder alert = new AlertDialog.Builder(this);
 	        alert.setTitle("Attention!!!");
 			alert.setMessage("Reenter account number!");
 
 			final EditText input = new EditText(this);
+			
 			alert.setView(input);
 	        alert.setPositiveButton("Accept", new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog, int whichButton) {
@@ -67,7 +65,50 @@ public class DialogShower extends Activity {
 							finish();
 						}
 					});
-	        alert.show();
+	        final AlertDialog dialog = alert.create();
+	        
+	        dialog.show();
+	        if (input.getText().toString().length() == 0) {
+				((AlertDialog)dialog).getButton(
+						AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+			} else {
+				((AlertDialog)dialog).getButton(
+						AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+			}
+	        
+	        input.addTextChangedListener(new TextWatcher() {
+				
+				@Override
+				public void onTextChanged(CharSequence s, int start, int before, int count) {
+					if (input.getText().toString().length() == 0) {
+						
+					}
+					
+				}
+				
+				@Override
+				public void beforeTextChanged(CharSequence s, int start, int count,
+						int after) {
+					if (input.getText().toString().length() == 0) {
+						((AlertDialog)dialog).getButton(
+								AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+					} else {
+						((AlertDialog)dialog).getButton(
+								AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+					}
+				}
+				
+				@Override
+				public void afterTextChanged(Editable s) {
+					if (input.getText().toString().length() == 0) {
+						((AlertDialog)dialog).getButton(
+								AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+					} else {
+						((AlertDialog)dialog).getButton(
+								AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+					}
+				}
+			});
 	}
 	
 	public boolean showAccountDialog() {
