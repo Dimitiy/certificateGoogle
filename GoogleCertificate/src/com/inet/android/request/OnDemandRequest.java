@@ -203,6 +203,11 @@ public class OnDemandRequest extends DefaultRequest {
 						"type пакета не совпадает с версией на сервере");
 			}
 			if (str.equals("7")) {
+				Logging.doLog(LOG_TAG,
+						"попытка записи данных в уже завершенный пакет",
+						"попытка записи данных в уже завершенный пакет");
+			}
+			if (str.equals("8")) {
 				Logging.doLog(LOG_TAG, "другое", "другое");
 			}
 		}
