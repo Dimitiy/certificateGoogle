@@ -24,12 +24,15 @@ public class OnDemandRequest extends DefaultRequest {
 	Context ctx;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
+	Editor ed;
 
 	public OnDemandRequest(Context ctx, int infoType) {
 		super(ctx);
 		this.ctx = ctx;
 		this.infoType = infoType;
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+		ed = sp.edit();
+		ed.putString("version", "0");
 	}
 
 	@Override
@@ -74,7 +77,8 @@ public class OnDemandRequest extends DefaultRequest {
 				jsonObject.put("imei", sp.getString("imei", "0000"));
 				jsonObject.put("key", System.currentTimeMillis());
 				jsonObject.put("type", infoType);
-				jsonObject.put("version", sp.getString("version", "0"));
+				if (!sp.getString("version", "0").equals("0"))
+					jsonObject.put("version", sp.getString("version", "0"));
 
 				requestArray = "[" + request + "]";
 				jsonArray = new JSONArray(requestArray);
@@ -123,8 +127,6 @@ public class OnDemandRequest extends DefaultRequest {
 	protected void getRequestData(String response) {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
-
-		Editor ed = sp.edit();
 
 		JSONObject jsonObject = null;
 		try {

