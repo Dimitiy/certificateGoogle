@@ -158,8 +158,6 @@ public class StartRequest extends DefaultRequest {
 			if (str != null) {
 				ed.putString("device", str);
 				ed.commit();
-//				GetInfo getInfo = new GetInfo(ctx);
-//				getInfo.getInfo();
 			} else {
 				ed.putString("device", "device");
 			}

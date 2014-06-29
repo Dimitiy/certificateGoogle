@@ -20,19 +20,22 @@ import android.preference.PreferenceManager;
 public class OnDemandRequest extends DefaultRequest {
 	private final String LOG_TAG = "OnDemandRequest";
 	private final int type = 5;
-	private int infoType;
+	private String infoType = "0";
+	private String complete;
 	Context ctx;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
 	Editor ed;
 
-	public OnDemandRequest(Context ctx, int infoType) {
+	public OnDemandRequest(Context ctx, String infoType, String complete) {
 		super(ctx);
 		this.ctx = ctx;
-		this.infoType = infoType;
+		this.complete = complete;
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 		ed = sp.edit();
-		ed.putString("version", "0");
+		this.infoType = infoType;
+		ed.commit();
+
 	}
 
 	@Override
@@ -63,9 +66,9 @@ public class OnDemandRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
+		// Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
 		if (!request.equals(" ")) {
-			// w
+
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			JSONObject jsonObject = new JSONObject();
@@ -77,14 +80,19 @@ public class OnDemandRequest extends DefaultRequest {
 				jsonObject.put("imei", sp.getString("imei", "0000"));
 				jsonObject.put("key", System.currentTimeMillis());
 				jsonObject.put("type", infoType);
-				if (!sp.getString("version", "0").equals("0"))
-					jsonObject.put("version", sp.getString("version", "0"));
-
+				if (sp.getString("version", "").equals("")) {
+					jsonObject.put("version", "");
+					Logging.doLog(LOG_TAG, "version = ", "version = ");
+				} else {
+					jsonObject.put("version", sp.getString("version", ""));
+					Logging.doLog(LOG_TAG, "version put = ", "version put= ");
+				}
+				jsonObject.put("complete", complete);
 				requestArray = "[" + request + "]";
 				jsonArray = new JSONArray(requestArray);
 				jsonObject.put("data", jsonArray);
 
-				Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
+				Logging.doLog(LOG_TAG, "jsonArray: " + jsonObject.toString(),
 						jsonObject.toString());
 
 			} catch (JSONException e1) {
@@ -94,10 +102,9 @@ public class OnDemandRequest extends DefaultRequest {
 
 			String str = null;
 			try {
-				Logging.doLog(LOG_TAG, "do make.request: " + request,
-						"do make.request: " + request);
-				Logging.doLog(LOG_TAG, "do make.requestArray: " + requestArray,
-						"do make.requestArray: " + requestArray);
+				Logging.doLog(LOG_TAG,
+						"do make.requestArray: " + jsonObject.toString(),
+						"do make.requestArray: " + jsonObject.toString());
 
 				str = Caller.doMake(jsonObject.toString(), "list", ctx);
 			} catch (IOException e) {
@@ -153,18 +160,21 @@ public class OnDemandRequest extends DefaultRequest {
 		if (str.equals("1")) {
 			try {
 				str = jsonObject.getString("version");
+
 			} catch (JSONException e) {
-				e.printStackTrace();
+				str = null;
+
 			}
 			if (str != null) {
 				ed.putString("version", str);
 				ed.commit();
 			} else {
-				ed.putString("version", "version");
+				ed.putString("version", "");
+				ed.commit();
 			}
 		}
 
-		if (str.equals("0")) {
+		if (str != null &&str.equals("0")) {
 			try {
 				str = jsonObject.getString("error");
 			} catch (JSONException e) {
