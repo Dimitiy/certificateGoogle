@@ -1,4 +1,4 @@
-package com.inet.android.bs;
+package com.inet.android.request;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,9 +18,9 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.request.PeriodicRequest;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WebClientDevWrapper;
+
 
 
 import android.content.Context;

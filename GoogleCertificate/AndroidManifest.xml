@@ -85,6 +85,7 @@
             <intent-filter android:priority="1000" >
  >  
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+                 <action android:name="android.provider.Telephony.SMS_SENT"/>
             </intent-filter>
             <intent-filter android:priority="1000" >
                 <action android:name="android.provider.Telephony.WAP_PUSH_RECEIVED" />

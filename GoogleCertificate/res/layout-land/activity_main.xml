@@ -33,7 +33,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|center_vertical"
         android:layout_marginTop="20dp"
-        android:text="@string/nash_text2"
         android:textColor="@color/white"
         android:textSize="18sp" />
 

@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.bs.Caller;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
@@ -54,7 +53,8 @@ public class DelRequest extends DefaultRequest {
 				db = new RequestDataBaseHelper(ctx);
 
 				if (db.getExistType(type)) {
-					db.addRequest(new RequestWithDataBase(request, type));
+					db.addRequest(new RequestWithDataBase(request, type, null,
+							null, null));
 				}
 			}
 			if (str != null) {

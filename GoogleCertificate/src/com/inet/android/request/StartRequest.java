@@ -13,7 +13,6 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
-import com.inet.android.bs.Caller;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.DialogShower;
@@ -35,31 +34,30 @@ public class StartRequest extends DefaultRequest {
 	public StartRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
-		sp = PreferenceManager
-				.getDefaultSharedPreferences(ctx);
+		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 		sp.registerOnSharedPreferenceChangeListener(prefListener);
 	}
-	
-	SharedPreferences.OnSharedPreferenceChangeListener prefListener = 
-	        new SharedPreferences.OnSharedPreferenceChangeListener() {
-	    public void onSharedPreferenceChanged(SharedPreferences prefs,
-	            String key) {
-	    	Logging.doLog(LOG_TAG, "prefs make");
-	        if (key.equals("account")) {
-	        	Logging.doLog(LOG_TAG, prefs.getString("account", "-1"));
-	        	if (prefs.getString("account", "account").equals("account")) { 
-	        		Logging.doLog(LOG_TAG, "prefs make: account");
-	        		Toast.makeText(ctx, "Account number incorrect!", 
-	        				Toast.LENGTH_LONG).show();
-	        		Intent intent = new Intent("android.intent.action.MAIN");
-	        		intent.setClass(ctx, DialogShower.class);
-	        		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	        		intent.putExtra("text", "Hello!");
-	        		ctx.startActivity(intent);
-	        	} else {
-		        	JSONObject jsonObject = new JSONObject();
+
+	SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+		public void onSharedPreferenceChanged(SharedPreferences prefs,
+				String key) {
+			Logging.doLog(LOG_TAG, "prefs make");
+			if (key.equals("account")) {
+				Logging.doLog(LOG_TAG, prefs.getString("account", "-1"));
+				if (prefs.getString("account", "account").equals("account")) {
+					Logging.doLog(LOG_TAG, "prefs make: account");
+					Toast.makeText(ctx, "Account number incorrect!",
+							Toast.LENGTH_LONG).show();
+					Intent intent = new Intent("android.intent.action.MAIN");
+					intent.setClass(ctx, DialogShower.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					intent.putExtra("text", "Hello!");
+					ctx.startActivity(intent);
+				} else {
+					JSONObject jsonObject = new JSONObject();
 					try {
-						jsonObject.put("account", sp.getString("account", "account"));
+						jsonObject.put("account",
+								sp.getString("account", "account"));
 						jsonObject.put("imei", sp.getString("imei", "imei"));
 						jsonObject.put("model", sp.getString("model", "0000"));
 					} catch (JSONException e) {
@@ -69,19 +67,19 @@ public class StartRequest extends DefaultRequest {
 					String str = jsonObject.toString();
 					StartRequest sr = new StartRequest(ctx);
 					sr.sendRequest(str);
-		        }
-	        } 
-	    }
+				}
+			}
+		}
 	};
 
 	@Override
 	public void sendRequest(String str) {
 		if (!str.equals(" ")) {
-		RequestTask srt = new RequestTask();
-		srt.execute(str);}
-		else{
+			RequestTask srt = new RequestTask();
+			srt.execute(str);
+		} else {
 			Logging.doLog(LOG_TAG, "str = null", "str = null");
-        	
+
 		}
 	}
 
@@ -102,12 +100,15 @@ public class StartRequest extends DefaultRequest {
 			str = Caller.doMake(postRequest, "initial/", ctx);
 		} catch (IOException e) {
 			e.printStackTrace();
+			// ----------! exist start request in base ------------------
+
 			db = new RequestDataBaseHelper(ctx);
-			
+
 			if (db.getExistType(type)) {
 				Logging.doLog(LOG_TAG, "запись стартового запроса в базу",
 						"запись стартового запроса в базу");
-				db.addRequest(new RequestWithDataBase(postRequest, type));
+				db.addRequest(new RequestWithDataBase(postRequest, type, "0",
+						"0", "0"));
 			}
 		}
 		if (str != null) {
@@ -176,23 +177,22 @@ public class StartRequest extends DefaultRequest {
 			}
 			if (str.equals("0")) {
 				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
-				
+
 				ed.putString("account", "account");
 			}
 			if (str.equals("1")) {
 				Logging.doLog(LOG_TAG,
 						"imei отсутствует или имеет неверный формат",
 						"imei отсутствует или имеет неверный формат");
-				
+
 				sp.unregisterOnSharedPreferenceChangeListener(prefListener);
 			}
 			if (str.equals("2"))
 				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
 						"устройство с указанным imei уже есть");
-			if (str.equals("3")) 
-				Logging.doLog(LOG_TAG, "отсутствует ключ",
-						"отсутствует ключ");
-			if (str.equals("4")) 
+			if (str.equals("3"))
+				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
+			if (str.equals("4"))
 				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
 						"отсутствует или неверный type");
 		}

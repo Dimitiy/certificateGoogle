@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -42,12 +41,12 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	ConvertDate date;
 	private static final int SERVICE_REQUEST_CODE = 15;
 	// The minimum distance to change Updates in meters
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 100
+	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 30; // 100
 	float bestAccuracy = 1000; // meters
 
 	// The minimum time between updates in milliseconds
 	private static long MIN_TIME_BW_UPDATES; // 5 minute
-	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 60 * 24; // 24 часа
+	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 60 * 1; // 24 часа
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
 
@@ -99,6 +98,9 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			return 0;
 		}
 		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("geo", "5")) * 1000 * 60;
+		Logging.doLog(TAG, "onStartCommand gpsTracker " + MIN_TIME_BW_UPDATES,
+				"onStartCommand gpsTracker " + MIN_TIME_BW_UPDATES);
+	
 		timeUp = Integer.parseInt(sp.getString("geo", "5"));
 		// ----------restart service
 		// ---------------------------------------------------
@@ -190,8 +192,9 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 				}
 				if (locationValue.getGPSLocation() == true) {
 					Logging.doLog(TAG, "GPS Enabled", "GPS Enabled");
-					gpsLoc();
 					locationManager.addGpsStatusListener(this);
+					gpsLoc();
+					
 					// locationManager.addNmeaListener(this);
 
 				}
@@ -313,8 +316,6 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 
 			// -------send sms----------------------------
 			String sendJSONStr = null;
-			JSONObject jsonObject = new JSONObject();
-			JSONArray data = new JSONArray();
 			JSONObject info = new JSONObject();
 			JSONObject object = new JSONObject();
 			try {
@@ -326,8 +327,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 				object.put("time", date.logTime());
 				object.put("type", type);
 				object.put("info", info);
-//				data.put(object);
-//				jsonObject.put("data", data);
+
 				sendJSONStr = object.toString();
 			} catch (JSONException e) {
 				Logging.doLog(TAG, "json сломался", "json сломался");
@@ -360,7 +360,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 					if (locationValue.getGPSLoc()) {
 						Logging.doLog(TAG,
 								"loc change" + location.getProvider(),
-								"loc change  " + location.getProvider());
+								"loc change" + location.getProvider());
 						locationValue.setProvider(location.getProvider());
 						locationValue.setLatitude(location.getLatitude());
 						locationValue.setLongitude(location.getLongitude());

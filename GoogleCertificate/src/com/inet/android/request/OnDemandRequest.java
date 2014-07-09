@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.bs.Caller;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
@@ -22,6 +21,7 @@ public class OnDemandRequest extends DefaultRequest {
 	private final int type = 5;
 	private String infoType = "0";
 	private String complete;
+	private String version;
 	Context ctx;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
@@ -34,6 +34,20 @@ public class OnDemandRequest extends DefaultRequest {
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 		ed = sp.edit();
 		this.infoType = infoType;
+		ed.commit();
+
+	}
+
+	public OnDemandRequest(Context ctx, String infoType, String complete,
+			String version) {
+		super(ctx);
+		this.ctx = ctx;
+		this.complete = complete;
+		this.infoType = infoType;
+		this.version = version;
+		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+		ed = sp.edit();
+		ed.putString("version", version);
 		ed.commit();
 
 	}
@@ -79,7 +93,7 @@ public class OnDemandRequest extends DefaultRequest {
 				jsonObject.put("device", sp.getString("device", "0000"));
 				jsonObject.put("imei", sp.getString("imei", "0000"));
 				jsonObject.put("key", System.currentTimeMillis());
-				jsonObject.put("type", infoType);
+				jsonObject.put("list", infoType);
 				if (sp.getString("version", "").equals("")) {
 					jsonObject.put("version", "");
 					Logging.doLog(LOG_TAG, "version = ", "version = ");
@@ -115,7 +129,8 @@ public class OnDemandRequest extends DefaultRequest {
 						+ request);
 
 				db = new RequestDataBaseHelper(ctx);
-				db.addRequest(new RequestWithDataBase(request, type));
+				db.addRequest(new RequestWithDataBase(request, type, infoType,
+						version, complete));
 			}
 			if (str != null) {
 				getRequestData(str);
@@ -174,7 +189,7 @@ public class OnDemandRequest extends DefaultRequest {
 			}
 		}
 
-		if (str != null &&str.equals("0")) {
+		if (str != null && str.equals("0")) {
 			try {
 				str = jsonObject.getString("error");
 			} catch (JSONException e) {

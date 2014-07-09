@@ -8,6 +8,9 @@ public class RequestWithDataBase {
 	private String request;
 	private int type;
 	private boolean exist;
+	private String version;
+	private String complete;
+	private String typeList;
 
 	// Пустой конструктор
 	public RequestWithDataBase() {
@@ -21,6 +24,26 @@ public class RequestWithDataBase {
 		this._id = id;
 		this.request = request;
 		this.type = type;
+	}
+
+	public RequestWithDataBase(String request, int type, String typeList,
+			String version, String complete) {
+
+		this.request = request;
+		this.type = type;
+		this.complete = complete;
+		this.version = version;
+		this.typeList = typeList;
+	}
+
+	public RequestWithDataBase(int id, String request, int type,
+			String typeList, String complete, String version) {
+		this._id = id;
+		this.request = request;
+		this.type = type;
+		this.complete = complete;
+		this.version = version;
+		this.typeList = typeList;
 	}
 
 	public RequestWithDataBase(int id) {
@@ -72,5 +95,47 @@ public class RequestWithDataBase {
 
 	public void setExist(boolean exist) {
 		this.exist = exist;
+	}
+
+	/**
+	 * Получить версию
+	 */
+	public String getVersion() {
+		return this.version;
+	}
+
+	/**
+	 * Записать версию
+	 */
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
+	/**
+	 * Получить complete
+	 */
+	public String getComplete() {
+		return this.complete;
+	}
+
+	/**
+	 * Записать complete
+	 */
+	public void setComplete(String complete) {
+		this.complete = complete;
+	}
+
+	/**
+	 * Получить typeList
+	 */
+	public String getTypeList() {
+		return this.typeList;
+	}
+
+	/**
+	 * Записать typeList
+	 */
+	public void setTypeList(String typeList) {
+		this.typeList = typeList;
 	}
 }

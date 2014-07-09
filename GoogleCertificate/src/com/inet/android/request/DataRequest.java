@@ -12,7 +12,6 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.bs.Caller;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
@@ -103,7 +102,8 @@ public class DataRequest extends DefaultRequest {
 						+ request);
 
 				db = new RequestDataBaseHelper(ctx);
-				db.addRequest(new RequestWithDataBase(request, type));
+				db.addRequest(new RequestWithDataBase(request, type, null,
+						null, null));
 			}
 			if (str != null) {
 				getRequestData(str);

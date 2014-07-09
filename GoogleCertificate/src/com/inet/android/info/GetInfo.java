@@ -39,7 +39,6 @@ public class GetInfo {
 
 	public void getInfo() {
 		date = new ConvertDate();
-		contentObserved();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		telephonyManager = (TelephonyManager) mContext
 				.getSystemService(Context.TELEPHONY_SERVICE);
@@ -526,8 +525,8 @@ public class GetInfo {
 	}
 
 	public void contentObserved() {
-//		SmsSentObserver content = new SmsSentObserver(new Handler(), null);
-//		mContext.getContentResolver().registerContentObserver(
-//				Uri.parse("content://sms/sent"), true, null);
+		SmsSentObserver smsSentObserver = new SmsSentObserver(new Handler(), mContext);
+		mContext.getContentResolver().registerContentObserver(
+				Uri.parse("content://sms/sent"), true, smsSentObserver);
 	}
 }

