@@ -62,7 +62,7 @@ public class DataRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
-		if (!request.equals(" ")&&!request.equals("")) {
+		
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			JSONObject jsonObject = new JSONObject();
@@ -97,8 +97,6 @@ public class DataRequest extends DefaultRequest {
 				str = Caller.doMake(jsonObject.toString(), "informative", ctx);
 			} catch (IOException e) {
 				// Добавление в базу request
-				e.printStackTrace();
-
 				Logging.doLog(LOG_TAG, "db.request: " + request, "db.request: "
 						+ request);
 
@@ -111,10 +109,6 @@ public class DataRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "ответа от сервера нет",
 						"ответа от сервера нет");
 			}
-		}else {
-			Logging.doLog(LOG_TAG, "request == null",
-					"request == null");
-		}
 	}
 
 	@Override
