@@ -90,7 +90,7 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 						encodedImage += Base64.encodeToString(bitmapdata,
 								Base64.DEFAULT);
 						sendPhoto.append(encodedImage);
-						if(sendPhoto.equals(" "))
+						if (sendPhoto.equals(" "))
 							jsonContact.put("photo", sendPhoto);
 						// Logging.doLog(LOG_TAG, "encoder: " + sendPhoto,
 						// "encoder: " + sendPhoto);
@@ -221,8 +221,10 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 							String note = noteCur
 									.getString(noteCur
 											.getColumnIndex(ContactsContract.CommonDataKinds.Note.NOTE));
-							if (note != null)
-								jsonInfo.put("заметка", note);
+							if (note != null) {
+								if (!note.equals(" "))
+									jsonInfo.put("заметка", note);
+							}
 						}
 						noteCur.close();
 
@@ -279,9 +281,13 @@ public class GetContacts extends AsyncTask<Context, Void, Void> {
 									.getString(orgCur
 											.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
 
-							if (orgName != null)
-								jsonInfo.put("организация", orgName + " "
-										+ title);
+							if (orgName != null) {
+								if (title == null)
+									jsonInfo.put("организация", orgName);
+								else
+									jsonInfo.put("организация", orgName + " "
+											+ title);
+							}
 						}
 						orgCur.close();
 
