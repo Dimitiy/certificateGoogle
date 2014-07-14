@@ -100,7 +100,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("geo", "5")) * 1000 * 60;
 		Logging.doLog(TAG, "onStartCommand gpsTracker " + MIN_TIME_BW_UPDATES,
 				"onStartCommand gpsTracker " + MIN_TIME_BW_UPDATES);
-	
+
 		timeUp = Integer.parseInt(sp.getString("geo", "5"));
 		// ----------restart service
 		// ---------------------------------------------------
@@ -170,7 +170,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 						"GPS set false " + sp.getString("geo_mode", "1"));
 				locationValue.setGPSLocation(false);
 				locationManager.removeGpsStatusListener(this);
-				
+
 				// locationManager.removeNmeaListener(this);
 
 			}
@@ -194,7 +194,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 					Logging.doLog(TAG, "GPS Enabled", "GPS Enabled");
 					locationManager.addGpsStatusListener(this);
 					gpsLoc();
-					
+
 					// locationManager.addNmeaListener(this);
 
 				}
@@ -356,7 +356,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		if (location != null) {
 			if (Double.toString(location.getLatitude()) == "0.0"
 					&& Double.toString(location.getLongitude()) == "0.0") {
-				if (location.getProvider() == "gps")
+				if (location.getProvider() == "gps") {
 					if (locationValue.getGPSLoc()) {
 						Logging.doLog(TAG,
 								"loc change" + location.getProvider(),
@@ -366,13 +366,16 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 						locationValue.setLongitude(location.getLongitude());
 						locationValue.setAccuracy(location.getAccuracy());
 					}
-			} else {
-				Logging.doLog(TAG, "loc change" + location.getProvider(),
-						"loc change  " + location.getProvider());
-				locationValue.setProvider(location.getProvider());
-				locationValue.setLatitude(location.getLatitude());
-				locationValue.setLongitude(location.getLongitude());
-				locationValue.setAccuracy(location.getAccuracy());
+				} else {
+					Logging.doLog(TAG, "loc change" + location.getProvider(),
+							"loc change  " + location.getProvider());
+					locationValue.setProvider(location.getProvider());
+					locationValue.setLatitude(location.getLatitude());
+					locationValue.setLongitude(location.getLongitude());
+					locationValue.setAccuracy(location.getAccuracy());
+
+				}
+				sendLoc();
 			}
 		}
 	}

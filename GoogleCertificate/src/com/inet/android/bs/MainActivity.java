@@ -24,11 +24,11 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.inet.android.archive.ArchiveCall;
-import com.inet.android.archive.ListApp;
 import com.inet.android.certificate.R;
-import com.inet.android.contacts.GetContacts;
 import com.inet.android.history.LinkService;
+import com.inet.android.list.ListApp;
+import com.inet.android.list.ListCall;
+import com.inet.android.list.ListContacts;
 import com.inet.android.location.LocationTracker;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;

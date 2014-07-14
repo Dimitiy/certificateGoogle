@@ -4,10 +4,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
+/**
+ * Class with some utilities for date
+ * @author 
+ *
+ */
 public class ConvertDate {
-	String date;
-
-	
 
 	public String getData(long date) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -19,6 +21,5 @@ public class ConvertDate {
 		Calendar cal = Calendar.getInstance();
 		cal.setTimeInMillis(System.currentTimeMillis());
 		return "" + formatter.format(cal.getTime());
-
 	}
 }

