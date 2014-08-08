@@ -9,5 +9,6 @@
     <string name="buttonExit_label">Отклонить</string>
     <string name="TitleDialog">Внимание!</string>
     <string name="Enter_account">Введите номер акаунта!</string>
+    <string name="start_record">familyguardrecord</string>
 
 </resources>

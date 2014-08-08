@@ -174,7 +174,7 @@ public class DataRequest extends DefaultRequest {
 			if (str.equals("0")) {
 				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
 
-				ed.putString("account", "account");
+//				ed.putString("account", "account");
 			}
 			if (str.equals("1"))
 				Logging.doLog(LOG_TAG,

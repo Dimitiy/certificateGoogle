@@ -33,6 +33,7 @@ public class ListApp {
 	private static String LOG_TAG = "ListApp";
 	final int COMPRESSION_QUALITY = 100;
 	private TurnSendList sendList;
+	private String version;
 
 	/**
 	 * get the list of all installed applications in the device
@@ -43,6 +44,8 @@ public class ListApp {
 	public void getListOfInstalledApp(Context context) {
 		this.mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		version = sp.getString("list_app", "0");
+		Logging.doLog(LOG_TAG, "getListOfInstalledApp", "getListOfInstalledApp");
 
 		// -------initial json line----------------------
 		JSONObject jsonAppList = new JSONObject();
@@ -53,6 +56,7 @@ public class ListApp {
 			PackageManager packageManager = context.getPackageManager();
 			final List<ApplicationInfo> installedApps = packageManager
 					.getInstalledApplications(flags);
+			
 			for (ApplicationInfo app : installedApps) {
 				if ((app.flags & ApplicationInfo.FLAG_SYSTEM) == 1) {
 					// System application
@@ -95,10 +99,10 @@ public class ListApp {
 							sendStr = jsonAppList.toString();
 						else
 							sendStr += "," + jsonAppList.toString();
-						if (sendStr.length() >= 50000) {
+						if (sendStr.length() >= 30000) {
 							complete = "0";
-							Logging.doLog(LOG_TAG, "str >= 50000",
-									"str >= 50000");
+							Logging.doLog(LOG_TAG, "str >= 30000",
+									"str >= 30000");
 							sendRequest(sendStr, complete);
 							sendStr = null;
 
@@ -114,14 +118,15 @@ public class ListApp {
 
 			}
 			if (sendStr != null) {
-				if (!sendStr.equals(" ")) {
-					lastRaw(sendStr);
-				}
+				lastRaw(sendStr);
+				sendStr = null;
+
+			} else {
+				lastRaw("");
 			}
-		}
-		else {
+		} else {
 			sendList = new TurnSendList(mContext);
-			sendList.setList(3, "1", "0");
+			sendList.setList(iType, version, "0");
 		}
 	}
 
@@ -129,14 +134,12 @@ public class ListApp {
 		complete = "1";
 		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
 		sendRequest(sendStr, complete);
-		sendStr = null;
-		sendList = new TurnSendList(mContext);
-		sendList.setList(3, "0", "0");
 	}
 
 	private void sendRequest(String str, String complete) {
 		if (str != null) {
-			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete);
+			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete,
+					version);
 			dr.sendRequest(str);
 		}
 	}

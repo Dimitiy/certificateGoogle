@@ -45,7 +45,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * Function to set latitude
+	 * Function to set longitude
 	 * */
 	public void setLongitude(double longitude) {
 		if (longitude != BigDecimal.ZERO.doubleValue()) {
@@ -72,7 +72,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * set provider
+	 * set accuracy
 	 */
 	public void setAccuracy(float accuracy) {
 		if (accuracy != BigDecimal.ZERO.doubleValue()) {
@@ -82,7 +82,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * get provider
+	 * get accuracy
 	 */
 	public float getAccuracy() {
 
@@ -90,7 +90,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * Function to check GPS/wifi enabled
+	 * Function to set location enabled
 	 * 
 	 * @return boolean
 	 * */
@@ -99,11 +99,8 @@ public class LocationValue {
 	}
 
 	/**
-	 * Function to check GPS enabled
-	 * 
-	 * @return
-	 * 
-	 * @return boolean
+	 * Function to set GPS location
+	 *
 	 * */
 	public void setGPSLocation(boolean gpsEnable) {
 		this.gpsEnable = gpsEnable;

@@ -41,12 +41,12 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	ConvertDate date;
 	private static final int SERVICE_REQUEST_CODE = 15;
 	// The minimum distance to change Updates in meters
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 30; // 100
+	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 50; // 100
 	float bestAccuracy = 1000; // meters
 
 	// The minimum time between updates in milliseconds
-	private static long MIN_TIME_BW_UPDATES; // 5 minute
-	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 60 * 1; // 24 часа
+	private static long MIN_TIME_BW_UPDATES; // get minute
+	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 7; // 10 minute
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
 
@@ -242,8 +242,8 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 						+ Long.toString(time) + " " + Float.toString(accuracy));
 				if ((time > minTime && accuracy < bestAccuracy)) {
 					bestResult = location;
-					longitude = location.getLongitude();
-					latitude = location.getLatitude();
+					longitude = bestResult.getLongitude();
+					latitude = bestResult.getLatitude();
 					bestAccuracy = accuracy;
 					bestTime = time;
 					bestProvider = provider;
@@ -252,17 +252,18 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 					Logging.doLog(TAG, "bestAccuracy: " + date1 + " "
 							+ accuracy + " " + bestResult, "bestAccuracy: "
 							+ date1 + " " + accuracy + " " + bestResult);
-				} else if (time < minTime && bestAccuracy == Float.MAX_VALUE
+				}
+				else if (time < minTime && bestAccuracy == Float.MAX_VALUE
 						&& time > bestTime) {
 					bestResult = location;
 					bestTime = time;
 					bestProvider = provider;
 					bestAccuracy = accuracy;
-					longitude = location.getLongitude();
-					latitude = location.getLatitude();
-					Logging.doLog(TAG, "else " + Long.toString(bestTime) + " "
-							+ bestResult, "else " + Long.toString(bestTime)
-							+ " " + bestResult);
+					longitude = bestResult.getLongitude();
+					latitude = bestResult.getLatitude();
+					Logging.doLog(TAG, "if " + Long.toString(bestTime) + " "
+							+ bestResult, "if " + Long.toString(bestTime) + " "
+							+ bestResult);
 				}
 			}
 

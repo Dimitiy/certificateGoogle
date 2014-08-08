@@ -106,28 +106,16 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	 */
 	public void addRequest(RequestWithDataBase request) {
 		if (openDatabaseWrite() != null) {
-			Logging.doLog(LOG_TAG, "addRequest" + request.getRequest() + request.getType(),
-					"Get_Type_list != null");
+			Logging.doLog(LOG_TAG, "addRequest" + request.getRequest()
+					+ request.getType(), "Get_Type_list != null");
 			db.beginTransaction();
 			try {
 				ContentValues values = new ContentValues();
 				values.put(COLUMN_REQUEST, request.getRequest());
 				values.put(COLUMN_TYPE, request.getType());
-//				if (request.getTypeList() != null) {
-					Logging.doLog(LOG_TAG, "Get_Type_list != null",
-							"Get_Type_list != null");
-					values.put(COLUMN_TYPE_LIST, request.getTypeList());
-//				}
-//				if (request.getVersion() != null) {
-					Logging.doLog(LOG_TAG, "version != null " + request.getVersion(), "version != null " + request.getVersion());
-					values.put(COLUMN_VERSION, request.getVersion());
-//				}
-//				if (request.getComplete() != null) {
-
-					Logging.doLog(LOG_TAG, "complete != null " + request.getComplete(),
-							"complete != null " + request.getComplete());
-					values.put(COLUMN_TYPE_LIST, request.getComplete());
-//				}
+				values.put(COLUMN_TYPE_LIST, request.getTypeList());
+				values.put(COLUMN_COMPLETE, request.getComplete());
+				values.put(COLUMN_VERSION, request.getVersion());
 				Logging.doLog(LOG_TAG, "values", "values");
 
 				// Вставляем строку в таблицу
@@ -150,16 +138,16 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 
 			Cursor cursor = db.query(DATABASE_TABLE, new String[] { COLUMN_ID,
 					COLUMN_REQUEST, COLUMN_TYPE, COLUMN_TYPE_LIST,
-					 COLUMN_VERSION, COLUMN_COMPLETE }, COLUMN_ID + "=?",
+					COLUMN_COMPLETE, COLUMN_VERSION }, COLUMN_ID + "=?",
 					new String[] { String.valueOf(COLUMN_ID) }, null, null,
 					null, null);
 			if (cursor != null)
 				cursor.moveToFirst();
 
 			getRequest = new RequestWithDataBase(Integer.parseInt(cursor
-					.getString(0)), cursor.getString(1), cursor.getInt(2),
-					cursor.getString(3), cursor.getString(4),
-					cursor.getString(5));
+					.getString(0)), cursor.getString(1),
+					Integer.parseInt(cursor.getString(2)), cursor.getString(3),
+					cursor.getString(4), cursor.getString(5));
 			Logging.doLog(LOG_TAG, "ReadRequest" + getRequest.toString(),
 					"ReadRequest" + getRequest.toString());
 
@@ -189,10 +177,11 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 					request = new RequestWithDataBase();
 					request.setID(Integer.parseInt(cursor.getString(0)));
 					request.setRequest(cursor.getString(1));
-					request.setType(cursor.getInt(2));
+					request.setType(Integer.parseInt(cursor.getString(2)));
 					request.setTypeList(cursor.getString(3));
-					request.setVersion(cursor.getString(4));
-					request.setComplete(cursor.getString(5));
+					request.setComplete(cursor.getString(4));
+					request.setVersion(cursor.getString(5));
+					
 					requestList.add(request);
 				} while (cursor.moveToNext());
 				Logging.doLog(LOG_TAG, requestList.toString(),
@@ -293,7 +282,6 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 					new String[] { Integer.toString(type) }, null, null, null,
 					null);
 
-			
 			if (cursor.moveToFirst()) {
 				do {
 					request = new RequestWithDataBase();

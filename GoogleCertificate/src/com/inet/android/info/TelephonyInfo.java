@@ -10,11 +10,16 @@ public final class TelephonyInfo {
 	private static TelephonyInfo telephonyInfo;
 	private String imeiSIM1;
 	private String imeiSIM2;
+	private String number;
 	private boolean isSIM1Ready;
 	private boolean isSIM2Ready;
 
 	public String getImeiSIM1() {
 		return imeiSIM1;
+	}
+
+	public String getNumber() {
+		return number;
 	}
 
 	/*
@@ -49,8 +54,12 @@ public final class TelephonyInfo {
 	 * TelephonyInfo.isSIM2Ready = isSIM2Ready; }
 	 */
 
-	public boolean isDualSIM() {
-		return imeiSIM2 != null;
+	public String isDualSIM() {
+		if (isSIM2Ready() == false)
+			return "not supported";
+		else
+			return "supported";
+
 	}
 
 	private TelephonyInfo() {
@@ -64,11 +73,16 @@ public final class TelephonyInfo {
 
 			TelephonyManager telephonyManager = ((TelephonyManager) context
 					.getSystemService(Context.TELEPHONY_SERVICE));
-
 			telephonyInfo.imeiSIM1 = telephonyManager.getDeviceId();
 			telephonyInfo.imeiSIM2 = null;
+			try {
+				telephonyInfo.number = telephonyManager.getLine1Number();
+			} catch (NullPointerException ex) {
+				ex.printStackTrace();
+			}
 
 			try {
+
 				telephonyInfo.imeiSIM1 = getDeviceIdBySlot(context,
 						"getDeviceIdGemini", 0);
 				telephonyInfo.imeiSIM2 = getDeviceIdBySlot(context,

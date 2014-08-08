@@ -40,6 +40,10 @@ public class SmsSentObserver extends ContentObserver {
 		this.handler = handler;
 	}
 
+	public void setContext(Context context) {
+		this.mContext = context;
+	}
+
 	public boolean deliverSelfNotifications() {
 		return true;
 	}

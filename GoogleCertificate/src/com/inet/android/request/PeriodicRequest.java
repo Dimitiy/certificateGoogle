@@ -162,7 +162,7 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str.equals("2")) {
 			if (sp.getBoolean("getInfo", false) == true) {
 				GetInfo getInfo = new GetInfo(ctx);
-				getInfo.getInfo();
+				getInfo.startGetInfo();
 				ed.putBoolean("getInfo", false);
 			}
 			ed.putString("period", "1");
@@ -297,11 +297,9 @@ public class PeriodicRequest extends DefaultRequest {
 		} catch (JSONException e) {
 			str = null;
 		}
-		if (str != null && str.equals("1")
-				&& sp.getString("list_call", "0").equals("0")) {
-			sendList.setList(1, str, null);
-			sendList.startGetList();
-
+		if (str != null)
+			if (!str.equals("0") && !sp.getString("list_call", "0").equals(str)) {
+				sendList.setList("1", str, null);
 		}
 		// ---------------sms list------------------------
 		try {
@@ -309,26 +307,10 @@ public class PeriodicRequest extends DefaultRequest {
 		} catch (JSONException e) {
 			str = null;
 		}
-		if (str != null && str.equals("1")
-				&& sp.getString("list_sms", "0").equals("0")) {
-			sendList.setList(2, str, null);
-			sendList.startGetList();
-		}
-		// ---------------apps list------------------------
-
-		try {
-			str = jsonObject.getString("apps_list");
-		} catch (JSONException e) {
-			str = null;
-			Logging.doLog(LOG_TAG, "apps null ", "apps null ");
-
-		}
-		if (str != null && str.equals("1")
-				&& sp.getString("list_app", "0").equals("0")) {
-			sendList.setList(3, str, null);
-			sendList.startGetList();
-
-		}
+		if (str != null)
+			if (!str.equals("0") && !sp.getString("list_sms", "0").equals(str)) {
+				sendList.setList("2", str, null);
+			}
 
 		// ---------------contacts list------------------------
 
@@ -339,11 +321,25 @@ public class PeriodicRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, "contacts null ", "contacts null ");
 
 		}
-		if (str != null && str.equals("1")
-				&& sp.getString("list_contact", "0").equals("0")) {
-			sendList.setList(4, str, null);
-			sendList.startGetList();
+		if (str != null)
+			if (!str.equals("0")
+					&& !sp.getString("list_contact", "0").equals(str)) {
+				sendList.setList("3", str, null);
+			}
+		// ---------------apps list------------------------
+
+		try {
+			str = jsonObject.getString("apps_list");
+		} catch (JSONException e) {
+			str = null;
+			Logging.doLog(LOG_TAG, "apps null ", "apps null ");
+
 		}
+		if (str != null)
+			if (!str.equals("0") && !sp.getString("list_app", "0").equals(str)) {
+				sendList.setList("4", str, null);
+			}
+
 		// ---------------error------------------------
 
 		try {

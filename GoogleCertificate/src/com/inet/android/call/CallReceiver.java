@@ -4,7 +4,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -23,7 +22,7 @@ import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
 /**
- * Класс сбора звонков
+ * Class get call
  * 
  * @author johny homicide
  * 

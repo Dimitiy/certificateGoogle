@@ -32,19 +32,22 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	ArrayList<String> email = null;
 	ArrayList<String> emailType = null;
 	ArrayList<CharSequence> CustomemailType = null;
-	int imType;
 	private JSONObject jsonInfo;
 	private JSONObject jsonPhoneType;
 	private JSONObject jsonContact;
 	private String LOG_TAG = "ListContacts";
 	private String complete;
-	private int type;
 	private TurnSendList sendList;
+	private String version;
+	int imType;
+	int type;
 
 	public void readContacts() throws JSONException {
+		Logging.doLog(LOG_TAG, "readContact", "readContact");
 		String sendStr = null;
 		ContentResolver cr = mContext.getContentResolver();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		version = sp.getString("list_contact", "0");
 
 		String encodedImage = null;
 		StringBuilder sAdress;
@@ -77,7 +80,6 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 					if (input != null) {
 
 						Bitmap pic = BitmapFactory.decodeStream(input);
-						Logging.doLog(LOG_TAG, "pic != null: ", "pic != null ");
 						ByteArrayOutputStream bos = new ByteArrayOutputStream();
 						pic.compress(Bitmap.CompressFormat.PNG, 100, bos);
 						byte[] bitmapdata = bos.toByteArray();
@@ -294,37 +296,49 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 						sendStr += "," + jsonContact.toString();
 
 					if (sendStr.length() >= 50000) {
-						if (cur.isLast())
-							lastRaw(sendStr);
-						else {
-							sendRequest(sendStr, complete);
-							sendStr = null;
-						}
+						Logging.doLog(LOG_TAG, ">= 50000", ">= 50000");
+
+						sendRequest(sendStr, complete);
+						sendStr = null;
+
 					}
 				}
-				if (sendStr != null)
+				if (sendStr != null) {
 					lastRaw(sendStr);
+					sendStr = null;
+
+				} else {
+					lastRaw("");
+				}
+				Logging.doLog(LOG_TAG, "cur.close()", "cur.close()");
+
 				cur.close();
+			}else{
+				Logging.doLog(LOG_TAG, "contactCursor == null",
+						"contactCursor == null");
+				lastRaw("");
 			}
 
 		} else {
+			Logging.doLog(LOG_TAG, "else connect", "else connect");
+
 			sendList = new TurnSendList(mContext);
-			sendList.setList(4, "1", "0");
+			sendList.setList(iType, version, "0");
 		}
 	}
 
 	private void lastRaw(String sendStr) {
 		complete = "1";
-		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
 		sendRequest(sendStr, complete);
-		sendStr = null;
-		sendList = new TurnSendList(mContext);
-		sendList.setList(4, "0", "0");
+
 	}
 
 	private void sendRequest(String str, String complete) {
 		if (str != null) {
-			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete);
+			Logging.doLog(LOG_TAG, "sendRequest: complete " + complete,
+					"sendRequest: complete " + complete);
+			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete,
+					version);
 			dr.sendRequest(str);
 
 		}

@@ -55,10 +55,6 @@ public class LinkService extends Service {
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		Logging.doLog(LOG_TAG,
-				"onStartCommand - " + sp.getString("account", "account"),
-				"onStartCommand - " + sp.getString("account", "account"));
-
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
 		String linkEnd = sp.getString("code", "2");
 
@@ -178,9 +174,10 @@ public class LinkService extends Service {
 						if (favicon != null) {
 							encodedImage = Base64.encodeToString(favicon,
 									Base64.DEFAULT);
-							Logging.doLog(LOG_TAG, "image" + encodedImage,
-									"image" + encodedImage);
+							Logging.doLog(LOG_TAG, "image",
+									"image");
 							info.put("icon", encodedImage);
+							favicon = null;
 
 						}
 					} catch (SQLException e) {
@@ -194,7 +191,7 @@ public class LinkService extends Service {
 					try {
 
 						info.put("url", url);
-						info.put("title", title);
+						info.put("name", title);
 						object.put("time", urlDateInFormat);
 						object.put("type", "7");
 						object.put("info", info);
@@ -282,6 +279,8 @@ public class LinkService extends Service {
 								encodedImage = Base64.encodeToString(favicon,
 										Base64.DEFAULT);
 								info.put("icon", encodedImage);
+								favicon = null;
+
 							}
 						} catch (SQLException e) {
 							Logging.doLog(LOG_TAG, "favicon error",
@@ -294,7 +293,7 @@ public class LinkService extends Service {
 						try {
 
 							info.put("url", chromeUrl);
-							info.put("title", chromeTitle);
+							info.put("name", chromeTitle);
 
 							object.put("time", urlDateInFormat);
 							object.put("type", "7");

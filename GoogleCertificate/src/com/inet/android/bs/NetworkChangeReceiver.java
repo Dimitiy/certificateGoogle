@@ -35,7 +35,9 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	Context mContext;
 	RequestDataBaseHelper db;
 	DataRequest dataReq;
-	private boolean network;
+	boolean network;
+	boolean connectWifi = false;
+	boolean connectMobile = false;
 	public static final String LOG_TAG = "NetworkChangeReciever";
 
 	@Override
@@ -51,12 +53,15 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 		final android.net.NetworkInfo mobile = connMgr
 				.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-
+		if(wifi != null)
+			connectWifi = wifi.isConnected();
+		if(mobile != null)
+			connectMobile = mobile.isConnected();
 		StringBuilder sendStrings = new StringBuilder();
 		Logging.doLog(LOG_TAG, sendStrings.toString(), sendStrings.toString());
 		Logging.doLog(LOG_TAG, "NetWorkChange - begin", "NetWorkChange - begin");
-
-		if (wifi.isConnected() || mobile.isConnected()) {
+		
+		if (connectWifi || connectMobile) {
 			Logging.doLog(LOG_TAG, "NetWorkChange - available",
 					"NetWorkChange - available");
 			// ------------set netWorkAvailable-----------------------------
@@ -116,11 +121,11 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					} else if (req.getType() == 5) {
 						Logging.doLog(
 								"NetworkChangeReceiver sendRequest type = 5",
-								req.getRequest(), req.getRequest());
+								req.getTypeList(), req.getRequest());
 						OnDemandRequest dr = new OnDemandRequest(mContext,
 								req.getTypeList(), req.getComplete(),
 								req.getVersion());
-						dr.sendRequest(str);
+						dr.sendRequest(req.getRequest());
 						db.deleteRequest(new RequestWithDataBase(req.getID()));
 
 					}
@@ -128,13 +133,14 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					db.deleteRequest(new RequestWithDataBase(req.getID()));
 				}
 			}
-			if (!sendStrings.equals("") && !sendStrings.equals("null")) {
-				Logging.doLog(LOG_TAG,
-						"before send: " + sendStrings.toString(),
-						"before send: " + sendStrings.toString());
-				dataReq = new DataRequest(mContext);
-				dataReq.sendRequest(sendStrings.toString());
-			}
+			if (sendStrings != null)
+				if (!sendStrings.equals("") && !sendStrings.equals("null")) {
+					Logging.doLog(LOG_TAG,
+							"before send: " + sendStrings.toString(),
+							"before send: " + sendStrings.toString());
+					dataReq = new DataRequest(mContext);
+					dataReq.sendRequest(sendStrings.toString());
+				}
 			callOnceOnly();
 
 		} else {

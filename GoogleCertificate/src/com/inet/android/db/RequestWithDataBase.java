@@ -27,7 +27,7 @@ public class RequestWithDataBase {
 	}
 
 	public RequestWithDataBase(String request, int type, String typeList,
-			String version, String complete) {
+			 String complete,String version) {
 
 		this.request = request;
 		this.type = type;

