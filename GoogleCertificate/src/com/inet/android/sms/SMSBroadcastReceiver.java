@@ -69,7 +69,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		}
 	}
 
-	public void RegSmsObserver() {
+	private void RegSmsObserver() {
 		if (smsSentObserver == null) {
 			smsSentObserver = new SmsSentObserver(new Handler(), mContext);
 			mContext.getContentResolver().registerContentObserver(

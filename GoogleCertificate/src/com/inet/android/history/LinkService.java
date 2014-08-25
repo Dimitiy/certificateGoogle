@@ -112,8 +112,7 @@ public class LinkService extends Service {
 
 	@SuppressLint("SimpleDateFormat")
 	void linkTask() throws JSONException {
-		Logging.doLog(LOG_TAG, "string proj", "string proj");
-
+	
 		String[] proj = new String[] { Browser.BookmarkColumns._ID,
 				Browser.BookmarkColumns.TITLE, Browser.BookmarkColumns.URL,
 				Browser.BookmarkColumns.VISITS, Browser.BookmarkColumns.DATE,

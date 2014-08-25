@@ -297,7 +297,6 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 
 					if (sendStr.length() >= 50000) {
 						Logging.doLog(LOG_TAG, ">= 50000", ">= 50000");
-
 						sendRequest(sendStr, complete);
 						sendStr = null;
 
@@ -306,22 +305,23 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 				if (sendStr != null) {
 					lastRaw(sendStr);
 					sendStr = null;
-
 				} else {
 					lastRaw("");
+					sendStr = null;
+					
 				}
 				Logging.doLog(LOG_TAG, "cur.close()", "cur.close()");
-
 				cur.close();
 			}else{
 				Logging.doLog(LOG_TAG, "contactCursor == null",
 						"contactCursor == null");
 				lastRaw("");
+				sendStr = null;
+				
 			}
 
 		} else {
 			Logging.doLog(LOG_TAG, "else connect", "else connect");
-
 			sendList = new TurnSendList(mContext);
 			sendList.setList(iType, version, "0");
 		}
@@ -330,7 +330,6 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	private void lastRaw(String sendStr) {
 		complete = "1";
 		sendRequest(sendStr, complete);
-
 	}
 
 	private void sendRequest(String str, String complete) {

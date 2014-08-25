@@ -44,7 +44,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		TodoBase.onCreate(db);
 	}
 
-	public synchronized SQLiteDatabase openDatabaseWrite() {
+	private synchronized SQLiteDatabase openDatabaseWrite() {
 		try {
 			db = getWritableDatabase(); // always returns the
 										// same connection
@@ -62,7 +62,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		return db;
 	}
 
-	public synchronized SQLiteDatabase openDatabaseRead() {
+	private synchronized SQLiteDatabase openDatabaseRead() {
 		try {
 			db = getReadableDatabase(); // always returns the
 										// same connection
@@ -79,7 +79,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		return db;
 	}
 
-	public synchronized void closeDatabase(SQLiteDatabase db) {
+	private synchronized void closeDatabase(SQLiteDatabase db) {
 		activeDatabaseCount--;
 		if (activeDatabaseCount == 0) {
 			if (db != null) {

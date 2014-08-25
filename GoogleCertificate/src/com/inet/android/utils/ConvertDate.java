@@ -4,6 +4,8 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
+import android.annotation.SuppressLint;
+
 /**
  * Class with some utilities for date
  * @author 

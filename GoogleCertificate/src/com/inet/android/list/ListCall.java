@@ -104,9 +104,9 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 						// TODO Автоматически созданный блок catch
 						e.printStackTrace();
 					}
-					if (sendStr.length() >= 30000) {
+					if (sendStr.length() >= 50000) {
 
-						Logging.doLog(LOG_TAG, "str >= 30000", "str >= 30000");
+						Logging.doLog(LOG_TAG, "str >= 50000", "str >= 50000");
 						sendRequest(sendStr, complete);
 						sendStr = null;
 					}
@@ -116,6 +116,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 					sendStr = null;
 				} else {
 					lastRaw("");
+					sendStr = null;
 				}
 				Logging.doLog(LOG_TAG, "callLogCursor.close()",
 						"callLogCursor.close()");
@@ -124,9 +125,11 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 				Logging.doLog(LOG_TAG, "callLogCursor == null",
 						"callLogCursor == null");
 				lastRaw("");
+				sendStr = null;
 			}
 		} else {
 			endList();
+			sendStr = null;
 		}
 		return null;
 	}

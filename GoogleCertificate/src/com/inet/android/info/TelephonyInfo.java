@@ -78,7 +78,7 @@ public final class TelephonyInfo {
 			try {
 				telephonyInfo.number = telephonyManager.getLine1Number();
 			} catch (NullPointerException ex) {
-				ex.printStackTrace();
+//				ex.printStackTrace();
 			}
 
 			try {
@@ -88,7 +88,7 @@ public final class TelephonyInfo {
 				telephonyInfo.imeiSIM2 = getDeviceIdBySlot(context,
 						"getDeviceIdGemini", 1);
 			} catch (TelefonInfoNotFoundException e) {
-				e.printStackTrace();
+//				e.printStackTrace();
 
 				try {
 					telephonyInfo.imeiSIM1 = getDeviceIdBySlot(context,
@@ -98,7 +98,7 @@ public final class TelephonyInfo {
 				} catch (TelefonInfoNotFoundException e1) {
 					// Call here for next manufacturer's predicted method name
 					// if you wish
-					e1.printStackTrace();
+//					e1.printStackTrace();
 				}
 			}
 
@@ -112,7 +112,7 @@ public final class TelephonyInfo {
 						"getSimStateGemini", 1);
 			} catch (TelefonInfoNotFoundException e) {
 
-				e.printStackTrace();
+//				e.printStackTrace();
 
 				try {
 					telephonyInfo.isSIM1Ready = getSIMStateBySlot(context,
@@ -122,7 +122,7 @@ public final class TelephonyInfo {
 				} catch (TelefonInfoNotFoundException e1) {
 					// Call here for next manufacturer's predicted method name
 					// if you wish
-					e1.printStackTrace();
+//					e1.printStackTrace();
 				}
 			}
 		}
@@ -158,7 +158,7 @@ public final class TelephonyInfo {
 
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 			throw new TelefonInfoNotFoundException(predictedMethodName);
 		}
 
@@ -195,7 +195,7 @@ public final class TelephonyInfo {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 			throw new TelefonInfoNotFoundException(predictedMethodName);
 		}
 

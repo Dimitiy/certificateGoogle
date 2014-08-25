@@ -13,6 +13,7 @@ public class LocationValue {
 	private boolean gpsEnable;
 	private boolean gpsFix;
 	private boolean gpsLoc;
+	private float speed;
 
 	public LocationValue() {
 
@@ -141,11 +142,19 @@ public class LocationValue {
 		return sats;
 	}
 
-	public void setGPSLoc(boolean gpsLoc) {
-		this.gpsLoc = gpsLoc;
+	public void setGPSLoc(boolean setGPS) {
+		this.gpsLoc = setGPS;
 	}
 
 	public boolean getGPSLoc() {
 		return gpsLoc;
+	}
+
+	public void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
+	public float getSpeed() {
+		return speed;
 	}
 }
