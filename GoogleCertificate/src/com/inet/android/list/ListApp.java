@@ -22,7 +22,12 @@ import android.util.Base64;
 
 import com.inet.android.request.OnDemandRequest;
 import com.inet.android.utils.Logging;
-
+/**
+ * ListApp class is designed to get the list of applications
+ * 
+ * @author johny homicide
+ * 
+ */
 @SuppressLint("NewApi")
 public class ListApp {
 	Context mContext;

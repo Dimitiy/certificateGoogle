@@ -1,15 +1,18 @@
 package com.inet.android.location;
 
+import android.app.IntentService;
+import android.content.Intent;
+
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
 
-import android.app.IntentService;
-import android.content.Intent;
-import android.util.Log;
-
+/**
+ * ActivityRecognitionService class is designed to monitoring state device
+ * 
+ * @author johny homicide
+ * 
+ */
 public class ActivityRecognitionService extends IntentService {
-
-	private String TAG = this.getClass().getSimpleName();
 
 	public ActivityRecognitionService() {
 		super("My Activity Recognition Service");
@@ -20,8 +23,7 @@ public class ActivityRecognitionService extends IntentService {
 		if (ActivityRecognitionResult.hasResult(intent)) {
 			ActivityRecognitionResult result = ActivityRecognitionResult
 					.extractResult(intent);
-//			Log.i(TAG, getType(result.getMostProbableActivity().getType())
-//					+ "\t" + result.getMostProbableActivity().getConfidence());
+
 			Intent i = new Intent(
 					"com.inet.android.location.ACTIVITY_RECOGNITION_DATA");
 			i.putExtra("Activity", getType(result.getMostProbableActivity()
@@ -34,7 +36,7 @@ public class ActivityRecognitionService extends IntentService {
 
 	private String getType(int type) {
 		if (type == DetectedActivity.UNKNOWN)
-			return "Неизвестно";
+			return null;
 		else if (type == DetectedActivity.IN_VEHICLE)
 			return "В автомобиле";
 		else if (type == DetectedActivity.ON_BICYCLE)

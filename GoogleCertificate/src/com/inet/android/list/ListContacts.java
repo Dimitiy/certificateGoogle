@@ -24,7 +24,12 @@ import android.util.Base64;
 
 import com.inet.android.request.OnDemandRequest;
 import com.inet.android.utils.Logging;
-
+/**
+ * ListContact class is designed to get the list of contact
+ * 
+ * @author johny homicide
+ * 
+ */
 public class ListContacts extends AsyncTask<Context, Void, Void> {
 	Context mContext;
 	private String iType = "3";

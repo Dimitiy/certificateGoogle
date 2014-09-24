@@ -17,8 +17,9 @@ import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 /**
- * Archive Sms. Watch sms
+ * ListApp class is designed to get the list of sms
  * 
+ * @author johny homicide
  * 
  */
 public class ListSms extends AsyncTask<Context, Void, Void> {

@@ -6,7 +6,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
-
+/**
+ * TurnSendList class is designed to call control functions of single classes
+ * 
+ * @author johny homicide
+ * 
+ */
 public class TurnSendList {
 	private static final String LOG_TAG = "TurnSendList";
 	String list;

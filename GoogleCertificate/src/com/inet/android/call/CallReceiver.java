@@ -42,9 +42,6 @@ public class CallReceiver extends BroadcastReceiver {
 		if (!isWork) {
 			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
 					"isWork return " + Boolean.toString(isWork));
-			Logging.doLog(LOG_TAG, "after isWork retrun 0",
-					"after isWork retrun 0");
-
 			return;
 		} else {
 			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
@@ -56,19 +53,29 @@ public class CallReceiver extends BroadcastReceiver {
 		if (intent.getAction()
 				.equals("android.intent.action.NEW_OUTGOING_CALL")) {
 			// получаем исходящий номер
+			Logging.doLog(LOG_TAG, "android.intent.action.NEW_OUTGOING_CALL ",
+					"android.intent.action.NEW_OUTGOING_CALL");
+	
 		} else if (intent.getAction().equals(
 				"android.intent.action.PHONE_STATE")) {
 			String phoneState = intent
 					.getStringExtra(TelephonyManager.EXTRA_STATE);
+			Logging.doLog(LOG_TAG, "android.intent.action.PHONE_STATE ",
+					"android.intent.action.PHONE_STATE");
+	
 			if (phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
 				// телефон звонит, получаем входящий номер
-
+				Logging.doLog(LOG_TAG, "EXTRA_STATE_RINGING ",
+						"EXTRA_STATE_RINGING - ");
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
 				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
 				// телефон находится в ждущем режиме (событие наступает по
 				// окончании разговора,
 				// когда уже знаем номер и факт звонка
+				Logging.doLog(LOG_TAG, "EXTRA_STATE_IDLE ",
+						"EXTRA_STATE_IDLE - ");
+		
 				try {
 					// TimeUnit.SECONDS.sleep(1);
 					TimeUnit.MILLISECONDS.sleep(1000);

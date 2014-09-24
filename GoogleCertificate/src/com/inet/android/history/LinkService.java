@@ -56,10 +56,10 @@ public class LinkService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
-		String linkEnd = sp.getString("code", "2");
+		String linkEnd = sp.getString("www", "0");
 
-		if (linkEnd.equals("3")) {
-			Logging.doLog(LOG_TAG, "code : 3", "code : 3");
+		if (linkEnd.equals("0")) {
+			Logging.doLog(LOG_TAG, "www : 0", "www : 0");
 
 			return 0;
 		}
@@ -264,12 +264,8 @@ public class LinkService extends Service {
 
 						chromeUrl = chromeCursor.getString(chromeCursor
 								.getColumnIndex(Browser.BookmarkColumns.URL));
-						Logging.doLog(LOG_TAG, "url" + chromeUrl, "url"
-								+ chromeUrl);
 						chromeTitle = chromeCursor.getString(chromeCursor
 								.getColumnIndex(Browser.BookmarkColumns.TITLE));
-						Logging.doLog(LOG_TAG, "chromeTitle" + chromeTitle,
-								"chromeTitle" + chromeTitle);
 						try {
 							byte[] favicon = chromeCursor
 									.getBlob(chromeCursor

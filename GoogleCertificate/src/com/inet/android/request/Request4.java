@@ -19,7 +19,7 @@ import android.preference.PreferenceManager;
 
 /**
  * 
- *Класс сервиса отправки периодического запроса
+ *	Request4 class is design for send periodic query
  *
  */
 public class Request4 extends Service {	

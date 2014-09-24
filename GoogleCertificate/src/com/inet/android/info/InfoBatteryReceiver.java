@@ -37,11 +37,14 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 		String infoBattery = "";
 		int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
 		int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
-
-		float batteryPct = level / (float) scale;
-		Log.d(TAG, path.getString(R.string.charge_level) + batteryPct);
-
 		int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+		if (status > -1 && scale > -1 && level > -1 && scale != 0) {
+			float batteryPct = level / (float) scale;
+			Log.d(TAG, path.getString(R.string.charge_level) + batteryPct);
+			infoBattery = this.connect_dev + "\n"
+					+ path.getString(R.string.charge_level)
+					+ Float.toString(batteryPct * 100) + " %" + "\n";
+		}
 		String strStatus;
 		if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
 			strStatus = path.getString(R.string.status_battery_charging);
@@ -54,6 +57,9 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 		} else {
 			strStatus = "";
 		}
+		if (!strStatus.equals(""))
+			infoBattery += path.getString(R.string.status_battery) + strStatus
+					+ "\n";
 
 		int health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH,
 				BatteryManager.BATTERY_HEALTH_UNKNOWN);
@@ -70,8 +76,11 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 			strHealth = path
 					.getString(R.string.battery_healt_unspecified_failure);
 		} else {
-			strHealth = path.getString(R.string.status_battery_unknown);
+			strHealth = "";
 		}
+		if (!strHealth.equals(""))
+			infoBattery += path.getString(R.string.status_battery_healt)
+					+ strHealth + "\n";
 		// Каким образом проходит зарядка?
 		int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
 		String charge = "";
@@ -82,14 +91,11 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 		} else if (chargePlug == BatteryManager.BATTERY_PLUGGED_WIRELESS) {
 			charge = path.getString(R.string.battery_plugged_wireless);
 		} else {
-			charge = path.getString(R.string.battery_plugged_unknown);
+			charge = "";
 		}
-		infoBattery = this.connect_dev + "\n"
-				+ path.getString(R.string.charge_level) + batteryPct + "\n"
-				+ path.getString(R.string.status_battery) + strStatus + "\n"
-				+ path.getString(R.string.status_battery_healt) + strHealth
-				+ "\n" + path.getString(R.string.status_battery_charge)
-				+ charge;
+		if (!charge.equals(""))
+			infoBattery += path.getString(R.string.status_battery_charge)
+					+ charge;
 		return infoBattery;
 	}
 }

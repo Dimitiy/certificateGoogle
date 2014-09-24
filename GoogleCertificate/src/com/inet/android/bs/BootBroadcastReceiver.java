@@ -1,9 +1,5 @@
 package com.inet.android.bs;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -18,12 +14,18 @@ import com.inet.android.info.GetInfo;
 import com.inet.android.location.LocationTracker;
 import com.inet.android.location.RecognitionDevService;
 import com.inet.android.utils.Logging;
-
+/**
+ * BootBroadcastReceiver for start family-guard 
+ * 
+ * @author johny homicide
+ * 
+ */
 public class BootBroadcastReceiver extends BroadcastReceiver {
 
 	Context mContext;
 	private final String BOOT_ACTION = "android.intent.action.BOOT_COMPLETED";
 	SharedPreferences sp;
+	String area;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -31,12 +33,10 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 		mContext = context;
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		Resources path = mContext.getApplicationContext().getResources();
-		String area = path.getString(R.string.device);
+		area = path.getString(R.string.device);
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
-			CreateServiceInformation serviceInfo = new CreateServiceInformation(
-					mContext);
-			serviceInfo.sendStr(area, path.getString(R.string.boot));
+			sendStr(path.getString(R.string.boot));
 			// for Service
 			Intent linkServiceIntent = new Intent(mContext, LinkService.class);
 			mContext.startService(linkServiceIntent);
@@ -50,10 +50,18 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 			getInfo.startGetInfo();
 		}
 		if (action.equalsIgnoreCase(Intent.ACTION_REBOOT)) {
-			CreateServiceInformation serviceInfo = new CreateServiceInformation(
-					mContext);
-			serviceInfo.sendStr(area, "Reboot");
+			sendStr(path.getString(R.string.reboot));
 
 		}
+		if (action.equalsIgnoreCase(Intent.ACTION_SHUTDOWN)) {
+			sendStr(path.getString(R.string.shutdown));
+
+		}
+	}
+
+	private void sendStr(String str) {
+		CreateServiceInformation serviceInfo = new CreateServiceInformation(
+				mContext);
+		serviceInfo.sendStr(area, str);
 	}
 }

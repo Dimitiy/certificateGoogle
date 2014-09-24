@@ -4,7 +4,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
 
 import com.inet.android.utils.Logging;
-
+/**
+ * RequestWithDataBase class is designed for create/update DataBase
+ * 
+ * @author johny homicide
+ * 
+ */
 public class TodoBase implements BaseColumns {
 
 	private final static String LOG_TAG = "RequestDataBaseHelper";

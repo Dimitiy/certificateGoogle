@@ -12,7 +12,12 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
 import com.inet.android.utils.Logging;
-
+/**
+ * RequestDataBaseHelper class is designed for management method DataBase 
+ * 
+ * @author johny homicide
+ * 
+ */
 public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		BaseColumns {
 	private final static String LOG_TAG = "RequestDataBaseHelper";

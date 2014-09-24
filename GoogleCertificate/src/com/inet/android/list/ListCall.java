@@ -14,7 +14,12 @@ import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.request.OnDemandRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-
+/**
+ * ListCall class is designed to get the list of call
+ * 
+ * @author johny homicide
+ * 
+ */
 public class ListCall extends AsyncTask<Context, Void, Void> {
 	TurnSendList sendList;
 	ConvertDate date;

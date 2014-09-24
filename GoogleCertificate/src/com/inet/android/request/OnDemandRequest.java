@@ -17,6 +17,13 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+/**
+ * OnDemandRequest class is designed to prepare for the one-time sending
+ * function
+ * 
+ * @author johny homicide
+ * 
+ */
 public class OnDemandRequest extends DefaultRequest {
 	private final String LOG_TAG = "OnDemandRequest";
 	private final int type = 5;
@@ -103,9 +110,9 @@ public class OnDemandRequest extends DefaultRequest {
 							+ jsonObject.toString());
 
 					str = Caller.doMake(jsonObject.toString(), "list", ctx);
-//					db = new RequestDataBaseHelper(ctx);
-//					db.addRequest(new RequestWithDataBase(request, type,
-//							infoType, complete, version));
+					// db = new RequestDataBaseHelper(ctx);
+					// db.addRequest(new RequestWithDataBase(request, type,
+					// infoType, complete, version));
 				} catch (IOException e) {
 					// Добавление в базу request
 					e.printStackTrace();

@@ -1,7 +1,12 @@
 package com.inet.android.location;
 
 import java.math.BigDecimal;
-
+/**
+ * LocationValue class is designed to get/set value location
+ * 
+ * @author johny homicide
+ * 
+ */
 public class LocationValue {
 
 	private double latitude; // latitude

@@ -77,8 +77,10 @@
             android:enabled="true"
             android:exported="false"
             android:permission="android.permission.RECEIVE_BOOT_COMPLETED" >
-            <intent-filter>
+            <intent-filter android:priority="1000" >
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+                <action android:name="android.intent.action.REBOOT" />
             </intent-filter>
         </receiver>
         <receiver android:name="com.inet.android.call.CallReceiver" >
@@ -124,13 +126,15 @@
             android:exported="false" />
         <service android:name="com.inet.android.location.ActivityRecognitionService" />
 
-        <receiver android:name="com.inet.android.info.BatteryReceiver" >
+        <receiver android:name="com.inet.android.info.BatteryTimeReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
                 <action android:name="android.intent.action.BATTERY_LOW" />
                 <action android:name="android.intent.action.BATTERY_OKAY" />
                 <action android:name="android.intent.action.AIRPLANE_MODE" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
             </intent-filter>
         </receiver>
         <receiver android:name="com.inet.android.info.InfoBatteryReceiver" >

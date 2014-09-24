@@ -1,7 +1,12 @@
 package com.inet.android.db;
 
 import android.util.Log;
-
+/**
+ * RequestWithDataBase class is designed for get/set to DataBase
+ * 
+ * @author johny homicide
+ * 
+ */
 public class RequestWithDataBase {
 	// Создание геттеров-сеттеров
 	private int _id;

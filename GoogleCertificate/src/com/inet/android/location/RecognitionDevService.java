@@ -22,7 +22,12 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.ActivityRecognitionClient;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
-
+/**
+ * RecognitionDevService class is designed for start ACTIVITY_RECOGNITION
+ * 
+ * @author johny homicide
+ * 
+ */
 public class RecognitionDevService extends Service implements
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener {

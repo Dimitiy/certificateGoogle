@@ -15,6 +15,12 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+/**
+ * DelRequest class is designed to stop the program
+ * 
+ * @author johny homicide
+ * 
+ */
 public class DelRequest extends DefaultRequest {
 	private final String LOG_TAG = "DelRequest";
 	private int type = 4;

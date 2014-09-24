@@ -23,7 +23,7 @@ import android.content.Context;
 import com.inet.android.utils.Logging;
 
 /**
- * Class idi na yuh
+ * Ñaller class is used to send requests to the server (not for files)
  * @author johny homicide
  *
  */
