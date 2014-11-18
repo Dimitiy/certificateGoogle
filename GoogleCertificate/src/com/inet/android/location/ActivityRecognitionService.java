@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
+import com.inet.android.utils.Logging;
 
 /**
  * ActivityRecognitionService class is designed to monitoring state device
@@ -13,6 +14,7 @@ import com.google.android.gms.location.DetectedActivity;
  * 
  */
 public class ActivityRecognitionService extends IntentService {
+	private String TAG = ActivityRecognitionService.class.getSimpleName();
 
 	public ActivityRecognitionService() {
 		super("My Activity Recognition Service");
@@ -35,24 +37,28 @@ public class ActivityRecognitionService extends IntentService {
 	}
 
 	private String getType(int type) {
-		if (type == DetectedActivity.UNKNOWN)
-			return null;
-		else if (type == DetectedActivity.IN_VEHICLE)
-			return "В автомобиле";
-		else if (type == DetectedActivity.ON_BICYCLE)
-			return "На велосипеде";
-		else if (type == DetectedActivity.ON_FOOT)
-			return "Пешком";
-		else if (type == DetectedActivity.STILL)
-			return "Неподвижное";
-		else if (type == DetectedActivity.TILTING)
-			return "Вращение аппарата";
-		else if (type == DetectedActivity.RUNNING)
-			return "Бегом";
-		else if (type == DetectedActivity.WALKING)
-			return "Ходьба";
-		else
-			return "";
+		if (type != -1) {
+			if (type == DetectedActivity.UNKNOWN){
+				Logging.doLog(TAG, "activity unknown", "activity unknown");
+				return "";}
+			else if (type == DetectedActivity.IN_VEHICLE)
+				return "В автомобиле";
+			else if (type == DetectedActivity.ON_BICYCLE)
+				return "На велосипеде";
+			else if (type == DetectedActivity.ON_FOOT)
+				return "Пешком";
+			else if (type == DetectedActivity.STILL)
+				return "Неподвижное";
+			else if (type == DetectedActivity.TILTING)
+				return "Вращение аппарата";
+			else if (type == DetectedActivity.RUNNING)
+				return "Бегом";
+			else if (type == DetectedActivity.WALKING)
+				return "Ходьба";
+			else
+				return "";
+		}
+		return "";
 	}
 
 }

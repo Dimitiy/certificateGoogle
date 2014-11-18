@@ -19,7 +19,7 @@ public class LocationValue {
 	private boolean gpsFix;
 	private boolean gpsLoc;
 	private float speed;
-
+	private boolean connectClient;
 	public LocationValue() {
 
 	}
@@ -161,5 +161,11 @@ public class LocationValue {
 
 	public float getSpeed() {
 		return speed;
+	}
+	public void setLocationClient(boolean connectClient){
+		this.connectClient = connectClient;
+	}
+	public boolean isLocationClient(){
+		return this.connectClient;
 	}
 }

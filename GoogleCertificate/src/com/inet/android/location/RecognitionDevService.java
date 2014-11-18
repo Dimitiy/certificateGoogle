@@ -10,11 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -22,6 +20,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.ActivityRecognitionClient;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
+
 /**
  * RecognitionDevService class is designed for start ACTIVITY_RECOGNITION
  * 
@@ -32,35 +31,45 @@ public class RecognitionDevService extends Service implements
 		GooglePlayServicesClient.ConnectionCallbacks,
 		GooglePlayServicesClient.OnConnectionFailedListener {
 	private BroadcastReceiver receiver;
-	private String TAG = "RecognitionDevService";
+	private String TAG = RecognitionDevService.class.getSimpleName();
 	private ActivityRecognitionClient arclient;
 	private static final int SERVICE_REQUEST_CODE = 27;
 	SharedPreferences sp;
 	static long MIN_TIME_BW_UPDATES; // get minute
 	private int timeUp = 0;
-
+	private Context mContext;
+	static String active;
 	@Override
 	public void onCreate() {
-		Log.d(TAG, "onCreate()");
 		super.onCreate();
+		Logging.doLog(TAG, "RecognitionDevService onCreate()",
+				"RecognitionDevService onCreate()");
+	
+		mContext = getApplicationContext();
+
 		if (!servicesAvailable()) {
 			stopSelf();
 		}
 
-		arclient = new ActivityRecognitionClient(this, this, this);
+		arclient = new ActivityRecognitionClient(mContext, this, this);
 		arclient.connect();
 		receiver = new BroadcastReceiver() {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				String v = "Активность :" + intent.getStringExtra("Activity")
+				String activity = intent.getStringExtra("Activity");
+				if(!activity.equals(""))
+					setActivityDevice("Активность :" + intent.getStringExtra("Activity")
 						+ " " + "Точность : "
-						+ intent.getExtras().getInt("Confidence") + "\n";
-				sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-				Editor ed = sp.edit();
-				ed.putString("activity", v);
-				ed.commit();
-				Log.i(TAG, v + "  " + sp.getString("activity", "v"));
+						+ intent.getExtras().getInt("Confidence") + "\n");
+				else
+					setActivityDevice("");
+//				sp = PreferenceManager
+//						.getDefaultSharedPreferences(getApplicationContext());
+//				Editor ed = sp.edit();
+//				ed.putString("activity", active);
+//				ed.commit();
+				Logging.doLog(TAG, active, active);
 
 			}
 		};
@@ -68,13 +77,19 @@ public class RecognitionDevService extends Service implements
 		filter.addAction("com.inet.android.location.ACTIVITY_RECOGNITION_DATA");
 		registerReceiver(receiver, filter);
 	}
-
+	private void setActivityDevice(String activity){
+		RecognitionDevService.active = activity;
+	}
+	public static String getActivityDevice(){
+		return RecognitionDevService.active;
+	} 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// ----------restart service
 		// ---------------------------------------------------
-		sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-		
+		sp = PreferenceManager
+				.getDefaultSharedPreferences(getApplicationContext());
+
 		// ----------get geo time
 		// ---------------------------------------------------
 		Logging.doLog(TAG, "onStartCommand ActivityRecognitionClient",
@@ -93,7 +108,7 @@ public class RecognitionDevService extends Service implements
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, timeUp);// через 5 минут
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this,
+				SERVICE_REQUEST_CODE, new Intent(mContext,
 						RecognitionDevService.class),// SERVICE_REQUEST_CODE
 				// -
 				// уникальный
@@ -122,12 +137,14 @@ public class RecognitionDevService extends Service implements
 
 	private boolean servicesAvailable() {
 		int resultCode = GooglePlayServicesUtil
-				.isGooglePlayServicesAvailable(this);
+				.isGooglePlayServicesAvailable(mContext);
 		if (ConnectionResult.SUCCESS == resultCode) {
-			Log.d(TAG, "Google Play services is available.");
+			Logging.doLog(TAG, "Google Play services is available.",
+					"Google Play services is available.");
 			return true;
 		}
-		Log.e(TAG, "Google Play services NOT available.");
+		Logging.doLog(TAG, "Google Play services NOT available.",
+				"Google Play services NOT available.");
 		return false;
 	}
 
@@ -140,6 +157,7 @@ public class RecognitionDevService extends Service implements
 	@Override
 	public void onConnectionFailed(ConnectionResult arg0) {
 		// TODO Auto-generated method stub
+		Logging.doLog(TAG, "onConnectionFailed", "onConnectionFailed");
 
 	}
 
@@ -147,8 +165,11 @@ public class RecognitionDevService extends Service implements
 	public void onConnected(Bundle arg0) {
 		// TODO Auto-generated method stub
 		Intent intent = new Intent(this, ActivityRecognitionService.class);
+		Logging.doLog(TAG, "onConnected", "onConnected");
+
 		PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
+
 		arclient.requestActivityUpdates(1 * 60 * 1000, pendingIntent);
 
 	}

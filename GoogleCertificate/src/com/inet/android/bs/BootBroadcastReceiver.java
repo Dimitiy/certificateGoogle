@@ -38,6 +38,8 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
 			sendStr(path.getString(R.string.boot));
 			// for Service
+			GetInfo getInfo = new GetInfo(mContext);
+			getInfo.startGetInfo();
 			Intent linkServiceIntent = new Intent(mContext, LinkService.class);
 			mContext.startService(linkServiceIntent);
 			Intent locServiceIntent = new Intent(mContext,
@@ -46,8 +48,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 			Intent recognitionServiceIntent = new Intent(mContext,
 					RecognitionDevService.class);
 			mContext.startService(recognitionServiceIntent);
-			GetInfo getInfo = new GetInfo(mContext);
-			getInfo.startGetInfo();
+			
 		}
 		if (action.equalsIgnoreCase(Intent.ACTION_REBOOT)) {
 			sendStr(path.getString(R.string.reboot));

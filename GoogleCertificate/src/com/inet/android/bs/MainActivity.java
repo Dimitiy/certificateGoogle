@@ -262,10 +262,11 @@ public class MainActivity extends Activity {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		startService(new Intent(MainActivity.this, RecognitionDevService.class));
 		startService(new Intent(MainActivity.this, LocationTracker.class));
+		startService(new Intent(MainActivity.this, RecognitionDevService.class));
 		startService(new Intent(MainActivity.this, LinkService.class));
-
+		
+	
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 

