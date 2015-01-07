@@ -15,9 +15,10 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.ActivityRecognitionClient;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.LocationServices;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
@@ -28,47 +29,49 @@ import com.inet.android.utils.WorkTimeDefiner;
  * 
  */
 public class RecognitionDevService extends Service implements
-		GooglePlayServicesClient.ConnectionCallbacks,
-		GooglePlayServicesClient.OnConnectionFailedListener {
+		GoogleApiClient.ConnectionCallbacks,
+		GoogleApiClient.OnConnectionFailedListener {
 	private BroadcastReceiver receiver;
 	private String TAG = RecognitionDevService.class.getSimpleName();
-	private ActivityRecognitionClient arclient;
+	private ActivityRecognition arclient;
 	private static final int SERVICE_REQUEST_CODE = 27;
 	SharedPreferences sp;
-	static long MIN_TIME_BW_UPDATES; // get minute
+	static long MIN_TIME_BW_UPDATES = 1 * 60 * 1000; // get minute
 	private int timeUp = 0;
 	private Context mContext;
+	private GoogleApiClient googleApiClient;
 	static String active;
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		Logging.doLog(TAG, "RecognitionDevService onCreate()",
 				"RecognitionDevService onCreate()");
-	
+
 		mContext = getApplicationContext();
 
 		if (!servicesAvailable()) {
 			stopSelf();
 		}
+		createApiGoogle();
 
-		arclient = new ActivityRecognitionClient(mContext, this, this);
-		arclient.connect();
 		receiver = new BroadcastReceiver() {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				String activity = intent.getStringExtra("Activity");
-				if(!activity.equals(""))
-					setActivityDevice("Активность :" + intent.getStringExtra("Activity")
-						+ " " + "Точность : "
-						+ intent.getExtras().getInt("Confidence") + "\n");
+				if (!activity.equals(""))
+					setActivityDevice("Активность :"
+							+ intent.getStringExtra("Activity") + " "
+							+ "Точность : "
+							+ intent.getExtras().getInt("Confidence") + "\n");
 				else
 					setActivityDevice("");
-//				sp = PreferenceManager
-//						.getDefaultSharedPreferences(getApplicationContext());
-//				Editor ed = sp.edit();
-//				ed.putString("activity", active);
-//				ed.commit();
+				// sp = PreferenceManager
+				// .getDefaultSharedPreferences(getApplicationContext());
+				// Editor ed = sp.edit();
+				// ed.putString("activity", active);
+				// ed.commit();
 				Logging.doLog(TAG, active, active);
 
 			}
@@ -77,12 +80,15 @@ public class RecognitionDevService extends Service implements
 		filter.addAction("com.inet.android.location.ACTIVITY_RECOGNITION_DATA");
 		registerReceiver(receiver, filter);
 	}
-	private void setActivityDevice(String activity){
+
+	private void setActivityDevice(String activity) {
 		RecognitionDevService.active = activity;
 	}
-	public static String getActivityDevice(){
+
+	public static String getActivityDevice() {
 		return RecognitionDevService.active;
-	} 
+	}
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		// ----------restart service
@@ -161,6 +167,13 @@ public class RecognitionDevService extends Service implements
 
 	}
 
+	private void createApiGoogle() {
+		googleApiClient = new GoogleApiClient.Builder(this)
+				.addApi(ActivityRecognition.API).addConnectionCallbacks(this)
+				.addOnConnectionFailedListener(this).build();
+		googleApiClient.connect();
+	}
+
 	@Override
 	public void onConnected(Bundle arg0) {
 		// TODO Auto-generated method stub
@@ -169,13 +182,14 @@ public class RecognitionDevService extends Service implements
 
 		PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
-
-		arclient.requestActivityUpdates(1 * 60 * 1000, pendingIntent);
-
+		ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
+				googleApiClient, MIN_TIME_BW_UPDATES, pendingIntent);
+		
+		
 	}
 
 	@Override
-	public void onDisconnected() {
+	public void onConnectionSuspended(int arg0) {
 		// TODO Auto-generated method stub
 
 	}

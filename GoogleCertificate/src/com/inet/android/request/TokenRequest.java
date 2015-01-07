@@ -9,87 +9,77 @@ import org.json.JSONObject;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.inet.android.request.Caller;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
-import com.loopj.android.http.SyncHttpClient;
 
-//import com.loopj.android.http.RequestParams;
-/**
- * FileRequest class is used to send files to the server with using Android
- * Asynchronous Http Client.
- * 
- * @author johny homicide
- *
- */
-
-public class FileRequest {
-	private final String LOG_TAG = "FileRequest";
-	Context mContext;
-	private static String URL = "http://188.226.208.100/" + "informative.json";
-	private static SyncHttpClient client = new SyncHttpClient();
-	SharedPreferences sp;
-	String request;
-	String requestArray = null;
-	private int type = 3;
+public class TokenRequest  extends DefaultRequest {
+	private final String LOG_TAG = "DataRequest";
+	Context ctx;
+	private int type = 5;
 	static RequestDataBaseHelper db;
 
-	public FileRequest(Context ctx) {
-		mContext = ctx;
+	public TokenRequest(Context ctx) {
+		super(ctx);
+		this.ctx = ctx;
 	}
 
+	@Override
 	public void sendRequest(String request) {
-		sp = PreferenceManager.getDefaultSharedPreferences(this.mContext);
-		Logging.doLog(LOG_TAG, request);
-		if (request != null) {
+		RequestTask mt = new RequestTask();
+		mt.execute(request);
+	}
+
+	class RequestTask extends AsyncTask<String, Void, Void> {
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+		}
+
+		@Override
+		protected Void doInBackground(String... strs) {
+			sendPostRequest(strs[0]);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			super.onPostExecute(result);
+		}
+	}
+
+	@Override
+	protected void sendPostRequest(String request) {
+		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
+		if (!request.equals(" ")&&!request.equals("")) {
+			SharedPreferences sp = PreferenceManager
+					.getDefaultSharedPreferences(ctx);
 			JSONObject jsonObject = new JSONObject();
+			JSONArray jsonArray = new JSONArray();
+			String requestArray = null;
 			try {
 				jsonObject.put("account", sp.getString("account", "0000"));
 				jsonObject.put("device", sp.getString("device", "0000"));
-				jsonObject.put("imei", sp.getString("imei", "0000"));
-				jsonObject.put("key", System.currentTimeMillis());
-				JSONArray jsonArray = new JSONArray();
-
+				jsonObject.put("token", sp.getString("imei", "0000"));
+				
 				requestArray = "[" + request + "]";
 				jsonArray = new JSONArray(requestArray);
+				// jsonArray = new JSONArray(request);
 				jsonObject.put("data", jsonArray);
 
+				Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
+						jsonObject.toString());
+
 			} catch (JSONException e1) {
-				Logging.doLog(LOG_TAG, "json failure", "json failure");
+				Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+				e1.printStackTrace();
 			}
 
-			// StringEntity entity = null;
-			// try {
-			// entity = new StringEntity(jsonObject.toString(), HTTP.UTF_8);
-			// entity.setContentType("application/json");
-			// entity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
-			// "application/json"));
-			// entity.setContentType("");
-			//
-			// } catch (UnsupportedEncodingException e) {
-			// Logging.doLog(LOG_TAG, "UnsupportedEncodingException",
-			// "UnsupportedEncodingException");
-			// }
-			// client.setHeader(HTTP.CONTENT_TYPE, "application/json");
-			// client.post(mContext, URL, entity, "application/json",
-			// new JsonHttpResponseHandler() {
-			//
-			// @Override
-			// public void onSuccess(int statusCode, Header[] arg1,
-			// JSONObject response) {
-			// Logging.doLog(LOG_TAG, "onSuccess", "onSuccess");
-			// }
-			//
-			// @Override
-			// public void onFailure(int statusCode,
-			// org.apache.http.Header[] headers,
-			// java.lang.Throwable throwable,
-			// org.json.JSONObject errorResponse) {
-			// Logging.doLog(LOG_TAG, "onFailure", "onFailure");
-			// }
-			// });
 			String str = null;
 			try {
 				Logging.doLog(LOG_TAG, "do make.request: " + request,
@@ -97,8 +87,7 @@ public class FileRequest {
 				Logging.doLog(LOG_TAG, "do make.requestArray: " + requestArray,
 						"do make.requestArray: " + requestArray);
 
-				str = Caller.doMake(jsonObject.toString(), "informative",
-						mContext);
+				str = Caller.doMake(jsonObject.toString(), "informative", ctx);
 			} catch (IOException e) {
 				// Добавление в базу request
 				e.printStackTrace();
@@ -106,9 +95,8 @@ public class FileRequest {
 				Logging.doLog(LOG_TAG, "db.request: " + request, "db.request: "
 						+ request);
 
-				db = new RequestDataBaseHelper(mContext);
-				db.addRequest(new RequestWithDataBase(request, type, null,
-						null, null));
+				db = new RequestDataBaseHelper(ctx);
+				db.addRequest(new RequestWithDataBase(request, type));
 			}
 			if (str != null) {
 				getRequestData(str);
@@ -116,11 +104,13 @@ public class FileRequest {
 				Logging.doLog(LOG_TAG, "ответа от сервера нет",
 						"ответа от сервера нет");
 			}
-		} else {
-			Logging.doLog(LOG_TAG, "request == null", "request == null");
+		}else {
+			Logging.doLog(LOG_TAG, "request == null",
+					"request == null");
 		}
 	}
 
+	@Override
 	protected void getRequestData(String response) {
 		String postRequest = null;
 
@@ -128,7 +118,7 @@ public class FileRequest {
 				"getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
+				.getDefaultSharedPreferences(ctx);
 
 		JSONObject json = new JSONObject();
 		try {
@@ -157,7 +147,7 @@ public class FileRequest {
 		}
 
 		if (str.equals("2")) {
-			PeriodicRequest pr = new PeriodicRequest(mContext);
+			PeriodicRequest pr = new PeriodicRequest(ctx);
 			pr.sendRequest(postRequest);
 		}
 
@@ -177,7 +167,7 @@ public class FileRequest {
 			if (str.equals("0")) {
 				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
 
-				// ed.putString("account", "account");
+				ed.putString("account", "account");
 			}
 			if (str.equals("1"))
 				Logging.doLog(LOG_TAG,

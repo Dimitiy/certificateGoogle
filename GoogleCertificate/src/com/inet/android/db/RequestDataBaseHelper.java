@@ -12,12 +12,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
 import com.inet.android.utils.Logging;
-/**
- * RequestDataBaseHelper class is designed for management method DataBase 
- * 
- * @author johny homicide
- * 
- */
+
 public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		BaseColumns {
 	private final static String LOG_TAG = "RequestDataBaseHelper";
@@ -25,12 +20,8 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	// константы для конструктора
 	private static final String DATABASE_NAME = "request_database.db";
 	private static final int DATABASE_VERSION = 1;
-	private static final String COLUMN_REQUEST = "request";
+	public static final String COLUMN_REQUEST = "request";
 	private static final String COLUMN_TYPE = "type";
-	private static final String COLUMN_COMPLETE = "complete";
-	private static final String COLUMN_TYPE_LIST = "list";
-	private static final String COLUMN_VERSION = "version";
-
 	private static final String DATABASE_TABLE = "request_table";
 	public static final String COLUMN_ID = BaseColumns._ID;
 	SQLiteDatabase db;
@@ -49,7 +40,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		TodoBase.onCreate(db);
 	}
 
-	private synchronized SQLiteDatabase openDatabaseWrite() {
+	public synchronized SQLiteDatabase openDatabaseWrite() {
 		try {
 			db = getWritableDatabase(); // always returns the
 										// same connection
@@ -67,7 +58,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		return db;
 	}
 
-	private synchronized SQLiteDatabase openDatabaseRead() {
+	public synchronized SQLiteDatabase openDatabaseRead() {
 		try {
 			db = getReadableDatabase(); // always returns the
 										// same connection
@@ -84,7 +75,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		return db;
 	}
 
-	private synchronized void closeDatabase(SQLiteDatabase db) {
+	public synchronized void closeDatabase(SQLiteDatabase db) {
 		activeDatabaseCount--;
 		if (activeDatabaseCount == 0) {
 			if (db != null) {
@@ -111,16 +102,11 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	 */
 	public void addRequest(RequestWithDataBase request) {
 		if (openDatabaseWrite() != null) {
-			Logging.doLog(LOG_TAG, "addRequest" + request.getRequest()
-					+ request.getType(), "Get_Type_list != null");
 			db.beginTransaction();
 			try {
 				ContentValues values = new ContentValues();
 				values.put(COLUMN_REQUEST, request.getRequest());
 				values.put(COLUMN_TYPE, request.getType());
-				values.put(COLUMN_TYPE_LIST, request.getTypeList());
-				values.put(COLUMN_COMPLETE, request.getComplete());
-				values.put(COLUMN_VERSION, request.getVersion());
 				Logging.doLog(LOG_TAG, "values", "values");
 
 				// Вставляем строку в таблицу
@@ -142,19 +128,15 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		if (openDatabaseRead() != null) {
 
 			Cursor cursor = db.query(DATABASE_TABLE, new String[] { COLUMN_ID,
-					COLUMN_REQUEST, COLUMN_TYPE, COLUMN_TYPE_LIST,
-					COLUMN_COMPLETE, COLUMN_VERSION }, COLUMN_ID + "=?",
+					COLUMN_REQUEST, COLUMN_TYPE }, COLUMN_ID + "=?",
 					new String[] { String.valueOf(COLUMN_ID) }, null, null,
 					null, null);
 			if (cursor != null)
 				cursor.moveToFirst();
 
 			getRequest = new RequestWithDataBase(Integer.parseInt(cursor
-					.getString(0)), cursor.getString(1),
-					Integer.parseInt(cursor.getString(2)), cursor.getString(3),
-					cursor.getString(4), cursor.getString(5));
-			Logging.doLog(LOG_TAG, "ReadRequest" + getRequest.toString(),
-					"ReadRequest" + getRequest.toString());
+					.getString(0)), cursor.getString(1), cursor.getInt(2));
+			Logging.doLog(LOG_TAG, getRequest.toString(), getRequest.toString());
 
 		}
 		closeDatabase(db);
@@ -182,11 +164,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 					request = new RequestWithDataBase();
 					request.setID(Integer.parseInt(cursor.getString(0)));
 					request.setRequest(cursor.getString(1));
-					request.setType(Integer.parseInt(cursor.getString(2)));
-					request.setTypeList(cursor.getString(3));
-					request.setComplete(cursor.getString(4));
-					request.setVersion(cursor.getString(5));
-					
+					request.setType(cursor.getInt(2));
 					requestList.add(request);
 				} while (cursor.moveToNext());
 				Logging.doLog(LOG_TAG, requestList.toString(),
@@ -222,9 +200,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		ContentValues values = new ContentValues();
 		values.put(COLUMN_REQUEST, request.getRequest());
 		values.put(COLUMN_TYPE, request.getType());
-		values.put(COLUMN_TYPE_LIST, request.getTypeList());
-		values.put(COLUMN_VERSION, request.getVersion());
-		values.put(COLUMN_COMPLETE, request.getComplete());
+
 		// обновляем строку
 		return db.update(DATABASE_TABLE, values, COLUMN_ID + " = ?",
 				new String[] { String.valueOf(request.getID()) });
@@ -244,11 +220,11 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 				Logging.doLog(LOG_TAG, "deleteRequest", "deleteRequest");
 			} finally {
 				db.endTransaction();
-				Logging.doLog(LOG_TAG, "deleteRequest db.endTransaction",
-						"deleteRequest db.endTransaction");
+				Logging.doLog(LOG_TAG, "deleteRequest db.endTransaction", "deleteRequest db.endTransaction");
 			}
 		}
 		closeDatabase(db);
+
 	}
 
 	public void delete_byID(int id) {
@@ -287,6 +263,8 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 					new String[] { Integer.toString(type) }, null, null, null,
 					null);
 
+			Logging.doLog(LOG_TAG, "openDatabaseRead() != null ",
+					"openDatabaseRead() != null ");
 			if (cursor.moveToFirst()) {
 				do {
 					request = new RequestWithDataBase();
