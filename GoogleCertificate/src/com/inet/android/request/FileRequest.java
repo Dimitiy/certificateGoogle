@@ -28,7 +28,7 @@ import com.loopj.android.http.SyncHttpClient;
 public class FileRequest {
 	private final String LOG_TAG = "FileRequest";
 	Context mContext;
-	private static String URL = "http://188.226.208.100/" + "informative.json";
+	final private String additionURL = "api/informative";
 	private static SyncHttpClient client = new SyncHttpClient();
 	SharedPreferences sp;
 	String request;
@@ -97,8 +97,9 @@ public class FileRequest {
 				Logging.doLog(LOG_TAG, "do make.requestArray: " + requestArray,
 						"do make.requestArray: " + requestArray);
 
-				str = Caller.doMake(jsonObject.toString(), "informative",
-						mContext);
+				str = Caller.doMake(jsonObject.toString(),
+						sp.getString("access_second_token", ""), additionURL, true,
+						null, mContext);
 			} catch (IOException e) {
 				// Добавление в базу request
 				e.printStackTrace();

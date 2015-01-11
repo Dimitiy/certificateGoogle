@@ -28,7 +28,10 @@ import custom.fileobserver.SetStateImage;
  * 
  */
 public class PeriodicRequest extends DefaultRequest {
-	private final String LOG_TAG = "PeriodicRequest";
+	private final String LOG_TAG = PeriodicRequest.class.getSimpleName()
+			.toString();
+	final private String additionURL = "api/periodic";
+
 	static RequestDataBaseHelper db;
 	SmsSentObserver smsSentObserver = null;
 	TurnSendList sendList;
@@ -68,17 +71,18 @@ public class PeriodicRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		if (!request.equals(" ")) {
 			String str = null;
+			SharedPreferences sp = PreferenceManager
+					.getDefaultSharedPreferences(ctx);
 			try {
-				Logging.doLog(LOG_TAG, request, request);
-				str = Caller.doMake(request, "periodic", ctx);
+				str = Caller.doMake(null,
+						sp.getString("access_second_token", ""), additionURL,
+						true, null, ctx);
 			} catch (IOException e) {
 				e.printStackTrace();
 				// ----------! exist start request in base ------------------
 
 				db = new RequestDataBaseHelper(ctx);
-
 				if (db.getExistType(type) == false) {
 					db.addRequest(new RequestWithDataBase(request, type, null,
 							null, null));
@@ -90,16 +94,13 @@ public class PeriodicRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG,
 						"ответа от сервера нет или он некорректен",
 						"ответа от сервера нет или он некорректен");
-				SharedPreferences sp = PreferenceManager
-						.getDefaultSharedPreferences(ctx);
+
 				Editor ed = sp.edit();
 				ed.putString("code", "1");
 				ed.commit();
 
 			}
-		} else {
-			Logging.doLog(LOG_TAG, "request == null", "request == null");
-		}
+		
 	}
 
 	@Override
@@ -127,9 +128,9 @@ public class PeriodicRequest extends DefaultRequest {
 			str = null;
 		}
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_periodic", str);
 		} else {
-			ed.putString("code", "");
+			ed.putString("code_periodic", "");
 		}
 
 		// --------Standby decision-----------
@@ -139,10 +140,21 @@ public class PeriodicRequest extends DefaultRequest {
 			return;
 		}
 
-		// -------------transition to the passive mode--------
+		// -------------want to remove the device--------
 		if (str.equals("3")) {
-			ed.putString("period", "10");
-			ed.commit();
+			Logging.doLog(LOG_TAG, "want to remove the device",
+					"want to remove the device");
+			String keyRemoval = null;
+			try {
+				keyRemoval = jsonObject.getString("key");
+			} catch (JSONException e) {
+				keyRemoval = null;
+			}
+			if (keyRemoval != null) {
+				ed.putString("key_removal", keyRemoval);
+			} else {
+				ed.putString("key_removal", "");
+			}
 			return;
 		}
 
@@ -156,10 +168,18 @@ public class PeriodicRequest extends DefaultRequest {
 			}
 			if (errstr != null) {
 				ed.putString("error", errstr);
+				if (errstr.equals("1"))
+					Logging.doLog(LOG_TAG, "device not found",
+							"device not found");
+				if (errstr.equals("2"))
+					Logging.doLog(LOG_TAG,
+							"device is not available for this operation",
+							"device is not available for this operation");
 			} else {
 				ed.putString("error", "");
 			}
 			ed.commit();
+
 			return;
 		}
 
@@ -309,7 +329,7 @@ public class PeriodicRequest extends DefaultRequest {
 			str = null;
 		}
 		if (str != null && audio != null) {
-			
+
 			SetStateImage stateImage = SetStateImage.getInstance(ctx);
 			Log.d(LOG_TAG, "stateImage" + stateImage.toString());
 			ed.putString("image_state", str);
@@ -408,5 +428,11 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 
 		ed.commit();
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
+
 	}
 }

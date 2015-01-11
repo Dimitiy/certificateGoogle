@@ -110,8 +110,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 						Logging.doLog(
 								"NetworkChangeReceiver sendRequest type = 4",
 								req.getRequest(), req.getRequest());
-						TokenRequest tr = new TokenRequest(context);
-						tr.sendRequest(req.getRequest());
+//						TokenRequest tr = new TokenRequest(context);
+//						tr.sendRequest();
 						db.deleteRequest(new RequestWithDataBase(req.getID()));
 
 					}

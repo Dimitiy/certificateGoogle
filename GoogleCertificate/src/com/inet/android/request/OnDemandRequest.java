@@ -25,7 +25,9 @@ import android.preference.PreferenceManager;
  * 
  */
 public class OnDemandRequest extends DefaultRequest {
-	private final String LOG_TAG = "OnDemandRequest";
+	private final String LOG_TAG = OnDemandRequest.class.getSimpleName()
+			.toString();
+	final private String additionURL = "api/list";
 	private final int type = 5;
 	private String infoType = "0";
 	private String complete;
@@ -83,9 +85,6 @@ public class OnDemandRequest extends DefaultRequest {
 				JSONArray jsonArray = new JSONArray();
 				String requestArray = null;
 				try {
-					jsonObject.put("account", sp.getString("account", "0000"));
-					jsonObject.put("device", sp.getString("device", "0000"));
-					jsonObject.put("imei", sp.getString("imei", "0000"));
 					jsonObject.put("key", System.currentTimeMillis());
 					jsonObject.put("list", infoType);
 					jsonObject.put("version", version);
@@ -106,13 +105,13 @@ public class OnDemandRequest extends DefaultRequest {
 				String str = null;
 				try {
 					Logging.doLog(LOG_TAG, "do make.requestArray: "
-							+ jsonObject.toString(), "do make.requestArray: "
-							+ jsonObject.toString());
+							+ jsonObject.toString() + " " + sp.getString("access_second_token", " "), "do make.requestArray: "
+							+ jsonObject.toString() + " " + sp.getString("access_second_token", " "));
 
-					str = Caller.doMake(jsonObject.toString(), "list", ctx);
-					// db = new RequestDataBaseHelper(ctx);
-					// db.addRequest(new RequestWithDataBase(request, type,
-					// infoType, complete, version));
+					str = Caller.doMake(jsonObject.toString(),
+							sp.getString("access_second_token", ""),
+							additionURL, true, null, ctx);
+
 				} catch (IOException e) {
 					// Добавление в базу request
 					e.printStackTrace();
@@ -159,7 +158,7 @@ public class OnDemandRequest extends DefaultRequest {
 			e.printStackTrace();
 		}
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_list", str);
 			if (str.equals("1")) {
 				Logging.doLog(LOG_TAG, "code = 1 ", "code = 1");
 
@@ -167,67 +166,68 @@ public class OnDemandRequest extends DefaultRequest {
 			if (str.equals("2")) {
 				Logging.doLog(LOG_TAG, "code = 2 " + "info = " + infoType,
 						"code = 2 " + "info = " + infoType);
-
 				sendList = new TurnSendList(ctx);
 				sendList.setList(infoType, "0", "0");
 			} else {
 				ed.putString("code", "code");
 			}
 
-			if (str != null && str.equals("0")) {
+			if (str.equals("0")) {
 				try {
 					str = jsonObject.getString("error");
 				} catch (JSONException e) {
 					str = null;
 				}
 				if (str != null) {
-					ed.putString("error", str);
-				} else {
-					ed.putString("error", "error");
+					ed.putString("error_list", str);
 				}
-				if (str.equals("0")) {
-					Logging.doLog(LOG_TAG, "account не найден",
-							"account не найден");
 
-					ed.putString("account", "account");
-				}
+				
 				if (str.equals("1")) {
 					Logging.doLog(LOG_TAG,
-							"imei отсутствует или имеет неверный формат",
-							"imei отсутствует или имеет неверный формат");
+							"device not found",
+							"device not found");
 				}
 				if (str.equals("2"))
 					Logging.doLog(LOG_TAG,
-							"устройство с указанным imei уже есть",
-							"устройство с указанным imei уже есть");
+							"is not available for this operation",
+							"is not available for this operation");
 				if (str.equals("3"))
-					Logging.doLog(LOG_TAG, "отсутствует ключ",
-							"отсутствует ключ");
+					Logging.doLog(LOG_TAG, "the wrong key",
+							"the wrong key");
 				if (str.equals("4")) {
-					Logging.doLog(LOG_TAG, "отсутствует или неверный type",
-							"отсутствует или неверный type");
+					Logging.doLog(LOG_TAG, "missing or incorrect type",
+							"missing or incorrect type");
 				}
 				if (str.equals("5")) {
-					Logging.doLog(LOG_TAG, "версия не найдена",
-							"версия не найдена");
+					Logging.doLog(LOG_TAG, "version not found",
+							"version not found");
 				}
 				if (str.equals("6")) {
 					Logging.doLog(LOG_TAG,
-							"type пакета не совпадает с версией на сервере",
-							"type пакета не совпадает с версией на сервере");
+							"packet type does not match the version on the server",
+							"packet type does not match the version on the server");
 				}
 				if (str.equals("7")) {
 					Logging.doLog(LOG_TAG,
-							"попытка записи данных в уже завершенный пакет",
-							"попытка записи данных в уже завершенный пакет");
+							"attempt to write data to the already completed package",
+							"attempt to write data to the already completed package");
 				}
 				if (str.equals("8")) {
-					Logging.doLog(LOG_TAG, "другое", "другое");
+					Logging.doLog(LOG_TAG, "other", "other");
+				} else {
+					ed.putString("error", "error");
 				}
 			}
 
 			ed.commit();
 		}
+
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
 
 	}
 }

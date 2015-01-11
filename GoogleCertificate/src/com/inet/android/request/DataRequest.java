@@ -23,7 +23,9 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class DataRequest extends DefaultRequest {
-	private final String LOG_TAG = "DataRequest";
+	private final String LOG_TAG = DataRequest.class.getSimpleName().toString();
+	final private String additionURL = "api/informative";
+
 	private final int type = 3;
 	Context ctx;
 	static RequestDataBaseHelper db;
@@ -61,18 +63,14 @@ public class DataRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
-		if (!request.equals(" ")&&!request.equals("")) {
+		if (!request.equals(" ") && !request.equals("")) {
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(ctx);
 			JSONObject jsonObject = new JSONObject();
 			JSONArray jsonArray = new JSONArray();
 			String requestArray = null;
 			try {
-				jsonObject.put("account", sp.getString("account", "0000"));
-				jsonObject.put("device", sp.getString("device", "0000"));
-				jsonObject.put("imei", sp.getString("imei", "0000"));
 				jsonObject.put("key", System.currentTimeMillis());
-
 				requestArray = "[" + request + "]";
 				jsonArray = new JSONArray(requestArray);
 				// jsonArray = new JSONArray(request);
@@ -88,12 +86,13 @@ public class DataRequest extends DefaultRequest {
 
 			String str = null;
 			try {
-				Logging.doLog(LOG_TAG, "do make.request: " + request,
-						"do make.request: " + request);
-				Logging.doLog(LOG_TAG, "do make.requestArray: " + requestArray,
-						"do make.requestArray: " + requestArray);
+				Logging.doLog(LOG_TAG, "do make.requestArray: "
+						+ jsonObject.toString() + " " + sp.getString("access_second_token", " "), "do make.requestArray: "
+						+ jsonObject.toString() + " " + sp.getString("access_second_token", " "));
 
-				str = Caller.doMake(jsonObject.toString(), "informative", ctx);
+				str = Caller.doMake(jsonObject.toString(),
+						sp.getString("access_second_token", ""), additionURL,
+						true, null, ctx);
 			} catch (IOException e) {
 				// Добавление в базу request
 				e.printStackTrace();
@@ -111,31 +110,18 @@ public class DataRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "ответа от сервера нет",
 						"ответа от сервера нет");
 			}
-		}else {
-			Logging.doLog(LOG_TAG, "request == null",
-					"request == null");
+		} else {
+			Logging.doLog(LOG_TAG, "request == null", "request == null");
 		}
 	}
 
 	@Override
 	protected void getRequestData(String response) {
-		String postRequest = null;
-
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
-
-		JSONObject json = new JSONObject();
-		try {
-			json.put("account", sp.getString("account", "0000"));
-			json.put("device", sp.getString("device", "0000"));
-			json.put("imei", sp.getString("imei", "0000"));
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		postRequest = json.toString();
 
 		JSONObject jsonObject = null;
 		String str = null;
@@ -148,14 +134,14 @@ public class DataRequest extends DefaultRequest {
 
 		Editor ed = sp.edit();
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_data", str);
 		} else {
-			ed.putString("code", "");
+			ed.putString("code_data", "");
 		}
 
 		if (str.equals("2")) {
 			PeriodicRequest pr = new PeriodicRequest(ctx);
-			pr.sendRequest(postRequest);
+			pr.sendRequest(null);
 		}
 
 		if (str.equals("0")) {
@@ -166,30 +152,31 @@ public class DataRequest extends DefaultRequest {
 				errstr = null;
 			}
 			if (errstr != null) {
-				ed.putString("error", errstr);
-			} else {
-				ed.putString("error", "");
-			}
-			ed.commit();
-			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
+				ed.putString("error_data", errstr);
+				ed.commit();
 
-//				ed.putString("account", "account");
+				if (errstr.equals("1")) {
+					Logging.doLog(LOG_TAG, "device not found",
+							"device not found");
+				}
+				if (errstr.equals("2"))
+					Logging.doLog(LOG_TAG,
+							"is not available for this operation",
+							"is not available for this operation");
+				if (errstr.equals("3"))
+					Logging.doLog(LOG_TAG, "the wrong key",
+							"the wrong key");
+			} else {
+				ed.putString("error_data", "");
 			}
-			if (str.equals("1"))
-				Logging.doLog(LOG_TAG,
-						"imei отсутствует или имеет неверный формат",
-						"imei отсутствует или имеет неверный формат");
-			if (str.equals("2"))
-				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
-						"устройство с указанным imei уже есть");
-			if (str.equals("3"))
-				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
-			if (str.equals("4"))
-				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
-						"отсутствует или неверный type");
 		}
 		ed.commit();
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

@@ -25,15 +25,17 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class StartRequest extends DefaultRequest {
-	private final String LOG_TAG = "StartRequest";
+	private final String LOG_TAG = StartRequest.class.getSimpleName().toString();
+	final private String additionURL = "api/initial";
+
 	private int type = 1;
 	static RequestDataBaseHelper db;
-	Context ctx;
+	Context mContext;
 	SharedPreferences sp;
 
 	public StartRequest(Context ctx) {
 		super(ctx);
-		this.ctx = ctx;
+		this.mContext = ctx;
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 		sp.registerOnSharedPreferenceChangeListener(prefListener);
 	}
@@ -46,13 +48,13 @@ public class StartRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, prefs.getString("account", "-1"));
 				if (prefs.getString("account", "account").equals("account")) {
 					Logging.doLog(LOG_TAG, "prefs make: account");
-					Toast.makeText(ctx, "Account number incorrect!",
+					Toast.makeText(mContext, "Account number incorrect!",
 							Toast.LENGTH_LONG).show();
 					Intent intent = new Intent("android.intent.action.MAIN");
-					intent.setClass(ctx, DialogShower.class);
+					intent.setClass(mContext, DialogShower.class);
 					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 					intent.putExtra("text", "Hello!");
-					ctx.startActivity(intent);
+					mContext.startActivity(intent);
 				} else {
 					JSONObject jsonObject = new JSONObject();
 					try {
@@ -65,7 +67,7 @@ public class StartRequest extends DefaultRequest {
 					}
 
 					String str = jsonObject.toString();
-					StartRequest sr = new StartRequest(ctx);
+					StartRequest sr = new StartRequest(mContext);
 					sr.sendRequest(str);
 				}
 			}
@@ -97,12 +99,12 @@ public class StartRequest extends DefaultRequest {
 		try {
 			Logging.doLog(LOG_TAG, postRequest, postRequest);
 
-			str = Caller.doMake(postRequest, "initial/", ctx);
+			str = Caller.doMake(postRequest,  sp.getString("access_first_token", ""), additionURL, true, null, mContext);
 		} catch (IOException e) {
 			e.printStackTrace();
 			// ----------! exist start request in base ------------------
 
-			db = new RequestDataBaseHelper(ctx);
+			db = new RequestDataBaseHelper(mContext);
 
 			if (db.getExistType(type)) {
 				Logging.doLog(LOG_TAG, "запись стартового запроса в базу",
@@ -144,9 +146,9 @@ public class StartRequest extends DefaultRequest {
 			e.printStackTrace();
 		}
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_initial", str);
 		} else {
-			ed.putString("code", "code");
+			ed.putString("code_initial", "code");
 		}
 
 		if (str.equals("1")) {
@@ -159,6 +161,7 @@ public class StartRequest extends DefaultRequest {
 			if (str != null) {
 				ed.putString("device", str);
 				ed.commit();
+				RequestList.sendCheckRequest(mContext);
 			} else {
 				ed.putString("device", "device");
 			}
@@ -171,32 +174,22 @@ public class StartRequest extends DefaultRequest {
 				str = null;
 			}
 			if (str != null) {
-				ed.putString("error", str);
+				ed.putString("error_initial", str);
 			} else {
-				ed.putString("error", "error");
+				ed.putString("error_initial", "error");
 			}
 			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
-
+				Logging.doLog(LOG_TAG, "incorrect account number", "incorrect account number");
 				ed.putString("account", "account");
 			}
-			if (str.equals("1")) {
-				Logging.doLog(LOG_TAG,
-						"imei отсутствует или имеет неверный формат",
-						"imei отсутствует или имеет неверный формат");
-
-				sp.unregisterOnSharedPreferenceChangeListener(prefListener);
-			}
-			if (str.equals("2"))
-				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
-						"устройство с указанным imei уже есть");
-			if (str.equals("3"))
-				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
-			if (str.equals("4"))
-				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
-						"отсутствует или неверный type");
 		}
 
 		ed.commit();
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
+		
 	}
 }

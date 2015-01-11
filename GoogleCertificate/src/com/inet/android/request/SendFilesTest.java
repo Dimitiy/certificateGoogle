@@ -1,7 +1,5 @@
 package com.inet.android.request;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;

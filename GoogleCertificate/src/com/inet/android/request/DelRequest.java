@@ -22,14 +22,17 @@ import android.preference.PreferenceManager;
  * 
  */
 public class DelRequest extends DefaultRequest {
-	private final String LOG_TAG = "DelRequest";
+	private final String LOG_TAG = DelRequest.class.getSimpleName().toString();
+	final private String additionURL = "api/remove";
 	private int type = 4;
 	static RequestDataBaseHelper db;
+	SharedPreferences sp;
 	Context ctx;
 
 	public DelRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
+		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 	}
 
 	@Override
@@ -53,7 +56,9 @@ public class DelRequest extends DefaultRequest {
 
 			try {
 				Logging.doLog(LOG_TAG, request, request);
-				str = Caller.doMake(request, "initial/", ctx);
+				str = Caller.doMake(request,
+						sp.getString("access_first_token", ""), additionURL,
+						true, null, ctx);
 			} catch (IOException e) {
 				e.printStackTrace();
 				db = new RequestDataBaseHelper(ctx);
@@ -78,8 +83,6 @@ public class DelRequest extends DefaultRequest {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
 
-		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
 
 		JSONObject jsonObject = null;
@@ -99,15 +102,47 @@ public class DelRequest extends DefaultRequest {
 			e.printStackTrace();
 		}
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_del", str);
 		} else {
-			ed.putString("code", "code");
+			ed.putString("code_del", "code");
 		}
 
 		if (str.equals("1")) {
 			Logging.doLog(LOG_TAG, "total annihilation", "total annihilation");
 		}
+		if (str.equals("0")) {
+			String errstr = null;
+			try {
+				errstr = jsonObject.getString("error");
+			} catch (JSONException e) {
+				errstr = null;
+			}
+			if (errstr != null) {
+				ed.putString("error_delete", errstr);
+			} else {
+				ed.putString("error_delete", "");
+			}
+			if (str.equals("0")) {
+				Logging.doLog(LOG_TAG, "incorrect account number",
+						"incorrect account number");
+				ed.putString("account", "account");
+			}
+			if (str.equals("3"))
+				Logging.doLog(LOG_TAG, "the wrong key", "the wrong key");
+			if (str.equals("4"))
+				Logging.doLog(LOG_TAG, "wrong mode", "wrong mode");
+			if (str.equals("5"))
+				Logging.doLog(LOG_TAG, "incorrect account number",
+						"incorrect account number");
+		}
+
 		ed.commit();
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

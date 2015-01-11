@@ -1,7 +1,9 @@
 package com.inet.android.bs;
 
 import java.io.File;
+import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
@@ -77,10 +79,14 @@ public class MainActivity extends Activity {
 					.getContentResolver(), Secure.ANDROID_ID); // *** use for
 																// tablets
 		}
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+		long time = cal.getTimeInMillis();
 		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
 		e.putString("model", model);
 		e.putString("account", "account");
+		e.putString("time_setub", Long.toString(time));
+		
 		e.commit();
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
 //		boolean getInfo = sp.getBoolean("getInfo", false);
