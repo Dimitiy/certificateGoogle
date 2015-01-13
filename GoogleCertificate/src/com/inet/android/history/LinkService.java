@@ -36,7 +36,7 @@ import com.inet.android.utils.WorkTimeDefiner;
 public class LinkService extends Service {
 
 	private static final int SERVICE_REQUEST_CODE = 25; // service unique int
-	final String LOG_TAG = "historyService";
+	final String LOG_TAG = LinkService.class.getSimpleName().toString();
 	private SharedPreferences sPref;
 	final String SAVED_TIME = "saved_time";
 	private Context context;
@@ -44,7 +44,7 @@ public class LinkService extends Service {
 
 	public void onCreate() {
 		super.onCreate();
-		startService(new Intent(this, LinkService.class));
+//		startService(new Intent(this, LinkService.class));
 
 		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 

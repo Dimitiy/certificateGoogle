@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.HttpClient;
@@ -71,7 +72,6 @@ public class Caller {
 
 		if (setHeader) {
 			Logging.doLog(LOG_TAG, "setHeader", "setHeader");
-
 			httppost.setHeader("Accept", "application/json");
 			httppost.setHeader(HTTP.CONTENT_TYPE, "application/json");
 			httppost.setHeader("Authorization", "Bearer " + token);
@@ -108,34 +108,61 @@ public class Caller {
 		HttpResponse response = httpclient.execute(httppost);
 
 		if (response != null) {
-			try {
-				HttpEntity httpEntity = response.getEntity();
-
-				if (httpEntity != null) {
-					InputStream inputStream = httpEntity.getContent();
-					data = convertStreamToString(inputStream);
-				}
-
-				Logging.doLog(LOG_TAG, "response: " + data, "response: " + data);
-
-				if (data.indexOf("code") == -1
-						&& data.indexOf("access_token") == -1) {
-					Logging.doLog(LOG_TAG, "something wrong in the answer",
-							"something wrong in the answer");
-					return null;
-				}
-				
-			} catch (ParseException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
+			data = getEntity(response);
+			getStatus(response);
+			if (data == null)
+				getStatus(response);
 		} else {
 			Logging.doLog(LOG_TAG, "http response equals null",
 					"http response equals null");
 		}
 		return data;
+	}
+
+	private static String getEntity(HttpResponse response) {
+		String str = null;
+		try {
+			HttpEntity httpEntity = response.getEntity();
+
+			if (httpEntity != null) {
+				InputStream inputStream = httpEntity.getContent();
+				str = convertStreamToString(inputStream);
+			}
+
+			Logging.doLog(LOG_TAG, "response: " + str, "response: " + str);
+
+			if (str.indexOf("code") == -1 && str.indexOf("access_token") == -1) {
+				Logging.doLog(LOG_TAG, "something wrong in the answer",
+						"something wrong in the answer");
+				return null;
+			}
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return str;
+	}
+
+	private static String getStatus(HttpResponse response) {
+		String status = null;
+		try {
+			int st = response.getStatusLine().getStatusCode();
+			status = String.valueOf(st);
+			Logging.doLog(LOG_TAG, "response getStatus: " + status, "response getStatus: "
+					+ status);
+			if (status != "-1") {
+				
+				if (HttpStatus.SC_UNAUTHORIZED == st) {
+					RequestList.sendRequestForSecondToken(mContext);
+				}
+			}
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return status;
 	}
 
 	private static String convertStreamToString(InputStream inputStream) {

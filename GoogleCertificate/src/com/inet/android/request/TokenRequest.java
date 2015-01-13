@@ -14,6 +14,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.google.android.gms.internal.ed;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
@@ -86,8 +87,8 @@ public class TokenRequest extends DefaultRequest {
 				postParameters.add(new BasicNameValuePair("username", sp
 						.getString("device", "0000")));
 				postParameters.add(new BasicNameValuePair("scope", "device"));
-				postParameters.add(new BasicNameValuePair("password",
-						sp.getString("time_setub", "")));
+				postParameters.add(new BasicNameValuePair("password", sp
+						.getString("time_setub", "")));
 				break;
 			}
 
@@ -118,25 +119,29 @@ public class TokenRequest extends DefaultRequest {
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
-
+		Editor ed = sp.edit();
+		
 		JSONObject jsonObject = null;
 		String str = null;
 		String token = null;
 		// ------------scope-----------------------
 		try {
+			
 			jsonObject = new JSONObject(response);
 			str = jsonObject.getString("scope");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
+			ed.putString("scope", str);
+			
 			if (str.equals("client")) {
 				token = "first_token";
-			} else if (str.equals("device")) {
+				} else if (str.equals("device")) {
 				token = "second_token";
 			}
-		} else {
 		}
+		
 		// ------------invalid token-----------------------
 		try {
 			jsonObject = new JSONObject(response);
@@ -144,7 +149,6 @@ public class TokenRequest extends DefaultRequest {
 		} catch (JSONException e) {
 			str = null;
 		}
-		Editor ed = sp.edit();
 		if (str != null) {
 			ed.putBoolean("invalid_" + token, true);
 
@@ -161,10 +165,15 @@ public class TokenRequest extends DefaultRequest {
 		}
 
 		if (str != null) {
-			ed.putBoolean(token + "_expired", true);
-		} else {
-			ed.putBoolean(token + "_expired", false);
+			if (token.equals("first_token"))
+				RequestList.sendRequestForFirstToken(mContext);
+			else if (token.equals("second_token"))
+				RequestList.sendRequestForSecondToken(mContext);
+			// ed.putBoolean(token + "_expired", true);
 		}
+		// else {
+		// ed.putBoolean(token + "_expired", false);
+		// }
 		// ------------access_token----------------
 		try {
 			jsonObject = new JSONObject(response);
@@ -175,9 +184,11 @@ public class TokenRequest extends DefaultRequest {
 
 		if (str != null) {
 			ed.putString("access_" + token, str);
-			if(token.equals("first_token") && sp.getString("code_initial", "-1").equals("-1"))
+			if (token.equals("first_token")
+					&& sp.getString("code_initial", "-1").equals("-1"))
 				RequestList.sendStartRequest(mContext);
-			else if(token.equals("second_token"))
+			else if (token.equals("second_token")
+					&& !sp.getString("code_periodic", "-1").equals("2"))
 				RequestList.sendPeriodicRequest(mContext);
 		} else {
 			ed.putString("access_" + token, "-1");
@@ -228,6 +239,7 @@ public class TokenRequest extends DefaultRequest {
 			ed.putString("code_" + token, "");
 		}
 		ed.commit();
+
 	}
 
 	@Override

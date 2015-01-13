@@ -133,13 +133,6 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("code_periodic", "");
 		}
 
-		// --------Standby decision-----------
-		if (str.equals("1")) {
-			ed.putString("period", "1");
-			ed.commit();
-			return;
-		}
-
 		// -------------want to remove the device--------
 		if (str.equals("3")) {
 			Logging.doLog(LOG_TAG, "want to remove the device",

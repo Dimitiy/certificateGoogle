@@ -12,7 +12,7 @@ import android.provider.Settings;
 import com.inet.android.certificate.R;
 
 public class BatteryTimeReceiver extends BroadcastReceiver {
-	private String TAG = "BatteryReceiver";
+	private String TAG = BatteryTimeReceiver.class.getSimpleName().toString();
 	IntentFilter ifilter;
 	Intent batteryIntent;
 	Context mContext;
