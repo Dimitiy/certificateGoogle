@@ -11,19 +11,14 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
 
 public class AppTokenRequest extends DefaultRequest {
 	private final String LOG_TAG = AppTokenRequest.class.getSimpleName()
 			.toString();
 	final private String additionURL = "api/token";
-
-	private final int type = 3;
 	Context mContext;
-	static RequestDataBaseHelper db;
-
+	
 	public AppTokenRequest(Context ctx) {
 		super(ctx);
 		this.mContext = ctx;
@@ -66,15 +61,7 @@ public class AppTokenRequest extends DefaultRequest {
 						sp.getString("access_first_token", ""), additionURL,
 						true, null, mContext);
 			} catch (IOException e) {
-				e.printStackTrace();
-				// ----------! exist start request in base ------------------
-
-				db = new RequestDataBaseHelper(mContext);
-
-				if (db.getExistType(type) == false) {
-					db.addRequest(new RequestWithDataBase(request, type, null,
-							null, null));
-				}
+				e.printStackTrace();	
 			}
 			if (str != null) {
 				getRequestData(str);

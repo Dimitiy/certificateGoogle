@@ -32,6 +32,9 @@
     <string name="status_battery_charge">Тип зарядки: </string>
     <string name="status_battery_okay">Высокий уровень заряда батареи </string>
     <string name="status_battery_low">Батарея разряжена </string>
+    <string name="status_battery_temperature">Температура: </string>
+    <string name="status_voltage">Уровень напряжения на батарее: </string>
+    <string name="battery_technology">Тип батареи: </string>
     <string name="battery">Батарея</string>
     <string name="device">Устойство</string>
     <string name="boot">Устройство включено</string>

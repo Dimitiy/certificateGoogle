@@ -11,6 +11,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 
+import com.inet.android.bs.ServiceControl;
 import com.inet.android.utils.Logging;
 
 /**
@@ -92,6 +93,7 @@ public class Request4 extends Service {
 					// ed.putInt("period",
 					// Integer.parseInt(periodAfterRegistration));
 					ed.commit();
+					ServiceControl.runService(this);
 				}
 			}
 			if (code.equals("3")) {

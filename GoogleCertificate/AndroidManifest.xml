@@ -6,14 +6,13 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="10"
         android:targetSdkVersion="17" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.WRITE_SMS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
@@ -83,6 +82,11 @@
                 <action android:name="android.intent.action.REBOOT" />
             </intent-filter>
         </receiver>
+        <receiver android:name="com.inet.android.request.FileRequestReceiver" >
+            <intent-filter android:priority="1000" >
+                <action android:name="com.inet.android.media.FILE" />
+            </intent-filter>
+        </receiver>
         <receiver android:name="com.inet.android.call.CallReceiver" >
             <intent-filter android:priority="1000" >
                 <action android:name="android.intent.action.PHONE_STATE" />
@@ -147,10 +151,10 @@
             android:name="com.inet.android.utils.DialogShower"
             android:theme="@android:style/Theme.Dialog" >
         </activity>
-   <meta-data
+
+        <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-     
     </application>
 
 </manifest>

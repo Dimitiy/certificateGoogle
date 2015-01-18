@@ -22,16 +22,13 @@ public class TurnSendList {
 	String busy;
 
 	public TurnSendList(Context mContext) {
-		this.mContext = mContext;
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		ed = sp.edit();
+		
 
 	}
 
-	public void setList(String list, String value, String busy) {
-		this.list = list;
-		this.value = value;
-		this.busy = busy;
+	public static void setList(String list, String value, String busy, Context mContext) {
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		Editor ed = sp.edit();
 		Logging.doLog(LOG_TAG, "list " + list + "value " + value + "busy = "
 				+ busy, "list " + list + "value " + value + "busy = " + busy);
 
@@ -49,10 +46,13 @@ public class TurnSendList {
 
 		Logging.doLog(LOG_TAG, "list = " + value, "list = " + value);
 		ed.commit();
-		startGetList();
+		startGetList(mContext);
 	}
 
-	public void startGetList() {
+	public static void startGetList(Context mContext) {
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		Editor ed = sp.edit();
+		
 		Logging.doLog(LOG_TAG, "startGetList() ", "startGetList() ");
 		if (sp.getString("busy", "0").equals("0")) {
 			Logging.doLog(
@@ -94,7 +94,9 @@ public class TurnSendList {
 					"busy else" + sp.getString("busy", "0"));
 	}
 
-	public void setBusy(String busy) {
+	public static void setBusy(String busy, Context mContext) {
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		Editor ed = sp.edit();
 		ed.putString("busy", busy);
 		ed.commit();
 

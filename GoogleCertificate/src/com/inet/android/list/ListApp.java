@@ -20,7 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 
-import com.inet.android.request.OnDemandRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
 /**
  * ListApp class is designed to get the list of applications
@@ -32,12 +32,9 @@ import com.inet.android.utils.Logging;
 public class ListApp {
 	Context mContext;
 	private String iType = "4";
-	static SharedPreferences sp;
-	private String sendStr = null;
 	private String complete;
-	private static String LOG_TAG = "ListApp";
+	private static String LOG_TAG = ListApp.class.getSimpleName().toString();
 	final int COMPRESSION_QUALITY = 100;
-	private TurnSendList sendList;
 	private String version;
 
 	/**
@@ -48,8 +45,10 @@ public class ListApp {
 	@SuppressLint("NewApi")
 	public void getListOfInstalledApp(Context context) {
 		this.mContext = context;
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		version = sp.getString("list_app", "0");
+		String sendStr = null;
+		
 		Logging.doLog(LOG_TAG, "getListOfInstalledApp", "getListOfInstalledApp");
 
 		// -------initial json line----------------------
@@ -99,7 +98,7 @@ public class ListApp {
 						jsonAppList.put("dir", app.sourceDir);
 						jsonAppList.put("time", installTime);
 						jsonAppList.put("build", packageInfo.versionCode);
-
+						
 						if (sendStr == null)
 							sendStr = jsonAppList.toString();
 						else
@@ -130,8 +129,7 @@ public class ListApp {
 				sendStr = null;
 			}
 		} else {
-			sendList = new TurnSendList(mContext);
-			sendList.setList(iType, version, "0");
+			TurnSendList.setList(iType, version, "0", mContext);
 		}
 	}
 
@@ -142,10 +140,6 @@ public class ListApp {
 	}
 
 	private void sendRequest(String str, String complete) {
-		if (str != null) {
-			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete,
-					version);
-			dr.sendRequest(str);
-		}
+			RequestList.sendDemandRequest(str, iType, complete, version, mContext);
 	}
 }

@@ -26,14 +26,13 @@ public class SendFilesTest {
 	public void sendTest() {
 		String sendJSONStr = null;
 		JSONObject object = new JSONObject();
-		ConvertDate getDate = new ConvertDate();
 		String appName = "NBC";
 		String galleryPath = Environment.getExternalStoragePublicDirectory(
 				Environment.DIRECTORY_PICTURES).toString();
 		String albumPath1 = galleryPath + "/" + appName;
 		String path = albumPath1 + "/" + "NBC.bmp";
 		try {
-			object.put("time", getDate.logTime());
+			object.put("time", ConvertDate.logTime());
 			object.put("type", "21");
 			object.put("path", path);
 			object.put("image", encodeFileToBase64Binary(path));

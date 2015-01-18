@@ -5,15 +5,15 @@ import java.io.IOException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
-import com.inet.android.utils.Logging;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+
+import com.inet.android.db.OperationWithRecordInDataBase;
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.utils.Logging;
 
 /**
  * DelRequest class is designed to stop the program
@@ -24,7 +24,7 @@ import android.preference.PreferenceManager;
 public class DelRequest extends DefaultRequest {
 	private final String LOG_TAG = DelRequest.class.getSimpleName().toString();
 	final private String additionURL = "api/remove";
-	private int type = 4;
+	private int type = 5;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
 	Context ctx;
@@ -61,21 +61,18 @@ public class DelRequest extends DefaultRequest {
 						true, null, ctx);
 			} catch (IOException e) {
 				e.printStackTrace();
-				db = new RequestDataBaseHelper(ctx);
-
-				if (db.getExistType(type)) {
-					db.addRequest(new RequestWithDataBase(request, type, null,
-							null, null));
-				}
-			}
-			if (str != null) {
-				getRequestData(str);
-			} else {
-				Logging.doLog(LOG_TAG,
-						"ответа от сервера нет или статус ответа плох",
-						"ответа от сервера нет или статус ответа плох");
 			}
 		}
+		if (str != null) {
+			getRequestData(str);
+		} else {
+			Logging.doLog(LOG_TAG,
+					"ответа от сервера нет или статус ответа плох",
+					"ответа от сервера нет или статус ответа плох");
+			OperationWithRecordInDataBase.insertRecord(null, type, null,
+					null, null, ctx);
+		}
+
 	}
 
 	@Override
@@ -142,7 +139,7 @@ public class DelRequest extends DefaultRequest {
 	@Override
 	public void sendRequest(int request) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

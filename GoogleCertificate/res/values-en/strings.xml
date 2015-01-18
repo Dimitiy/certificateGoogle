@@ -27,11 +27,14 @@
     <string name="battery_plugged_ac">Charged from the mains</string>
     <string name="battery_plugged_wireless">Wireless charging</string>
     <string name="battery_plugged_unknown">Unknown source charge</string>
+    <string name="battery_technology">Battery type: </string>
+    <string name="status_voltage">The voltage level of the battery: </string>
     <string name="status_battery">Device status: </string>
     <string name="status_battery_healt">Battery status: </string>
     <string name="status_battery_charge">Charge type: </string>
     <string name="status_battery_okay">High level of charge </string>
     <string name="status_battery_low">Low Battery </string>
+    <string name="status_battery_temperature">Temperature: </string>
     <string name="battery">Battery</string>
     <string name="device">Device</string>
     <string name="boot">Device is turned on</string>

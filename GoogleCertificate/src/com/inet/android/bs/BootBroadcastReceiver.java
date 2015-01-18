@@ -8,11 +8,7 @@ import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
 import com.inet.android.certificate.R;
-import com.inet.android.history.LinkService;
-import com.inet.android.info.CreateServiceInformation;
-import com.inet.android.info.GetInfo;
-import com.inet.android.location.LocationTracker;
-import com.inet.android.location.RecognitionDevService;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
 /**
  * BootBroadcastReceiver for start family-guard 
@@ -37,17 +33,10 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
 			sendStr(path.getString(R.string.boot));
+			// send info request
+			RequestList.sendInfoDeviceRequest(mContext);
 			// for Service
-			GetInfo getInfo = new GetInfo(mContext);
-			getInfo.startGetInfo();
-			Intent linkServiceIntent = new Intent(mContext, LinkService.class);
-			mContext.startService(linkServiceIntent);
-			Intent locServiceIntent = new Intent(mContext,
-					LocationTracker.class);
-			mContext.startService(locServiceIntent);
-			Intent recognitionServiceIntent = new Intent(mContext,
-					RecognitionDevService.class);
-			mContext.startService(recognitionServiceIntent);
+			ServiceControl.runService(mContext);
 			
 		}
 		if (action.equalsIgnoreCase(Intent.ACTION_REBOOT)) {
@@ -61,8 +50,6 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	}
 
 	private void sendStr(String str) {
-		CreateServiceInformation serviceInfo = new CreateServiceInformation(
-				mContext);
-		serviceInfo.sendStr(area, str);
+		RequestList.sendDataRequest(area, str, mContext);
 	}
 }

@@ -13,8 +13,6 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.widget.Toast;
 
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.DialogShower;
 import com.inet.android.utils.Logging;
 
@@ -25,11 +23,9 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class StartRequest extends DefaultRequest {
-	private final String LOG_TAG = StartRequest.class.getSimpleName().toString();
+	private final String LOG_TAG = StartRequest.class.getSimpleName()
+			.toString();
 	final private String additionURL = "api/initial";
-
-	private int type = 1;
-	static RequestDataBaseHelper db;
 	Context mContext;
 	SharedPreferences sp;
 
@@ -65,10 +61,7 @@ public class StartRequest extends DefaultRequest {
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
-
-					String str = jsonObject.toString();
-					StartRequest sr = new StartRequest(mContext);
-					sr.sendRequest(str);
+					RequestList.sendRequestForFirstToken(mContext);		
 				}
 			}
 		}
@@ -99,19 +92,12 @@ public class StartRequest extends DefaultRequest {
 		try {
 			Logging.doLog(LOG_TAG, postRequest, postRequest);
 
-			str = Caller.doMake(postRequest,  sp.getString("access_first_token", ""), additionURL, true, null, mContext);
+			str = Caller.doMake(postRequest,
+					sp.getString("access_first_token", ""), additionURL, true,
+					null, mContext);
 		} catch (IOException e) {
 			e.printStackTrace();
-			// ----------! exist start request in base ------------------
 
-			db = new RequestDataBaseHelper(mContext);
-
-			if (db.getExistType(type)) {
-				Logging.doLog(LOG_TAG, "запись стартового запроса в базу",
-						"запись стартового запроса в базу");
-				db.addRequest(new RequestWithDataBase(postRequest, type, "0",
-						"0", "0"));
-			}
 		}
 		if (str != null) {
 			getRequestData(str);
@@ -179,7 +165,8 @@ public class StartRequest extends DefaultRequest {
 				ed.putString("error_initial", "error");
 			}
 			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "incorrect account number", "incorrect account number");
+				Logging.doLog(LOG_TAG, "incorrect account number",
+						"incorrect account number");
 				ed.putString("account", "account");
 			}
 		}
@@ -190,6 +177,6 @@ public class StartRequest extends DefaultRequest {
 	@Override
 	public void sendRequest(int request) {
 		// TODO Auto-generated method stub
-		
+
 	}
 }

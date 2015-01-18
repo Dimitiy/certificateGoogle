@@ -58,7 +58,6 @@ public class SmsSentObserver extends ContentObserver {
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 
 		try {
-			ConvertDate date = new ConvertDate();
 			Logging.doLog(TAG, "Notification on SMS observer",
 					"Notification on SMS observer");
 
@@ -114,7 +113,7 @@ public class SmsSentObserver extends ContentObserver {
 									info.put("number", phNumber);
 									info.put("data", message);
 
-									object.put("time", date.logTime());
+									object.put("time", ConvertDate.logTime());
 									object.put("type", dir);
 									object.put("info", info);
 									data.put(object);

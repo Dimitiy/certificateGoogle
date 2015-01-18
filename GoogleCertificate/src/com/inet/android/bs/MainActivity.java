@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -30,9 +29,6 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.inet.android.certificate.R;
-import com.inet.android.history.LinkService;
-import com.inet.android.location.LocationTracker;
-import com.inet.android.location.RecognitionDevService;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
 /**
@@ -262,18 +258,8 @@ public class MainActivity extends Activity {
 		Logging.doLog(LOG_TAG, "start services", "start services");
 
 		startService(new Intent(MainActivity.this, Request4.class));
-
-		try {
-			TimeUnit.MILLISECONDS.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		startService(new Intent(MainActivity.this, LocationTracker.class));
-		startService(new Intent(MainActivity.this, RecognitionDevService.class));
-		startService(new Intent(MainActivity.this, LinkService.class));
 		
 	
-		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 
 	@Override

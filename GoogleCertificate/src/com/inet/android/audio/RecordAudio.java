@@ -34,7 +34,6 @@ public final class RecordAudio {
 
 	private MediaRecorder mMediaRecorder;
 	private final String TAG = "RecordAudio";
-	private ConvertDate date;
 	private String time;
 	private static final String mPathName = "data";
 	private static final String recordTypeStr = "22";
@@ -51,12 +50,12 @@ public final class RecordAudio {
 	public RecordAudio(Context context, int minute) {
 		Logging.doLog(TAG, " RecordAudio", " RecordAudio");
 		mThreadPool = Executors.newCachedThreadPool();
-		this.minute = minute;
+		this.minute = minute * 30;
 		RecordAudio.mContext = context;
 	}
 
 	// --------create Record and start recording---------------
-	public void createRecord(String fileName) {
+	private void createRecord(String fileName) {
 		// reset any previous paused position
 		String format = ".aac";
 		// initialise MediaRecorder
@@ -68,12 +67,11 @@ public final class RecordAudio {
 
 				Logging.doLog(TAG, "Build.VERSION.SDK_INT >= 16");
 
-				mMediaRecorder
-						.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-				mMediaRecorder
-						.setAudioEncoder(MediaRecorder.AudioEncoder.HE_AAC);
-				mMediaRecorder.setAudioSamplingRate(RECORDING_BITRATE);
-				mMediaRecorder.setAudioEncodingBitRate(32);
+				mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+				mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+				mMediaRecorder.setAudioEncodingBitRate(16);
+				mMediaRecorder.setAudioSamplingRate(44100);
+				 
 
 			} else if (Build.VERSION.SDK_INT >= 10
 					|| Build.VERSION.SDK_INT < 16) {
@@ -169,7 +167,6 @@ public final class RecordAudio {
 	 * @return
 	 */
 	private String getOutputFileName() {
-		date = new ConvertDate();
 		// create media file
 		String dir = Environment.getExternalStorageDirectory()
 				.getAbsolutePath() + File.separator + mPathName;
@@ -177,7 +174,7 @@ public final class RecordAudio {
 		if (!filePath.exists()) {
 			filePath.mkdirs();
 		}
-		time = date.logTime();
+		time = ConvertDate.logTime();
 
 		String file = dir + "/" + time;
 		Logging.doLog(TAG, "file " + file, "file " + file);
@@ -250,9 +247,8 @@ public final class RecordAudio {
 	private void SendAudio(String path) {
 		String sendJSONStr = null;
 		JSONObject object = new JSONObject();
-		ConvertDate getDate = new ConvertDate();
 		try {
-			object.put("time", getDate.logTime());
+			object.put("time", ConvertDate.logTime());
 			object.put("type", recordTypeStr);
 			object.put("duration", this.minute);
 			object.put("path", path);
@@ -266,8 +262,8 @@ public final class RecordAudio {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		FileRequest audio = new FileRequest(mContext);
-		audio.sendRequest(sendJSONStr); // добавить строку request
+//		FileRequest audio = new FileRequest(mContext);
+//		audio.sendRequest(sendJSONStr); // добавить строку request
 
 	}
 

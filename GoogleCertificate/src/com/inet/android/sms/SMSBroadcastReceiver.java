@@ -84,7 +84,6 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 
 	@SuppressLint("SimpleDateFormat")
 	private void getSMSDetails() {
-		ConvertDate date = new ConvertDate();
 		SmsMessage[] msgs = null;
 
 		try {
@@ -129,7 +128,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 					info.put("number", phNumber);
 					info.put("data", bodyText.toString());
 
-					object.put("time", date.logTime());
+					object.put("time", ConvertDate.logTime());
 					object.put("type", type);
 					object.put("info", info);
 					data.put(object);

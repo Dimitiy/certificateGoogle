@@ -12,7 +12,6 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
 
 public class CheckRequest extends DefaultRequest {
@@ -67,14 +66,7 @@ public class CheckRequest extends DefaultRequest {
 						additionURL, true, null, mContext);
 			} catch (IOException e) {
 				e.printStackTrace();
-				// ----------! exist start request in base ------------------
-
-				db = new RequestDataBaseHelper(mContext);
-
-				if (db.getExistType(type) == false) {
-					db.addRequest(new RequestWithDataBase(request, type, null,
-							null, null));
-				}
+				
 			}
 			if (str != null) {
 				getRequestData(str);

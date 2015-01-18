@@ -75,7 +75,6 @@ public class Caller {
 			httppost.setHeader("Accept", "application/json");
 			httppost.setHeader(HTTP.CONTENT_TYPE, "application/json");
 			httppost.setHeader("Authorization", "Bearer " + token);
-
 		}
 
 		/*
@@ -109,7 +108,6 @@ public class Caller {
 
 		if (response != null) {
 			data = getEntity(response);
-			getStatus(response);
 			if (data == null)
 				getStatus(response);
 		} else {
@@ -153,7 +151,6 @@ public class Caller {
 			Logging.doLog(LOG_TAG, "response getStatus: " + status, "response getStatus: "
 					+ status);
 			if (status != "-1") {
-				
 				if (HttpStatus.SC_UNAUTHORIZED == st) {
 					RequestList.sendRequestForSecondToken(mContext);
 				}

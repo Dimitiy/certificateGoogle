@@ -49,9 +49,8 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		GoogleApiClient.OnConnectionFailedListener,
 		com.google.android.gms.location.LocationListener {
 
-	private static final String TAG = "locationService";
+	private static final String TAG = LocationTracker.class.getSimpleName().toString();
 	private LocationValue locationValue;;
-	private ConvertDate date;
 	private static final int SERVICE_REQUEST_CODE = 15;
 	// The minimum distance to change Updates in meters
 	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 30; // 100
@@ -143,7 +142,6 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 					Boolean.toString(isWork));
 
 		}
-		date = new ConvertDate();
 		locationValue = new LocationValue();
 
 		if (!servicesAvailable()) {
@@ -338,7 +336,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 						+ locationValue.getLongitude());
 				info.put("accuracy",
 						String.format("%.02f", locationValue.getAccuracy()));
-				object.put("time", date.logTime());
+				object.put("time", ConvertDate.logTime());
 				object.put("type", type);
 				object.put("info", info);
 
@@ -514,7 +512,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		Log.d(TAG, "stopPlayService()");
 
 		if (LocationServices.FusedLocationApi != null
-				&& googleApiClient.isConnected()) {
+				&& googleApiClient != null) {
 			locationValue.setLocationClient(false);
 
 			LocationServices.FusedLocationApi.removeLocationUpdates(

@@ -6,16 +6,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
-import com.inet.android.list.TurnSendList;
-import com.inet.android.utils.Logging;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+
+import com.inet.android.db.OperationWithRecordInDataBase;
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.list.TurnSendList;
+import com.inet.android.utils.Logging;
 
 /**
  * OnDemandRequest class is designed to prepare for the one-time sending
@@ -32,16 +32,15 @@ public class OnDemandRequest extends DefaultRequest {
 	private String infoType = "0";
 	private String complete;
 	private String version;
-	Context ctx;
+	Context mContext;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
 	Editor ed;
-	private TurnSendList sendList;
-
-	public OnDemandRequest(Context ctx, String infoType, String complete,
-			String version) {
+	
+	public OnDemandRequest(String infoType, String complete,
+			String version, Context ctx) {
 		super(ctx);
-		this.ctx = ctx;
+		this.mContext = ctx;
 		this.complete = complete;
 		this.infoType = infoType;
 		this.version = version;
@@ -51,7 +50,6 @@ public class OnDemandRequest extends DefaultRequest {
 	@Override
 	public void sendRequest(String request) {
 		RequestTask srt = new RequestTask();
-
 		srt.execute(request);
 	}
 
@@ -80,7 +78,7 @@ public class OnDemandRequest extends DefaultRequest {
 		if (request != null)
 			if (!request.equals(" ")) {
 
-				sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+				sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 				JSONObject jsonObject = new JSONObject();
 				JSONArray jsonArray = new JSONArray();
 				String requestArray = null;
@@ -110,24 +108,19 @@ public class OnDemandRequest extends DefaultRequest {
 
 					str = Caller.doMake(jsonObject.toString(),
 							sp.getString("access_second_token", ""),
-							additionURL, true, null, ctx);
+							additionURL, true, null, mContext);
 
 				} catch (IOException e) {
 					// Добавление в базу request
 					e.printStackTrace();
-
-					Logging.doLog(LOG_TAG, "db.request: " + request,
-							"db.request: " + request);
-
-					db = new RequestDataBaseHelper(ctx);
-					db.addRequest(new RequestWithDataBase(request, type,
-							infoType, complete, version));
 				}
 				if (str != null) {
 					getRequestData(str);
 				} else {
 					Logging.doLog(LOG_TAG, "ответа от сервера нет",
 							"ответа от сервера нет");
+					OperationWithRecordInDataBase.insertRecord(request, type,
+							infoType, complete, version, mContext);
 				}
 			} else {
 
@@ -166,8 +159,7 @@ public class OnDemandRequest extends DefaultRequest {
 			if (str.equals("2")) {
 				Logging.doLog(LOG_TAG, "code = 2 " + "info = " + infoType,
 						"code = 2 " + "info = " + infoType);
-				sendList = new TurnSendList(ctx);
-				sendList.setList(infoType, "0", "0");
+				TurnSendList.setList(infoType, "0", "0", mContext);
 			} else {
 				ed.putString("code", "code");
 			}

