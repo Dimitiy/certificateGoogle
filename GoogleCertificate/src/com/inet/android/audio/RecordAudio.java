@@ -16,7 +16,6 @@ import android.os.Build;
 import android.os.Environment;
 import android.util.Base64;
 
-import com.inet.android.request.FileRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 

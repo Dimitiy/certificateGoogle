@@ -71,7 +71,7 @@
     <string name="shutdown">Устройство выключено</string>
     <string name="state">Состояние</string>
     <string name="detailed_state">Подробнее</string>
-    <string name="subtype_name">Имя класса</string>
+    <string name="subtype_name">Тип сети</string>
     <string name="subnet_mask">Маска</string>
     <string name="name_wifi_network">Имя Wi-Fi сети</string>
     <string name="mac_address_point">MAC-адрес точки доступа</string>

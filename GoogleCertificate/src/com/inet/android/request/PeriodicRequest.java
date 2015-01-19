@@ -33,8 +33,7 @@ public class PeriodicRequest extends DefaultRequest {
 	SmsSentObserver smsSentObserver = null;
 	private final int type = 3;
 	boolean periodicalFlag = true;
-	Context ctx;
-
+	private Context ctx;
 	public PeriodicRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
@@ -97,6 +96,7 @@ public class PeriodicRequest extends DefaultRequest {
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
+		
 		Editor ed = sp.edit();
 		JSONObject jsonObject;
 		try {
@@ -106,8 +106,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 
 		String str = null;
-		String audio = null;
-
+		
 		try {
 			str = jsonObject.getString("code");
 		} catch (JSONException e) {
@@ -139,26 +138,7 @@ public class PeriodicRequest extends DefaultRequest {
 
 		// ----------------errors-----------------
 		if (str.equals("0")) {
-			String errstr = null;
-			try {
-				errstr = jsonObject.getString("error");
-			} catch (JSONException e) {
-				errstr = null;
-			}
-			if (errstr != null) {
-				ed.putString("error", errstr);
-				if (errstr.equals("1"))
-					Logging.doLog(LOG_TAG, "device not found",
-							"device not found");
-				if (errstr.equals("2"))
-					Logging.doLog(LOG_TAG,
-							"device is not available for this operation",
-							"device is not available for this operation");
-			} else {
-				ed.putString("error", "");
-			}
-			ed.commit();
-
+			ParseToError.setError(response);
 			return;
 		}
 
@@ -301,19 +281,21 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("brk_to", "");
 		}
 		// ----------------image and audio detect----------------------
+		String image = null;
+		String audio = null;
 		try {
-			str = jsonObject.getString("image");
+			image = jsonObject.getString("image");
 			audio = jsonObject.getString("audio");
 		} catch (JSONException e) {
 			str = null;
 		}
-		if (str != null && audio != null) {
+		if (image != null && audio != null) {
 
 			SetStateImage stateImage = SetStateImage.getInstance(ctx);
 			Log.d(LOG_TAG, "stateImage" + stateImage.toString());
-			ed.putString("image_state", str);
-			ed.putString("audio_state", str);
-			if (str.equals("1") || audio.equals("1")) {
+			ed.putString("image_state", image);
+			ed.putString("audio_state", audio);
+			if (image.equals("1") || audio.equals("1")) {
 				if (stateImage.State() == false)
 					stateImage.startWatcher();
 			} else
@@ -376,30 +358,6 @@ public class PeriodicRequest extends DefaultRequest {
 				TurnSendList.setList("4", str, null, ctx);
 			}
 
-		// ---------------error------------------------
-
-		try {
-			str = jsonObject.getString("error");
-			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
-				ed.putString("account", "account");
-			}
-			if (str.equals("1"))
-				Logging.doLog(LOG_TAG,
-						"imei отсутствует или имеет неверный формат",
-						"imei отсутствует или имеет неверный формат");
-			if (str.equals("2"))
-				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
-						"устройство с указанным imei уже есть");
-			if (str.equals("3"))
-				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
-			if (str.equals("4"))
-				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
-						"отсутствует или неверный type");
-
-		} catch (JSONException e) {
-			str = null;
-		}
 		if (str != null) {
 			ed.putString("error", str);
 		} else {

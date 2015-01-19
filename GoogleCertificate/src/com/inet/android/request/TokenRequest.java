@@ -15,7 +15,6 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.inet.android.db.OperationWithRecordInDataBase;
-import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.utils.Logging;
 
 public class TokenRequest extends DefaultRequest {
@@ -23,8 +22,6 @@ public class TokenRequest extends DefaultRequest {
 			.toString();
 	final private String additionURL = "oauth/token";
 	Context mContext;
-	private int type = 5;
-	static RequestDataBaseHelper db;
 
 	public TokenRequest(Context ctx) {
 		super(ctx);
@@ -102,8 +99,8 @@ public class TokenRequest extends DefaultRequest {
 		} else {
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
-			OperationWithRecordInDataBase.insertRecord(null, type, null, null,
-					null, mContext);
+			OperationWithRecordInDataBase.insertRecord(null, typeTokenRequest,
+					null, null, null, mContext);
 		}
 	}
 
@@ -163,8 +160,12 @@ public class TokenRequest extends DefaultRequest {
 		if (str != null) {
 			if (token.equals("first_token"))
 				RequestList.sendRequestForFirstToken(mContext);
-			else if (token.equals("second_token"))
+			else if (token.equals("second_token")) {
+				Logging.doLog(LOG_TAG,
+						"token expired sendRequestForSecondToken",
+						"token expired sendRequestForSecondToken");
 				RequestList.sendRequestForSecondToken(mContext);
+			}
 		}
 
 		// ------------access_token----------------
@@ -185,7 +186,7 @@ public class TokenRequest extends DefaultRequest {
 				RequestList.sendPeriodicRequest(mContext);
 			else if (token.equals("second_token"))
 				OperationWithRecordInDataBase.sendRecord(mContext);
-			
+
 		} else {
 			ed.putString("access_" + token, "-1");
 		}
@@ -206,30 +207,7 @@ public class TokenRequest extends DefaultRequest {
 			}
 
 			if (str.equals("0")) {
-				String errstr = null;
-				try {
-					errstr = jsonObject.getString("error");
-				} catch (JSONException e) {
-					errstr = null;
-				}
-				if (errstr != null) {
-					ed.putString("error_" + token, errstr);
-				} else {
-					ed.putString("error_" + token, "");
-				}
-				ed.commit();
-				if (str.equals("0")) {
-					Logging.doLog(LOG_TAG, "incorrect account number",
-							"incorrect account number");
-					ed.putString("account", "account");
-				}
-				if (str.equals("1"))
-					Logging.doLog(LOG_TAG, "device not found",
-							"device not found");
-				if (str.equals("2"))
-					Logging.doLog(LOG_TAG,
-							"device is not available for this operation",
-							"device is not available for this operation");
+				ParseToError.setError(response);
 			}
 		} else {
 			ed.putString("code_" + token, "");

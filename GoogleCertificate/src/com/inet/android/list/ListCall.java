@@ -26,8 +26,8 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 	private String LOG_TAG = ListCall.class.getSimpleName().toString();
 	private String complete;
 	private String version;
-	
 	private String readCallLogs() {
+		
 		String sendStr = null;
 		String type = "0";
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -134,6 +134,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void endList() {
+		Logging.doLog(LOG_TAG, "endList", "endList");	
 		TurnSendList.setList(iType, version, "0", mContext);
 	}
 

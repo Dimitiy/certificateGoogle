@@ -36,7 +36,7 @@ public class ListApp {
 	private static String LOG_TAG = ListApp.class.getSimpleName().toString();
 	final int COMPRESSION_QUALITY = 100;
 	private String version;
-
+		
 	/**
 	 * get the list of all installed applications in the device
 	 * 
@@ -129,7 +129,7 @@ public class ListApp {
 				sendStr = null;
 			}
 		} else {
-			TurnSendList.setList(iType, version, "0", mContext);
+			TurnSendList.setList(iType, version, "0",mContext);
 		}
 	}
 

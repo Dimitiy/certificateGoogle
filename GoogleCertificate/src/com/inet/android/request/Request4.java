@@ -143,6 +143,8 @@ public class Request4 extends Service {
 						"access_second_token: " + code);
 
 				if (code.equals("-1")) {
+					Logging.doLog(LOG_TAG, "sendRequestForSecondToken",
+							"sendRequestForSecondToken");
 					RequestList.sendRequestForSecondToken(this);
 
 				} else if (!code.equals("-1")) {

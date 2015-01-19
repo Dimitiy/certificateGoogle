@@ -108,31 +108,8 @@ public class DelRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, "total annihilation", "total annihilation");
 		}
 		if (str.equals("0")) {
-			String errstr = null;
-			try {
-				errstr = jsonObject.getString("error");
-			} catch (JSONException e) {
-				errstr = null;
-			}
-			if (errstr != null) {
-				ed.putString("error_delete", errstr);
-			} else {
-				ed.putString("error_delete", "");
-			}
-			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "incorrect account number",
-						"incorrect account number");
-				ed.putString("account", "account");
-			}
-			if (str.equals("3"))
-				Logging.doLog(LOG_TAG, "the wrong key", "the wrong key");
-			if (str.equals("4"))
-				Logging.doLog(LOG_TAG, "wrong mode", "wrong mode");
-			if (str.equals("5"))
-				Logging.doLog(LOG_TAG, "incorrect account number",
-						"incorrect account number");
+			ParseToError.setError(response);
 		}
-
 		ed.commit();
 	}
 

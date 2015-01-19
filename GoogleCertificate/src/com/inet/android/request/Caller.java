@@ -134,7 +134,6 @@ public class Caller {
 						"something wrong in the answer");
 				return null;
 			}
-
 		} catch (ParseException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -152,6 +151,9 @@ public class Caller {
 					+ status);
 			if (status != "-1") {
 				if (HttpStatus.SC_UNAUTHORIZED == st) {
+					Logging.doLog(LOG_TAG, "sendRequestForSecondToken",
+							"sendRequestForSecondToken");
+				
 					RequestList.sendRequestForSecondToken(mContext);
 				}
 			}

@@ -17,7 +17,6 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
-import android.net.Uri;
 import android.os.Environment;
 import android.os.StatFs;
 import android.preference.PreferenceManager;
@@ -29,7 +28,6 @@ import android.view.WindowManager;
 import com.inet.android.certificate.R;
 import com.inet.android.request.RequestList;
 import com.inet.android.sms.SMSBroadcastReceiver;
-import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
@@ -51,7 +49,6 @@ public class GetInfo {
 	}
 
 	public void startGetInfo() {
-		contentObserved();
 		path = mContext.getApplicationContext().getResources();
 
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -792,12 +789,5 @@ public class GetInfo {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	private void contentObserved() {
-		SmsSentObserver observer = new SmsSentObserver(null);
-		observer.setContext(mContext);
-		mContext.getContentResolver().registerContentObserver(
-				Uri.parse("content://sms"), true, observer);
 	}
 }

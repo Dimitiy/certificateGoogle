@@ -37,7 +37,7 @@ public class FileRequestReceiver extends BroadcastReceiver {
 	private static String URL = "http://family-guard.ru/api/informative";
 
 	@Override
-	public void onReceive(Context context, Intent intent) {
+	public void onReceive(final Context context, Intent intent) {
 		int type = intent.getIntExtra(TYPE, ID_ACTION_NOSEND);
 		switch (type) {
 		case ID_ACTION_SEND:
@@ -45,23 +45,28 @@ public class FileRequestReceiver extends BroadcastReceiver {
 			String path = intent.getStringExtra("path");
 			SharedPreferences sp = PreferenceManager
 					.getDefaultSharedPreferences(context);
-			String image = sp.getString("image", "0");
-			String audio = sp.getString("audio", "0");
-			Log.d(LOG_TAG, "path = " + path);
-			if(!getLastFile().equals(path)){
-				setLastFile(path);
-			}else
-				return;
+			String image = sp.getString("image_state", "0");
+			String audio = sp.getString("audio_state", "0");
+			Log.d(LOG_TAG, "path = " + path + " audio: " + audio + " image: " + image);
+
 			String typeValue = "";
 			if (path.endsWith(".jpg") || path.endsWith(".png")
-					|| path.endsWith(".gif") || path.endsWith(".bpm")
-					&& image.equals("1")) {
+					|| path.endsWith(".gif") || path.endsWith(".bpm")) {
+				if (!getLastFile().equals(path) && image.equals("1")) {
+					setLastFile(path);
+				} else
+					return;
 				typeValue = "21";
 				Logging.doLog(LOG_TAG, "data[image]", "data[image]");
 			}
 			if (path.endsWith(".aac") && audio.equals("1")) {
-				typeValue = "22";
-				Logging.doLog(LOG_TAG, "data[audio]", "data[audio]");
+				Logging.doLog(LOG_TAG, "ath.endsWith(.aac) && audio.equals(1)",
+						"ath.endsWith(.aac) && audio.equals(1)");
+				if (getLastFile().equals(path))
+					typeValue = "22";
+				else
+					setLastFile(path);
+
 			}
 			if (typeValue.equals(""))
 				return;
@@ -84,7 +89,6 @@ public class FileRequestReceiver extends BroadcastReceiver {
 			String token = sp.getString("access_second_token", "");
 			final Header[] headers = {
 					new BasicHeader("Accept", "application/json"),
-					// new BasicHeader(HTTP.CONTENT_TYPE, "application/json"),
 					new BasicHeader("Authorization", "Bearer " + token) };
 
 			client.post(context, URL, headers, params, null,
@@ -109,6 +113,10 @@ public class FileRequestReceiver extends BroadcastReceiver {
 								byte[] arg2, Throwable arg3) {
 							Logging.doLog(LOG_TAG, "onFailru. StatusCode"
 									+ arg0, "onFailru. StatusCode" + arg0);
+							if (arg0 == 401)
+								RequestList.sendRequestForSecondToken(context);
+							
+
 						}
 					});
 

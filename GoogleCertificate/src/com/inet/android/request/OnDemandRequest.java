@@ -28,7 +28,7 @@ public class OnDemandRequest extends DefaultRequest {
 	private final String LOG_TAG = OnDemandRequest.class.getSimpleName()
 			.toString();
 	final private String additionURL = "api/list";
-	private final int type = 5;
+	private final int type = 4;
 	private String infoType = "0";
 	private String complete;
 	private String version;
@@ -36,9 +36,9 @@ public class OnDemandRequest extends DefaultRequest {
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
 	Editor ed;
-	
-	public OnDemandRequest(String infoType, String complete,
-			String version, Context ctx) {
+
+	public OnDemandRequest(String infoType, String complete, String version,
+			Context ctx) {
 		super(ctx);
 		this.mContext = ctx;
 		this.complete = complete;
@@ -102,9 +102,14 @@ public class OnDemandRequest extends DefaultRequest {
 
 				String str = null;
 				try {
-					Logging.doLog(LOG_TAG, "do make.requestArray: "
-							+ jsonObject.toString() + " " + sp.getString("access_second_token", " "), "do make.requestArray: "
-							+ jsonObject.toString() + " " + sp.getString("access_second_token", " "));
+					Logging.doLog(
+							LOG_TAG,
+							"do make.requestArray: " + jsonObject.toString()
+									+ " "
+									+ sp.getString("access_second_token", " "),
+							"do make.requestArray: " + jsonObject.toString()
+									+ " "
+									+ sp.getString("access_second_token", " "));
 
 					str = Caller.doMake(jsonObject.toString(),
 							sp.getString("access_second_token", ""),
@@ -123,9 +128,7 @@ public class OnDemandRequest extends DefaultRequest {
 							infoType, complete, version, mContext);
 				}
 			} else {
-
 				Logging.doLog(LOG_TAG, "request == null", "request == null");
-
 			}
 	}
 
@@ -152,67 +155,22 @@ public class OnDemandRequest extends DefaultRequest {
 		}
 		if (str != null) {
 			ed.putString("code_list", str);
+			ed.commit();
 			if (str.equals("1")) {
 				Logging.doLog(LOG_TAG, "code = 1 ", "code = 1");
-
 			}
+			if (str.equals("0")) {
+				ParseToError.setError(response);
+			}
+
 			if (str.equals("2")) {
 				Logging.doLog(LOG_TAG, "code = 2 " + "info = " + infoType,
 						"code = 2 " + "info = " + infoType);
+
 				TurnSendList.setList(infoType, "0", "0", mContext);
 			} else {
 				ed.putString("code", "code");
 			}
-
-			if (str.equals("0")) {
-				try {
-					str = jsonObject.getString("error");
-				} catch (JSONException e) {
-					str = null;
-				}
-				if (str != null) {
-					ed.putString("error_list", str);
-				}
-
-				
-				if (str.equals("1")) {
-					Logging.doLog(LOG_TAG,
-							"device not found",
-							"device not found");
-				}
-				if (str.equals("2"))
-					Logging.doLog(LOG_TAG,
-							"is not available for this operation",
-							"is not available for this operation");
-				if (str.equals("3"))
-					Logging.doLog(LOG_TAG, "the wrong key",
-							"the wrong key");
-				if (str.equals("4")) {
-					Logging.doLog(LOG_TAG, "missing or incorrect type",
-							"missing or incorrect type");
-				}
-				if (str.equals("5")) {
-					Logging.doLog(LOG_TAG, "version not found",
-							"version not found");
-				}
-				if (str.equals("6")) {
-					Logging.doLog(LOG_TAG,
-							"packet type does not match the version on the server",
-							"packet type does not match the version on the server");
-				}
-				if (str.equals("7")) {
-					Logging.doLog(LOG_TAG,
-							"attempt to write data to the already completed package",
-							"attempt to write data to the already completed package");
-				}
-				if (str.equals("8")) {
-					Logging.doLog(LOG_TAG, "other", "other");
-				} else {
-					ed.putString("error", "error");
-				}
-			}
-
-			ed.commit();
 		}
 
 	}

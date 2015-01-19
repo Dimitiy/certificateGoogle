@@ -6,6 +6,7 @@ import android.content.Intent;
 import com.inet.android.history.LinkService;
 import com.inet.android.location.LocationTracker;
 import com.inet.android.location.RecognitionDevService;
+import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.utils.Logging;
 
 public class ServiceControl {
@@ -23,6 +24,7 @@ public class ServiceControl {
 		Intent recognitionServiceIntent = new Intent(mContext,
 				RecognitionDevService.class);
 		mContext.startService(recognitionServiceIntent);
+		SMSBroadcastReceiver.regSmsObserver(mContext);
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 

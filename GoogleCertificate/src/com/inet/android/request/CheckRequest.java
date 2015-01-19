@@ -138,31 +138,9 @@ public class CheckRequest extends DefaultRequest {
 		}
 		// -------------error------------------
 		
-		if (str.equals("0")) {
-			String errstr = null;
-			try {
-				errstr = jsonObject.getString("error");
-			} catch (JSONException e) {
-				errstr = null;
-			}
-			if (errstr != null) {
-				ed.putString("error_check", errstr);
-			} else {
-				ed.putString("error_check", "");
-			}
-
 			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "incorrect account number",
-						"incorrect account number");
-
-				// ed.putString("account", "account");
+				ParseToError.setError(response);
 			}
-			if (str.equals("1"))
-				Logging.doLog(LOG_TAG, "device not found", "device not found");
-			if (str.equals("2"))
-				Logging.doLog(LOG_TAG, "is not available for this operation",
-						"is not available for this operation");
-		}
 		ed.commit();
 	}
 

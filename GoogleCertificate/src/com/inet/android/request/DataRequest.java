@@ -147,29 +147,7 @@ public class DataRequest extends DefaultRequest {
 		}
 
 		if (str.equals("0")) {
-			String errstr = null;
-			try {
-				errstr = jsonObject.getString("error");
-			} catch (JSONException e) {
-				errstr = null;
-			}
-			if (errstr != null) {
-				ed.putString("error_data", errstr);
-				ed.commit();
-
-				if (errstr.equals("1")) {
-					Logging.doLog(LOG_TAG, "device not found",
-							"device not found");
-				}
-				if (errstr.equals("2"))
-					Logging.doLog(LOG_TAG,
-							"is not available for this operation",
-							"is not available for this operation");
-				if (errstr.equals("3"))
-					Logging.doLog(LOG_TAG, "the wrong key", "the wrong key");
-			} else {
-				ed.putString("error_data", "");
-			}
+			ParseToError.setError(response);
 		}
 		ed.commit();
 	}
