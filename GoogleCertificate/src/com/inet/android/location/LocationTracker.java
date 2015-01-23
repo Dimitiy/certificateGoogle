@@ -33,6 +33,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
@@ -49,7 +50,8 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		GoogleApiClient.OnConnectionFailedListener,
 		com.google.android.gms.location.LocationListener {
 
-	private static final String TAG = LocationTracker.class.getSimpleName().toString();
+	private static final String TAG = LocationTracker.class.getSimpleName()
+			.toString();
 	private LocationValue locationValue;;
 	private static final int SERVICE_REQUEST_CODE = 15;
 	// The minimum distance to change Updates in meters
@@ -79,7 +81,6 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	// flag for network status
 	private boolean isNetworkEnabled = false;
 	// flag for GPS status
-	private boolean canGetLocation = false;
 	private Context mContext;
 	private Location location; // location
 	private String geoMode = null;
@@ -194,7 +195,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 				Logging.doLog(TAG, "!isGPS&&isNetwork ", "!isGPS&&isNetwork ");
 				return null;
 			} else {
-				this.canGetLocation = true;
+//				this.canGetLocation = true;
 				// if Network Enabled get lat/long using GPS Services
 				if (isOnline() == true) {
 					Logging.doLog(TAG, "Network isOnline ", "Network isOnline ");
@@ -316,8 +317,6 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			Logging.doLog(TAG, "equals = 0.0", "equals = 0.0");
 
 		} else {
-			String type = "9";
-
 			// -------send location----------------------------
 			String sendJSONStr = null;
 			JSONObject info = new JSONObject();
@@ -337,7 +336,8 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 				info.put("accuracy",
 						String.format("%.02f", locationValue.getAccuracy()));
 				object.put("time", ConvertDate.logTime());
-				object.put("type", type);
+				object.put("type",
+						ConstantRequest.TYPE_LOCATION_TRACKER_REQUEST);
 				object.put("info", info);
 
 				sendJSONStr = object.toString();

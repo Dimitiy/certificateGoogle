@@ -11,9 +11,9 @@ import com.inet.android.certificate.R;
 import com.inet.android.request.RequestList;
 
 public class InfoBatteryReceiver extends BroadcastReceiver {
-	private String TAG = "BatteryBroadcastReceiver";
-	String connect_dev = "";
-	Resources path;
+	private String TAG = InfoBatteryReceiver.class.getSimpleName().toString();
+	private String connect_dev = "";
+	private Resources path;
 
 	public InfoBatteryReceiver(String connect) {
 		// TODO Auto-generated constructor stub

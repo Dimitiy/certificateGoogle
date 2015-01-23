@@ -18,7 +18,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
-import com.google.android.gms.location.LocationServices;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
 

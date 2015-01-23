@@ -17,9 +17,7 @@ import com.inet.android.utils.Logging;
 public class CheckRequest extends DefaultRequest {
 	private final String LOG_TAG = CheckRequest.class.getSimpleName()
 			.toString();
-	final private String additionURL = "api/check";
 
-	private final int type = 3;
 	Context mContext;
 	static RequestDataBaseHelper db;
 
@@ -63,22 +61,20 @@ public class CheckRequest extends DefaultRequest {
 			try {
 			
 				str = Caller.doMake(request, sp.getString("access_first_token", ""),
-						additionURL, true, null, mContext);
+						ConstantRequest.CHECK_LINK, true, null, mContext);
 			} catch (IOException e) {
 				e.printStackTrace();
 				
 			}
-			if (str != null) {
-				getRequestData(str);
+			if (str != null && str.length() > 3) {
+					getRequestData(str);
 			} else {
 				Logging.doLog(LOG_TAG,
 						"response from the server is missing or incorrect",
 						"response from the server is missing or incorrect");
-
 				Editor ed = sp.edit();
-				ed.putString("code", "1");
+				ed.putString("code_check", "1");
 				ed.commit();
-
 			}
 		} else {
 			Logging.doLog(LOG_TAG, "request == null", "request == null");
@@ -139,7 +135,7 @@ public class CheckRequest extends DefaultRequest {
 		// -------------error------------------
 		
 			if (str.equals("0")) {
-				ParseToError.setError(response);
+				ParseToError.setError(response, mContext);
 			}
 		ed.commit();
 	}

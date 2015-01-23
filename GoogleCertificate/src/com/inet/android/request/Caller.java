@@ -10,7 +10,6 @@ import java.util.ArrayList;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
 import org.apache.http.client.HttpClient;
@@ -59,7 +58,7 @@ public class Caller {
 		 * set uri
 		 */
 		try {
-			uri = new URI("http://family-guard.ru/" + addition);
+			uri = new URI(ConstantRequest.MAIN_LINK + addition);
 			httppost = new HttpPost(uri);
 			Logging.doLog(LOG_TAG, uri.toASCIIString());
 		} catch (URISyntaxException e1) {
@@ -109,7 +108,7 @@ public class Caller {
 		if (response != null) {
 			data = getEntity(response);
 			if (data == null)
-				getStatus(response);
+				data = getStatus(response);
 		} else {
 			Logging.doLog(LOG_TAG, "http response equals null",
 					"http response equals null");
@@ -147,16 +146,8 @@ public class Caller {
 		try {
 			int st = response.getStatusLine().getStatusCode();
 			status = String.valueOf(st);
-			Logging.doLog(LOG_TAG, "response getStatus: " + status, "response getStatus: "
-					+ status);
-			if (status != "-1") {
-				if (HttpStatus.SC_UNAUTHORIZED == st) {
-					Logging.doLog(LOG_TAG, "sendRequestForSecondToken",
-							"sendRequestForSecondToken");
-				
-					RequestList.sendRequestForSecondToken(mContext);
-				}
-			}
+			Logging.doLog(LOG_TAG, "response getStatus: " + status,
+					"response getStatus: " + status);
 
 		} catch (ParseException e) {
 			e.printStackTrace();

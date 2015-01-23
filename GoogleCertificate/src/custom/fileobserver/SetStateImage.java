@@ -81,7 +81,6 @@ public class SetStateImage {
 						"FileWatcher = create" + item);
 				mWatcher = new FileWatcher(item, true, FileWatcher.FILE_CHANGED);
 				Logging.doLog(LOG_TAG, "FileListener", "FileListener");
-
 				mWatcher.setFileListener(mFileListener);
 				Logging.doLog(LOG_TAG, "startWatcher", "startWatcher");
 				mWatcher.startWatching();
@@ -101,7 +100,7 @@ public class SetStateImage {
 					+ path);
 
 			// Sending file request broadcast message
-			
+
 		}
 
 		@Override
@@ -122,7 +121,8 @@ public class SetStateImage {
 		@Override
 		public void onFileCloseWrite(String path) {
 			// TODO Auto-generated method stub
-			Log.i(LOG_TAG, "onFileCloseWrite");
+			Logging.doLog(LOG_TAG, "onFileCloseWrite " + path,
+					"onFileCloseWrite " + path);
 			Intent intent = new Intent(FILE_REQUEST);
 			intent.putExtra("type", ID_ACTION_SEND);
 			intent.putExtra("path", path);

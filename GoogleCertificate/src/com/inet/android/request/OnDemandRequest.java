@@ -12,7 +12,6 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.db.RequestDataBaseHelper;
 import com.inet.android.list.TurnSendList;
 import com.inet.android.utils.Logging;
@@ -27,9 +26,7 @@ import com.inet.android.utils.Logging;
 public class OnDemandRequest extends DefaultRequest {
 	private final String LOG_TAG = OnDemandRequest.class.getSimpleName()
 			.toString();
-	final private String additionURL = "api/list";
-	private final int type = 4;
-	private String infoType = "0";
+	private int infoType = -1;
 	private String complete;
 	private String version;
 	Context mContext;
@@ -37,7 +34,7 @@ public class OnDemandRequest extends DefaultRequest {
 	SharedPreferences sp;
 	Editor ed;
 
-	public OnDemandRequest(String infoType, String complete, String version,
+	public OnDemandRequest(int infoType, String complete, String version,
 			Context ctx) {
 		super(ctx);
 		this.mContext = ctx;
@@ -75,61 +72,54 @@ public class OnDemandRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		// Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
-		if (request != null)
-			if (!request.equals(" ")) {
 
-				sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-				JSONObject jsonObject = new JSONObject();
-				JSONArray jsonArray = new JSONArray();
-				String requestArray = null;
-				try {
-					jsonObject.put("key", System.currentTimeMillis());
-					jsonObject.put("list", infoType);
-					jsonObject.put("version", version);
-					jsonObject.put("complete", complete);
-					requestArray = "[" + request + "]";
-					jsonArray = new JSONArray(requestArray);
-					jsonObject.put("data", jsonArray);
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		JSONObject jsonObject = new JSONObject();
+		JSONArray jsonArray = new JSONArray();
+		String requestArray = null;
+		try {
+			jsonObject.put("key", System.currentTimeMillis());
+			jsonObject.put("list", infoType);
+			jsonObject.put("version", version);
+			jsonObject.put("complete", complete);
+			requestArray = "[" + request + "]";
+			jsonArray = new JSONArray(requestArray);
+			jsonObject.put("data", jsonArray);
 
-					Logging.doLog(LOG_TAG,
-							"jsonArray: " + jsonObject.toString(),
-							jsonObject.toString());
+			Logging.doLog(LOG_TAG, "jsonArray: " + jsonObject.toString(),
+					jsonObject.toString());
 
-				} catch (JSONException e1) {
-					Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-					e1.printStackTrace();
-				}
+		} catch (JSONException e1) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+			e1.printStackTrace();
+		}
 
-				String str = null;
-				try {
-					Logging.doLog(
-							LOG_TAG,
-							"do make.requestArray: " + jsonObject.toString()
-									+ " "
-									+ sp.getString("access_second_token", " "),
-							"do make.requestArray: " + jsonObject.toString()
-									+ " "
-									+ sp.getString("access_second_token", " "));
+		String str = null;
+		try {
+			Logging.doLog(
+					LOG_TAG,
+					"do make.requestArray: " + jsonObject.toString() + " "
+							+ sp.getString("access_second_token", " "),
+					"do make.requestArray: " + jsonObject.toString() + " "
+							+ sp.getString("access_second_token", " "));
 
-					str = Caller.doMake(jsonObject.toString(),
-							sp.getString("access_second_token", ""),
-							additionURL, true, null, mContext);
+			str = Caller.doMake(jsonObject.toString(),
+					sp.getString("access_second_token", ""), ConstantRequest.LIST_LINK, true,
+					null, mContext);
 
-				} catch (IOException e) {
-					// Добавление в базу request
-					e.printStackTrace();
-				}
-				if (str != null) {
-					getRequestData(str);
-				} else {
-					Logging.doLog(LOG_TAG, "ответа от сервера нет",
-							"ответа от сервера нет");
-					OperationWithRecordInDataBase.insertRecord(request, type,
-							infoType, complete, version, mContext);
-				}
-			} else {
-				Logging.doLog(LOG_TAG, "request == null", "request == null");
-			}
+		} catch (IOException e) {
+			// Добавление в базу request
+			e.printStackTrace();
+		}
+		if (str != null && str.length() > 3)
+			getRequestData(str);
+		else {
+			ParseToError.setError(str, request, ConstantRequest.TYPE_DATA_REQUEST, infoType, complete,
+					version, mContext);
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");
+		}
+
 	}
 
 	@Override
@@ -160,7 +150,7 @@ public class OnDemandRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "code = 1 ", "code = 1");
 			}
 			if (str.equals("0")) {
-				ParseToError.setError(response);
+				ParseToError.setError(response, mContext);
 			}
 
 			if (str.equals("2")) {

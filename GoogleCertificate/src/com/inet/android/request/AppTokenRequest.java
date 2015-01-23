@@ -16,8 +16,7 @@ import com.inet.android.utils.Logging;
 public class AppTokenRequest extends DefaultRequest {
 	private final String LOG_TAG = AppTokenRequest.class.getSimpleName()
 			.toString();
-	final private String additionURL = "api/token";
-	Context mContext;
+	private Context mContext;
 	
 	public AppTokenRequest(Context ctx) {
 		super(ctx);
@@ -58,13 +57,13 @@ public class AppTokenRequest extends DefaultRequest {
 			try {
 				Logging.doLog(LOG_TAG, request, request);
 				str = Caller.doMake(request,
-						sp.getString("access_first_token", ""), additionURL,
+						sp.getString("access_first_token", ""), ConstantRequest.APP_TOKEN_LINK,
 						true, null, mContext);
 			} catch (IOException e) {
 				e.printStackTrace();	
 			}
-			if (str != null) {
-				getRequestData(str);
+			if (str != null && str.length() > 3) {
+					getRequestData(str);
 			} else {
 				Logging.doLog(LOG_TAG,
 						"response from the server is missing or incorrect",
@@ -104,7 +103,7 @@ public class AppTokenRequest extends DefaultRequest {
 			RequestList.sendRequestForSecondToken(mContext);
 		}
 		if (str.equals("0")) {
-			ParseToError.setError(response);
+			ParseToError.setError(response, mContext);
 		}
 		ed.commit();
 	}

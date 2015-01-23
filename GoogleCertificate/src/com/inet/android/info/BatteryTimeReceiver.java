@@ -13,7 +13,6 @@ import com.inet.android.certificate.R;
 import com.inet.android.request.RequestList;
 
 public class BatteryTimeReceiver extends BroadcastReceiver {
-	private String LOG_TAG = BatteryTimeReceiver.class.getSimpleName().toString();
 	IntentFilter ifilter;
 	Intent batteryIntent;
 	Context mContext;

@@ -82,7 +82,7 @@
                 <action android:name="android.intent.action.REBOOT" />
             </intent-filter>
         </receiver>
-        <receiver android:name="com.inet.android.request.FileRequestReceiver" >
+        <receiver android:name="com.inet.android.request.FileReceiver" >
             <intent-filter android:priority="1000" >
                 <action android:name="com.inet.android.media.FILE" />
             </intent-filter>

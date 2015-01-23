@@ -15,7 +15,7 @@ public class RequestWithDataBase {
 	private boolean exist;
 	private String version;
 	private String complete;
-	private String typeList;
+	private int typeList;
 
 	// Пустой конструктор
 	public RequestWithDataBase() {
@@ -31,7 +31,7 @@ public class RequestWithDataBase {
 		this.type = type;
 	}
 
-	public RequestWithDataBase(String request, int type, String typeList,
+	public RequestWithDataBase(String request, int type, int typeList,
 			 String complete,String version) {
 
 		this.request = request;
@@ -42,7 +42,7 @@ public class RequestWithDataBase {
 	}
 
 	public RequestWithDataBase(int id, String request, int type,
-			String typeList, String complete, String version) {
+			int typeList, String complete, String version) {
 		this._id = id;
 		this.request = request;
 		this.type = type;
@@ -133,14 +133,14 @@ public class RequestWithDataBase {
 	/**
 	 * Получить typeList
 	 */
-	public String getTypeList() {
+	public int getTypeList() {
 		return this.typeList;
 	}
 
 	/**
 	 * Записать typeList
 	 */
-	public void setTypeList(String typeList) {
+	public void setTypeList(int typeList) {
 		this.typeList = typeList;
 	}
 }

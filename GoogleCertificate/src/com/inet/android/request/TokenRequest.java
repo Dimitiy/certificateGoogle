@@ -20,7 +20,6 @@ import com.inet.android.utils.Logging;
 public class TokenRequest extends DefaultRequest {
 	private final String LOG_TAG = TokenRequest.class.getSimpleName()
 			.toString();
-	final private String additionURL = "oauth/token";
 	Context mContext;
 
 	public TokenRequest(Context ctx) {
@@ -88,19 +87,19 @@ public class TokenRequest extends DefaultRequest {
 				break;
 			}
 
-			str = Caller.doMake(null, null, additionURL, false, postParameters,
+			str = Caller.doMake(null, null, ConstantRequest.TOKEN_LINK, false, postParameters,
 					mContext);
 		} catch (IOException e) {
 			// Добавление в базу request
 			e.printStackTrace();
 		}
-		if (str != null) {
+		if (str != null && str.length() > 2)
 			getRequestData(str);
-		} else {
+		else {
+			ParseToError.setError(str, null, typeTokenRequest, -1, null,
+					null, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
-			OperationWithRecordInDataBase.insertRecord(null, typeTokenRequest,
-					null, null, null, mContext);
 		}
 	}
 
@@ -207,7 +206,7 @@ public class TokenRequest extends DefaultRequest {
 			}
 
 			if (str.equals("0")) {
-				ParseToError.setError(response);
+				ParseToError.setError(response, mContext);
 			}
 		} else {
 			ed.putString("code_" + token, "");

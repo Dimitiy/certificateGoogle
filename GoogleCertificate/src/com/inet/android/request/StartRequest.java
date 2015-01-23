@@ -25,7 +25,6 @@ import com.inet.android.utils.Logging;
 public class StartRequest extends DefaultRequest {
 	private final String LOG_TAG = StartRequest.class.getSimpleName()
 			.toString();
-	final private String additionURL = "api/initial";
 	Context mContext;
 	SharedPreferences sp;
 
@@ -93,15 +92,15 @@ public class StartRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, postRequest, postRequest);
 
 			str = Caller.doMake(postRequest,
-					sp.getString("access_first_token", ""), additionURL, true,
+					sp.getString("access_first_token", ""), ConstantRequest.INITIAL_LINK, true,
 					null, mContext);
 		} catch (IOException e) {
 			e.printStackTrace();
 
 		}
-		if (str != null) {
+		if (str != null && str.length() > 3) 
 			getRequestData(str);
-		} else {
+		 else {
 			Logging.doLog(LOG_TAG,
 					"ответа от сервера нет или статус ответа плох",
 					"ответа от сервера нет или статус ответа плох");

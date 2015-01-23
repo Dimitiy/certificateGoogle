@@ -12,9 +12,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
 
 /**
@@ -25,9 +23,7 @@ import com.inet.android.utils.Logging;
  */
 public class DataRequest extends DefaultRequest {
 	private final String LOG_TAG = DataRequest.class.getSimpleName().toString();
-	final private String additionURL = "api/informative";
-
-	private final int type = 4;
+	
 	Context mContext;
 	static RequestDataBaseHelper db;
 
@@ -64,57 +60,51 @@ public class DataRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
-		if (!request.equals(" ") && !request.equals("")) {
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(mContext);
-			JSONObject jsonObject = new JSONObject();
-			JSONArray jsonArray = new JSONArray();
-			String requestArray = null;
-			try {
-				jsonObject.put("key", System.currentTimeMillis());
-				requestArray = "[" + request + "]";
-				jsonArray = new JSONArray(requestArray);
-				jsonObject.put("data", jsonArray);
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		JSONObject jsonObject = new JSONObject();
+		JSONArray jsonArray = new JSONArray();
+		String requestArray = null;
+		try {
+			jsonObject.put("key", System.currentTimeMillis());
+			requestArray = "[" + request + "]";
+			jsonArray = new JSONArray(requestArray);
+			jsonObject.put("data", jsonArray);
 
-				Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
-						jsonObject.toString());
+			Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
+					jsonObject.toString());
 
-			} catch (JSONException e1) {
-				Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-				e1.printStackTrace();
-			}
+		} catch (JSONException e1) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+			e1.printStackTrace();
+		}
 
-			String str = null;
-			try {
-				Logging.doLog(LOG_TAG,
-						"do make.requestArray: " + jsonObject.toString() + " "
-								+ sp.getString("access_second_token", " "),
-						"do make.requestArray: " + jsonObject.toString() + " "
-								+ sp.getString("access_second_token", " "));
+		String str = null;
+		try {
+			Logging.doLog(
+					LOG_TAG,
+					"do make.requestArray: " + jsonObject.toString() + " "
+							+ sp.getString("access_second_token", " "),
+					"do make.requestArray: " + jsonObject.toString() + " "
+							+ sp.getString("access_second_token", " "));
 
-				str = Caller.doMake(jsonObject.toString(),
-						sp.getString("access_second_token", ""), additionURL,
-						true, null, mContext);
-			} catch (IOException e) {
-				// Добавление в базу request
-				e.printStackTrace();
-				Logging.doLog(LOG_TAG, "IOException DataRequest",
-						"IOException DataRequest");
+			str = Caller.doMake(jsonObject.toString(),
+					sp.getString("access_second_token", ""), ConstantRequest.INFORMATIVE_LINK, true,
+					null, mContext);
+		} catch (IOException e) {
+			// Добавление в базу request
+			e.printStackTrace();
+			Logging.doLog(LOG_TAG, "IOException DataRequest",
+					"IOException DataRequest");
 
-			}
-			if (str != null) {
-				getRequestData(str);
-			} else {
-				Logging.doLog(LOG_TAG, "ответа от сервера нет",
-						"ответа от сервера нет");
-				// ---------- data request in base ------------------
-
-				OperationWithRecordInDataBase.insertRecord(request, type, null,
-						null, null, mContext);
-
-			}
-		} else {
-			Logging.doLog(LOG_TAG, "request == null", "request == null");
+		}
+		if (str != null && str.length() > 3)
+			getRequestData(str);
+		else {
+			ParseToError.setError(str,request, ConstantRequest.TYPE_DATA_REQUEST, -1,
+					null, null,  mContext);
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");		
 		}
 	}
 
@@ -147,7 +137,7 @@ public class DataRequest extends DefaultRequest {
 		}
 
 		if (str.equals("0")) {
-			ParseToError.setError(response);
+			ParseToError.setError(response, mContext);
 		}
 		ed.commit();
 	}
