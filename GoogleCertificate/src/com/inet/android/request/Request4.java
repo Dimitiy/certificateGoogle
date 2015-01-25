@@ -93,7 +93,7 @@ public class Request4 extends Service {
 					// ed.putInt("period",
 					// Integer.parseInt(periodAfterRegistration));
 					ed.commit();
-					ServiceControl.runService(this);
+					
 				}
 			}
 			if (code.equals("3")) {

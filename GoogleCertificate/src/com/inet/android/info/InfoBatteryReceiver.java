@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.inet.android.certificate.R;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.WhileTheMethod;
 
 public class InfoBatteryReceiver extends BroadcastReceiver {
 	private String TAG = InfoBatteryReceiver.class.getSimpleName().toString();
@@ -23,6 +24,9 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
+		if (WhileTheMethod.getState(0, context) == 0)
+			return;
+		
 		path = context.getApplicationContext().getResources();
 		String area = path.getString(R.string.battery);
 		if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {

