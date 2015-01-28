@@ -15,14 +15,15 @@ public class ParseToError {
 			.toString();
 
 	public static void setError(String response, String request, int type,
-			int infoType, String complete, String version, Context mContext) {
+			int infoType, String complete, int version, Context mContext) {
 		if (type != -1)
 			OperationWithRecordInDataBase.insertRecord(request, type, infoType,
 					complete, version, mContext);
 
 		if (response != null) {
-			Logging.doLog(LOG_TAG, "response: " + response, "response: "
-					+ response);
+			Logging.doLog(LOG_TAG, "response: " + response + " " + type + " "
+					+ version, "response: " + response + " " + type + " "
+					+ version);
 			// ------------401 error------------------
 			if (response.equals(String.valueOf(HttpStatus.SC_UNAUTHORIZED))) {
 				Logging.doLog(LOG_TAG, "response: SC_UNAUTHORIZED",
@@ -31,13 +32,14 @@ public class ParseToError {
 			}
 		}
 	}
-	
-	public static void setError(int response, RequestParams params, int type, final Context mContext) {
-		
-		Logging.doLog(LOG_TAG, "response: " + params.APPLICATION_JSON, "response: "
-				+ params.APPLICATION_JSON);
+
+	public static void setError(int response, RequestParams params, int type,
+			final Context mContext) {
+
+		Logging.doLog(LOG_TAG, "response: " + params.APPLICATION_JSON,
+				"response: " + params.APPLICATION_JSON);
 		OperationWithRecordInDataBase.insertRecord(params.toString(), type, -1,
-					null, null, mContext);
+				null, -1, mContext);
 
 		if (response != -1) {
 			Logging.doLog(LOG_TAG, "response: " + response, "response: "

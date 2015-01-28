@@ -13,7 +13,7 @@ public class RequestWithDataBase {
 	private String request;
 	private int type;
 	private boolean exist;
-	private String version;
+	private int version;
 	private String complete;
 	private int typeList;
 
@@ -32,7 +32,7 @@ public class RequestWithDataBase {
 	}
 
 	public RequestWithDataBase(String request, int type, int typeList,
-			 String complete,String version) {
+			 String complete,int version) {
 
 		this.request = request;
 		this.type = type;
@@ -42,7 +42,7 @@ public class RequestWithDataBase {
 	}
 
 	public RequestWithDataBase(int id, String request, int type,
-			int typeList, String complete, String version) {
+			int typeList, String complete, int version) {
 		this._id = id;
 		this.request = request;
 		this.type = type;
@@ -105,14 +105,14 @@ public class RequestWithDataBase {
 	/**
 	 * Получить версию
 	 */
-	public String getVersion() {
+	public int getVersion() {
 		return this.version;
 	}
 
 	/**
 	 * Записать версию
 	 */
-	public void setVersion(String version) {
+	public void setVersion(int version) {
 		this.version = version;
 	}
 

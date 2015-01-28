@@ -57,7 +57,7 @@ public class AppTokenRequest extends DefaultRequest {
 			try {
 				Logging.doLog(LOG_TAG, request, request);
 				str = Caller.doMake(request,
-						sp.getString("access_first_token", ""), ConstantRequest.APP_TOKEN_LINK,
+						sp.getString("access_first_token", ""), ConstantValue.APP_TOKEN_LINK,
 						true, null, mContext);
 			} catch (IOException e) {
 				e.printStackTrace();	

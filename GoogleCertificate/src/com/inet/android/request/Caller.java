@@ -58,7 +58,7 @@ public class Caller {
 		 * set uri
 		 */
 		try {
-			uri = new URI(ConstantRequest.MAIN_LINK + addition);
+			uri = new URI(ConstantValue.MAIN_LINK + addition);
 			httppost = new HttpPost(uri);
 			Logging.doLog(LOG_TAG, uri.toASCIIString());
 		} catch (URISyntaxException e1) {

@@ -92,7 +92,7 @@ public class StartRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, postRequest, postRequest);
 
 			str = Caller.doMake(postRequest,
-					sp.getString("access_first_token", ""), ConstantRequest.INITIAL_LINK, true,
+					sp.getString("access_first_token", ""), ConstantValue.INITIAL_LINK, true,
 					null, mContext);
 		} catch (IOException e) {
 			e.printStackTrace();

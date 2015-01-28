@@ -105,6 +105,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				OperationWithRecordInDataBase.sendRecord(mContext);
 			}
 		}
+		if(isOnline(mContext))
+			ServiceControl.runTurnList(mContext);
 	}
 
 	public void setNetworkAvailable(boolean network) {
@@ -118,8 +120,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				+ Boolean.toString(network));
 	}
 
-	public boolean isOnline(Context context) {
-		final ConnectivityManager connMgr = (ConnectivityManager) mContext
+	static public boolean isOnline(Context context) {
+		final ConnectivityManager connMgr = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = connMgr.getActiveNetworkInfo();
 		if (netInfo != null && netInfo.isConnected())
@@ -263,9 +265,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	}
 
 	private void sendCreateService(String sendStr) {
-
 		RequestList.sendDataRequest(path.getString(R.string.network), sendStr,
 				mContext);
-
 	}
 }

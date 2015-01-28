@@ -55,7 +55,7 @@ public class FileCaller {
 								+ " " + arg3, "onFailru. StatusCode" + arg0
 								+ " " + arg3);
 						ParseToError.setError(arg0, params,
-								ConstantRequest.TYPE_FILE_REQUEST, mContext);
+								ConstantValue.TYPE_FILE_REQUEST, mContext);
 					}
 				});
 	}

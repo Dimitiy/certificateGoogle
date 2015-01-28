@@ -15,7 +15,7 @@ public class OperationWithRecordInDataBase {
 			.getSimpleName().toString();
 
 	public static void insertRecord(String request, int type, int typeList,
-			String complete, String version, Context mContext) {
+			String complete, int version, Context mContext) {
 		RequestDataBaseHelper db = new RequestDataBaseHelper(mContext);
 		if (db.getExistType(type) == false || type == 4) {
 			db.addRequest(new RequestWithDataBase(request, type, typeList,

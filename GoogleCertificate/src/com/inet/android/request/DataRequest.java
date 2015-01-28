@@ -89,7 +89,7 @@ public class DataRequest extends DefaultRequest {
 							+ sp.getString("access_second_token", " "));
 
 			str = Caller.doMake(jsonObject.toString(),
-					sp.getString("access_second_token", ""), ConstantRequest.INFORMATIVE_LINK, true,
+					sp.getString("access_second_token", ""), ConstantValue.INFORMATIVE_LINK, true,
 					null, mContext);
 		} catch (IOException e) {
 			// Добавление в базу request
@@ -101,8 +101,8 @@ public class DataRequest extends DefaultRequest {
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParseToError.setError(str,request, ConstantRequest.TYPE_DATA_REQUEST, -1,
-					null, null,  mContext);
+			ParseToError.setError(str,request, ConstantValue.TYPE_DATA_REQUEST, -1,
+					null, -1,  mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");		
 		}

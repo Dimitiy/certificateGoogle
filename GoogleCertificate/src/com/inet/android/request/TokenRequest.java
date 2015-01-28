@@ -87,7 +87,7 @@ public class TokenRequest extends DefaultRequest {
 				break;
 			}
 
-			str = Caller.doMake(null, null, ConstantRequest.TOKEN_LINK, false, postParameters,
+			str = Caller.doMake(null, null, ConstantValue.TOKEN_LINK, false, postParameters,
 					mContext);
 		} catch (IOException e) {
 			// Добавление в базу request
@@ -97,7 +97,7 @@ public class TokenRequest extends DefaultRequest {
 			getRequestData(str);
 		else {
 			ParseToError.setError(str, null, typeTokenRequest, -1, null,
-					null, mContext);
+					-1, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
 		}

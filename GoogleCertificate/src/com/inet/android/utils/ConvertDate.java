@@ -11,7 +11,7 @@ import java.util.Locale;
  */
 public class ConvertDate {
 
-	public static String getData(long date) {
+	public static String getDate(long date) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 		return formatter.format(date);
 

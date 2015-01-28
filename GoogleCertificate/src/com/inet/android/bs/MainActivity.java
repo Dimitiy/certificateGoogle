@@ -91,7 +91,7 @@ public class MainActivity extends Activity {
 
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
-			e.putBoolean("getInfo", true);
+			e.putBoolean("is_info", true);
 			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
 			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));

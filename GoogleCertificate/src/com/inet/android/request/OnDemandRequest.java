@@ -28,13 +28,14 @@ public class OnDemandRequest extends DefaultRequest {
 			.toString();
 	private int infoType = -1;
 	private String complete;
-	private String version;
+	private int version;
+	private static int ADD_NUMBER = 50;
 	Context mContext;
 	static RequestDataBaseHelper db;
 	SharedPreferences sp;
 	Editor ed;
 
-	public OnDemandRequest(int infoType, String complete, String version,
+	public OnDemandRequest(int infoType, String complete, int version,
 			Context ctx) {
 		super(ctx);
 		this.mContext = ctx;
@@ -104,7 +105,7 @@ public class OnDemandRequest extends DefaultRequest {
 							+ sp.getString("access_second_token", " "));
 
 			str = Caller.doMake(jsonObject.toString(),
-					sp.getString("access_second_token", ""), ConstantRequest.LIST_LINK, true,
+					sp.getString("access_second_token", ""), ConstantValue.LIST_LINK, true,
 					null, mContext);
 
 		} catch (IOException e) {
@@ -114,7 +115,7 @@ public class OnDemandRequest extends DefaultRequest {
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParseToError.setError(str, request, ConstantRequest.TYPE_DATA_REQUEST, infoType, complete,
+			ParseToError.setError(str, request, ConstantValue.TYPE_DATA_REQUEST, infoType, complete,
 					version, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
@@ -157,7 +158,7 @@ public class OnDemandRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "code = 2 " + "info = " + infoType,
 						"code = 2 " + "info = " + infoType);
 
-				TurnSendList.setList(infoType, "0", "0", mContext);
+				TurnSendList.setList(infoType + ADD_NUMBER, 0, "0", mContext);
 			} else {
 				ed.putString("code", "code");
 			}

@@ -54,7 +54,7 @@ public class DelRequest extends DefaultRequest {
 			try {
 				Logging.doLog(LOG_TAG, request, request);
 				str = Caller.doMake(request,
-						sp.getString("access_first_token", ""), ConstantRequest.DEL_LINK,
+						sp.getString("access_first_token", ""), ConstantValue.DEL_LINK,
 						true, null, ctx);
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -63,7 +63,7 @@ public class DelRequest extends DefaultRequest {
 		if (str != null && str.length() > 3) 
 						getRequestData(str);
 		else {
-			ParseToError.setError(str, null, ConstantRequest.TYPE_DEL_REQUEST, -1, null, null, mContext);
+			ParseToError.setError(str, null, ConstantValue.TYPE_DEL_REQUEST, -1, null, -1, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
 		}

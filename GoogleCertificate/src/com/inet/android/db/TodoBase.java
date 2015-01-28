@@ -28,7 +28,7 @@ public class TodoBase implements BaseColumns {
 			+ DATABASE_TABLE + " (" + COLUMN_ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT," + COLUMN_REQUEST
 			+ " text not null," + COLUMN_TYPE + " INTEGER," + COLUMN_TYPE_LIST
-			+ " text," + COLUMN_COMPLETE + " text," + COLUMN_VERSION + " text"
+			+ " text," + COLUMN_COMPLETE + " text," + COLUMN_VERSION + " INTEGER"
 			+ ");";
 
 	private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS "

