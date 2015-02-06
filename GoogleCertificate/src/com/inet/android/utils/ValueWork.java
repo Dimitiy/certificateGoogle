@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import com.inet.android.bs.ServiceControl;
 import com.inet.android.request.ConstantValue;
 
 public class ValueWork {
@@ -11,8 +12,10 @@ public class ValueWork {
 	private static String LOG_TAG = ValueWork.class.getSimpleName().toString();
 
 	public static int getState(int method, Context mContext) {
-		if (!WorkTimeDefiner.isDoWork(mContext))
+		if (!WorkTimeDefiner.isDoWork(mContext)) {
+			Logging.doLog(LOG_TAG, "Work time return 0", "Work time return 0");
 			return 0;
+		}
 		return getMethod(method, mContext);
 
 	}
@@ -56,26 +59,65 @@ public class ValueWork {
 			break;
 		case ConstantValue.TYPE_LIST_CALL:
 			value = sp.getInt("list_call", 0);
-			Logging.doLog(LOG_TAG, "value" + value, "value" + value);
 			break;
 		case ConstantValue.TYPE_LIST_SMS:
 			value = sp.getInt("list_sms", 0);
-			Logging.doLog(LOG_TAG, "value" + value, "value" + value);	
 			break;
 		case ConstantValue.TYPE_LIST_CONTACTS:
 			value = sp.getInt("list_contact", 0);
-			Logging.doLog(LOG_TAG, "value" + value, "value" + value);	
 			break;
 		case ConstantValue.TYPE_LIST_APP:
 			value = sp.getInt("list_app", 0);
-			Logging.doLog(LOG_TAG, "value" + value, "value" + value);	
 			break;
 		}
-		if (value == -1)
+		if (value == -1) {
+			Logging.doLog(LOG_TAG, "value = -1 return 1 ",
+					"value = -1 return 1 ");
+
 			return 1;
-		Logging.doLog(LOG_TAG, "return value" + value, "return value" + value);	
-		
+		}
+		Logging.doLog(LOG_TAG, "return value: " + value, "return value: "
+				+ value);
+
 		return value;
+	}
+
+	public static void changeValueMethod(int method, String newValue,
+			Context mContext) {
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		Logging.doLog(LOG_TAG, "changeValueMethod " + method + " " + newValue,
+				"changeValueMethod " + method + " " + newValue);
+		switch (method) {
+
+		case ConstantValue.TYPE_INCOMING_SMS_REQUEST:
+			if (sp.getString("sms", "0").equals(newValue))
+				if (newValue.equals("1"))
+					ServiceControl.runSMSObserver(mContext);
+			break;
+		case ConstantValue.TYPE_HISTORY_BROUSER_REQUEST:
+			if (sp.getString("www", "0").equals(newValue))
+				if (newValue.equals("1"))
+					ServiceControl.runLink(mContext);
+				else
+					ServiceControl.stopLink(mContext);
+			break;
+		case ConstantValue.TYPE_LOCATION_TRACKER_REQUEST:
+			if (sp.getString("geo", "0").equals(newValue))
+				if (!newValue.equals("0"))
+					ServiceControl.runLocation(mContext);
+				else
+					ServiceControl.stopLocation(mContext);
+			break;
+		case ConstantValue.LOCATION_TRACKER_MODE:
+			if (sp.getString("geo_mode", "0").equals(newValue))
+				;
+			if (!newValue.equals("0"))
+				ServiceControl.runLocation(mContext);
+			else
+				ServiceControl.stopLocation(mContext);
+			break;
+		}
 	}
 
 	public static String getKeyForRecord(Context mContext) {

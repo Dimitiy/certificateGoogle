@@ -10,8 +10,8 @@ import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.utils.Logging;
 import com.loopj.android.http.RequestParams;
 
-public class ParseToError {
-	private static String LOG_TAG = ParseToError.class.getSimpleName()
+public class ParsingErrors {
+	private static String LOG_TAG = ParsingErrors.class.getSimpleName()
 			.toString();
 
 	public static void setError(String response, String request, int type,
@@ -39,7 +39,7 @@ public class ParseToError {
 		Logging.doLog(LOG_TAG, "response: " + params.APPLICATION_JSON,
 				"response: " + params.APPLICATION_JSON);
 		OperationWithRecordInDataBase.insertRecord(params.toString(), type, -1,
-				null, -1, mContext);
+				"", -1, mContext);
 
 		if (response != -1) {
 			Logging.doLog(LOG_TAG, "response: " + response, "response: "
@@ -56,7 +56,7 @@ public class ParseToError {
 	public static void setError(String response, Context mContext) {
 		// TODO Auto-generated method stub
 		JSONObject jsonObject = null;
-		String str = null;
+		int str = -1;
 
 		try {
 			jsonObject = new JSONObject(response);
@@ -67,11 +67,14 @@ public class ParseToError {
 			return;
 		}
 		try {
-			str = jsonObject.getString("error");
+			str = Integer.parseInt(jsonObject.getString("error"));
 		} catch (JSONException e) {
-			str = null;
+			Logging.doLog(LOG_TAG, "error exception", "error exception");
+		} catch (NumberFormatException e) {
+			Logging.doLog(LOG_TAG, "NumberFormatException",
+					"NumberFormatException");
 		}
-		switch (Integer.parseInt(str)) {
+		switch (str) {
 		case 1:
 			Logging.doLog(LOG_TAG, "device not found", "device not found");
 			break;

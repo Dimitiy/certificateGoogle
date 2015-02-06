@@ -78,7 +78,12 @@ public class RecognitionDevService extends Service implements
 	public static String getActivityDevice() {
 		return RecognitionDevService.active;
 	}
-
+	@Override
+	public void onDestroy() { 
+	    super.onDestroy(); 
+	 
+	    unregisterReceiver(receiver);
+	} 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 

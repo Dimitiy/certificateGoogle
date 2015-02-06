@@ -82,8 +82,8 @@ public final class RecordAudio {
 				break;
 			}
 
-			mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-			mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+			mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
+			mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
 			mMediaRecorder.setAudioEncodingBitRate(16);
 			mMediaRecorder.setAudioSamplingRate(44100);
 
@@ -236,7 +236,7 @@ public final class RecordAudio {
 
 	private void sendAudio(String path) {
 		Logging.doLog(LOG_TAG, "sendAudio", "sendAudio");
-		if (!RequestList.getLastFile().equals(path)) {
+		if (!RequestList.getLastCreateAudioFile().equals(path)) {
 			RequestList.sendFileRequest(ConstantValue.TYPE_AUDIO_REQUEST, path,
 					mContext);
 		}

@@ -135,7 +135,7 @@ public class CheckRequest extends DefaultRequest {
 		// -------------error------------------
 		
 			if (str.equals("0")) {
-				ParseToError.setError(response, mContext);
+				ParsingErrors.setError(response, mContext);
 			}
 		ed.commit();
 	}

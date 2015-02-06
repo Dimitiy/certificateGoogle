@@ -101,8 +101,8 @@ public class DataRequest extends DefaultRequest {
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParseToError.setError(str,request, ConstantValue.TYPE_DATA_REQUEST, -1,
-					null, -1,  mContext);
+			ParsingErrors.setError(str,request, ConstantValue.TYPE_DATA_REQUEST, -1,
+					"", -1,  mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");		
 		}
@@ -137,7 +137,7 @@ public class DataRequest extends DefaultRequest {
 		}
 
 		if (str.equals("0")) {
-			ParseToError.setError(response, mContext);
+			ParsingErrors.setError(response, mContext);
 		}
 		ed.commit();
 	}

@@ -87,8 +87,8 @@ public class TokenRequest extends DefaultRequest {
 				break;
 			}
 
-			str = Caller.doMake(null, null, ConstantValue.TOKEN_LINK, false, postParameters,
-					mContext);
+			str = Caller.doMake(null, null, ConstantValue.TOKEN_LINK, false,
+					postParameters, mContext);
 		} catch (IOException e) {
 			// Добавление в базу request
 			e.printStackTrace();
@@ -96,8 +96,8 @@ public class TokenRequest extends DefaultRequest {
 		if (str != null && str.length() > 2)
 			getRequestData(str);
 		else {
-			ParseToError.setError(str, null, typeTokenRequest, -1, null,
-					-1, mContext);
+			ParsingErrors.setError(str, "", typeTokenRequest, -1, "", -1,
+					mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
 		}
@@ -183,9 +183,10 @@ public class TokenRequest extends DefaultRequest {
 			else if (token.equals("second_token")
 					&& !sp.getString("code_periodic", "-1").equals("2"))
 				RequestList.sendPeriodicRequest(mContext);
-			else if (token.equals("second_token"))
+			else if (token.equals("second_token")) {
 				OperationWithRecordInDataBase.sendRecord(mContext);
-
+				Logging.doLog(LOG_TAG, "sendRecord", "sendRecord");
+			}
 		} else {
 			ed.putString("access_" + token, "-1");
 		}
@@ -206,7 +207,7 @@ public class TokenRequest extends DefaultRequest {
 			}
 
 			if (str.equals("0")) {
-				ParseToError.setError(response, mContext);
+				ParsingErrors.setError(response, mContext);
 			}
 		} else {
 			ed.putString("code_" + token, "");

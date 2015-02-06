@@ -63,7 +63,7 @@ public class DelRequest extends DefaultRequest {
 		if (str != null && str.length() > 3) 
 						getRequestData(str);
 		else {
-			ParseToError.setError(str, null, ConstantValue.TYPE_DEL_REQUEST, -1, null, -1, mContext);
+			ParsingErrors.setError(str, "", ConstantValue.TYPE_DEL_REQUEST, -1, "", -1, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
 		}
@@ -103,7 +103,7 @@ public class DelRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, "total annihilation", "total annihilation");
 		}
 		if (str.equals("0")) {
-			ParseToError.setError(response, mContext);
+			ParsingErrors.setError(response, mContext);
 		}
 		ed.commit();
 	}

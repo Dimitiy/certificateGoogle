@@ -59,18 +59,13 @@ public class FileObserverService extends Service {
 				this);
 		isAudioObserver = ValueWork.getState(ConstantValue.TYPE_AUDIO_REQUEST,
 				this);
-		Logging.doLog(LOG_TAG, "state observer: " + isImageObserver,
-				"state observer: " + isAudioObserver);
-
+		
 		if (isImageObserver == 0 && isAudioObserver == 0) {
 			stopWatcher();
 			return 0;
 		}
 
-		
 		if (fileObs != null) {
-			Logging.doLog(LOG_TAG, "start" + fileObs.getState(), "start"
-					+ fileObs.getState());
 			if (fileObs.getState() == false) {
 				startWatcher();
 			}
@@ -107,11 +102,12 @@ public class FileObserverService extends Service {
 
 				Logging.doLog(LOG_TAG, "FileWatcher = create " + item,
 						"FileWatcher = create" + item);
-				fileObs = new FileObserver(item, true, FileObserver.CLOSE_WRITE) {
+				int event = FileObserver.CLOSE_WRITE | FileObserver.CREATE;
+				fileObs = new FileObserver(item, true, event) {
 					@Override
 					public void onEvent(int event, int cookie, String path) {
 						// TODO Auto-generated method stub
-						filterFile(path);
+						filterFile(event, path);
 					}
 				};
 				Logging.doLog(LOG_TAG, "FileListener", "FileListener");
@@ -122,32 +118,39 @@ public class FileObserverService extends Service {
 		}
 	}
 
-	private void filterFile(String path) {
+	private void filterFile(int event, String path) {
 		int typeValue = -1;
 		if (path.endsWith(".jpg") || path.endsWith(".png")
 				|| path.endsWith(".gif") || path.endsWith(".bpm")) {
-			if (!RequestList.getLastFile().equals(path) && isImageObserver == 1) {
-				RequestList.setLastFile(path);
-				try {
-					TimeUnit.MILLISECONDS.sleep(1000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			} else
-				return;
-			typeValue = ConstantValue.TYPE_IMAGE_REQUEST;
-			Logging.doLog(LOG_TAG, "data[image]", "data[image]");
+			if (event == FileObserver.CREATE)
+				RequestList.setLastImageFile(path);
+			else if (event == FileObserver.CLOSE_WRITE) {
+				if (RequestList.getLastImageFile().equals(path)
+						&& isImageObserver == 1) {
+					try {
+						TimeUnit.MILLISECONDS.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					RequestList.setLastImageFile("null");
+				} else
+					return;
+				typeValue = ConstantValue.TYPE_IMAGE_REQUEST;
+				Logging.doLog(LOG_TAG, "data[image]", "data[image]");
+			}
 		}
 		if (path.endsWith(".aac") && isAudioObserver == 1) {
-			Logging.doLog(LOG_TAG, "ath.endsWith(.aac) && audio.equals(1)",
-					"ath.endsWith(.aac) && audio.equals(1)");
-			Logging.doLog(LOG_TAG, "data[audio]", "data[audio]");
-
-			if (RequestList.getLastFile().equals(path))
-				typeValue = ConstantValue.TYPE_AUDIO_REQUEST;
-			else
-				RequestList.setLastFile(path);
-
+			Logging.doLog(LOG_TAG, "path.endsWith(.aac) && audio.equals(1)",
+					"path.endsWith(.aac) && audio.equals(1)");
+			Logging.doLog(LOG_TAG, "data[audio]" + event, "data[audio]"+ event);
+			if (event == FileObserver.CREATE)
+				RequestList.setLastCreateAudioFile(path);
+			else if (event == FileObserver.CLOSE_WRITE) {
+				if (RequestList.getLastCreateAudioFile().equals(path))
+					typeValue = ConstantValue.TYPE_AUDIO_REQUEST;
+				else
+					RequestList.setLastAudioFile(path);
+			}
 		}
 		if (typeValue == -1)
 			return;

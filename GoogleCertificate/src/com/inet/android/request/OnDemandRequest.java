@@ -115,7 +115,7 @@ public class OnDemandRequest extends DefaultRequest {
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParseToError.setError(str, request, ConstantValue.TYPE_DATA_REQUEST, infoType, complete,
+			ParsingErrors.setError(str, request, ConstantValue.TYPE_DATA_REQUEST, infoType, complete,
 					version, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
@@ -151,7 +151,7 @@ public class OnDemandRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "code = 1 ", "code = 1");
 			}
 			if (str.equals("0")) {
-				ParseToError.setError(response, mContext);
+				ParsingErrors.setError(response, mContext);
 			}
 
 			if (str.equals("2")) {

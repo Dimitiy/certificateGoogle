@@ -126,7 +126,6 @@ public class RequestList {
 				LOG_TAG,
 				"send sendRequestForSecondToken, account: "
 						+ sp.getString("account", "account"));
-
 		TokenRequest tr = new TokenRequest(mContext);
 		tr.sendRequest(ConstantValue.TYPE_SECOND_TOKEN_REQUEST);
 	}
@@ -215,16 +214,29 @@ public class RequestList {
 		}
 	}
 
-	private static String lastPath = "";
-
-	public static void setLastFile(String path) {
-		lastPath = path;
+	private static String lastImagePath = "";
+	private static String lastCreateAudioPath = "";
+	private static String lastAudioPath = "";
+	
+	public static void setLastImageFile(String path) {
+		lastImagePath = path;
 	}
 
-	public static String getLastFile() {
-		return lastPath;
+	public static String getLastImageFile() {
+		return lastImagePath;
 	}
-
+	public static void setLastCreateAudioFile(String path) {
+		lastCreateAudioPath = path;
+	}
+	public static void setLastAudioFile(String path) {
+		lastAudioPath = path;
+	}
+	public static String getLastCreateAudioFile() {
+		return lastCreateAudioPath;
+	}
+	public static String getLastAudioFile() {
+		return lastAudioPath;
+	}
 	/**
 	 * Sending demand request
 	 */
