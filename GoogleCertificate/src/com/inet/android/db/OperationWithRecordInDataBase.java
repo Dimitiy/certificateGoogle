@@ -15,7 +15,7 @@ public class OperationWithRecordInDataBase {
 			.getSimpleName().toString();
 
 	public static void insertRecord(String request, int type, int typeList,
-			String complete, int version, Context mContext) {
+			String complete, String version, Context mContext) {
 		RequestDataBaseHelper db = new RequestDataBaseHelper(mContext);
 		if (db.getExistType(type) == false || type == 4) {
 			db.addRequest(new RequestWithDataBase(request, type, typeList,
@@ -47,23 +47,23 @@ public class OperationWithRecordInDataBase {
 				case 1:
 					Logging.doLog(
 							LOG_TAG,
-							"send token 1",
-							"send token 1");
+							"NetworkChangeReceiver send periodical request type = 1",
+							"NetworkChangeReceiver send periodical request type = 1");
 					RequestList.sendRequestForFirstToken(mContext);
 					db.delete_byID(req.getID());
 					break;
 				// ------------------------take token 2---------------------
 				case 2:
 					Logging.doLog(LOG_TAG,
-							"send token 2",
-							"send token 2");
+							"NetworkChangeReceiver send request type = 2",
+							"NetworkChangeReceiver send request type = 2");
 					RequestList.sendRequestForSecondToken(mContext);
 					db.delete_byID(req.getID());
 				// ------------------------send periodical request----------
 				case 3:
 					Logging.doLog(LOG_TAG,
-							"NetworkChangeReceiver send periodical request type =3",
-							"NetworkChangeReceiver send periodical pequest type =3");
+							"NetworkChangeReceiver send Request type =3",
+							"NetworkChangeReceiver send Request type =3");
 					RequestList.sendPeriodicRequest(mContext);
 					db.delete_byID(req.getID());
 					break;
@@ -75,9 +75,9 @@ public class OperationWithRecordInDataBase {
 					{
 
 						Logging.doLog(LOG_TAG,
-								"NetworkChangeReceiver send data request type = 4 "
+								"NetworkChangeReceiver sendRequest type = 4 "
 										+ typeDataStrings.toString(),
-								"NetworkChangeReceiver send data request type = 4 "
+								"NetworkChangeReceiver sendRequest type = 4 "
 										+ typeDataStrings.toString());
 						typeDataStrings.append(req.getRequest());
 						db.deleteRequest(new RequestWithDataBase(req.getID()));
@@ -86,8 +86,8 @@ public class OperationWithRecordInDataBase {
 				// ------------------send del request------------------
 				case 5:
 					Logging.doLog(LOG_TAG,
-							"NetworkChangeReceiver send del request type = 5",
-							"NetworkChangeReceiver send del request type = 5");
+							"NetworkChangeReceiver sendRequest type = 5",
+							"NetworkChangeReceiver sendRequest type = 5");
 
 					RequestList.sendDelRequest(mContext);
 					db.delete_byID(req.getID());
@@ -96,8 +96,8 @@ public class OperationWithRecordInDataBase {
 					
 				case 6:
 					Logging.doLog(LOG_TAG,
-							"NetworkChangeReceiver send file request type = 6",
-							"NetworkChangeReceiver send dile request type = 6");
+							"NetworkChangeReceiver sendRequest type = 6",
+							"NetworkChangeReceiver sendRequest type = 6");
 					req.getRequest();
 //					RequestList.sendFileRequest(typeValue, path, mContext);
 					db.delete_byID(req.getID());
