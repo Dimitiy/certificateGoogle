@@ -3,7 +3,6 @@ package com.inet.android.db;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.R.integer;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -16,7 +15,7 @@ import com.inet.android.utils.Logging;
 
 public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		BaseColumns {
-	private final static String LOG_TAG = "RequestDataBaseHelper";
+	private final static String LOG_TAG = RequestDataBaseHelper.class.getSimpleName().toString();
 
 	// константы дл€ конструктора
 	private static final String DATABASE_NAME = "request_database.db";
@@ -99,6 +98,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	}
 
 	/**
+	 * type = 1 periodical request
 	 * «аписать запрос в базу
 	 */
 	public void addRequest(RequestWithDataBase request) {
@@ -286,4 +286,5 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 		}
 		return false;
 	}
+
 }

@@ -1,7 +1,12 @@
 package com.inet.android.location;
 
 import java.math.BigDecimal;
-
+/**
+ * LocationValue class is designed to get/set value location
+ * 
+ * @author johny homicide
+ * 
+ */
 public class LocationValue {
 
 	private double latitude; // latitude
@@ -13,7 +18,8 @@ public class LocationValue {
 	private boolean gpsEnable;
 	private boolean gpsFix;
 	private boolean gpsLoc;
-
+	private float speed;
+	private boolean connectClient;
 	public LocationValue() {
 
 	}
@@ -45,7 +51,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * Function to set latitude
+	 * Function to set longitude
 	 * */
 	public void setLongitude(double longitude) {
 		if (longitude != BigDecimal.ZERO.doubleValue()) {
@@ -72,7 +78,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * set provider
+	 * set accuracy
 	 */
 	public void setAccuracy(float accuracy) {
 		if (accuracy != BigDecimal.ZERO.doubleValue()) {
@@ -82,7 +88,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * get provider
+	 * get accuracy
 	 */
 	public float getAccuracy() {
 
@@ -90,7 +96,7 @@ public class LocationValue {
 	}
 
 	/**
-	 * Function to check GPS/wifi enabled
+	 * Function to set location enabled
 	 * 
 	 * @return boolean
 	 * */
@@ -99,11 +105,8 @@ public class LocationValue {
 	}
 
 	/**
-	 * Function to check GPS enabled
-	 * 
-	 * @return
-	 * 
-	 * @return boolean
+	 * Function to set GPS location
+	 *
 	 * */
 	public void setGPSLocation(boolean gpsEnable) {
 		this.gpsEnable = gpsEnable;
@@ -144,11 +147,25 @@ public class LocationValue {
 		return sats;
 	}
 
-	public void setGPSLoc(boolean gpsLoc) {
-		this.gpsLoc = gpsLoc;
+	public void setGPSLoc(boolean setGPS) {
+		this.gpsLoc = setGPS;
 	}
 
 	public boolean getGPSLoc() {
 		return gpsLoc;
+	}
+
+	public void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
+	public float getSpeed() {
+		return speed;
+	}
+	public void setLocationClient(boolean connectClient){
+		this.connectClient = connectClient;
+	}
+	public boolean isLocationClient(){
+		return this.connectClient;
 	}
 }

@@ -2,6 +2,8 @@ package com.inet.android.info;
 
 import java.lang.reflect.Method;
 
+import com.inet.android.utils.Logging;
+
 import android.content.Context;
 import android.telephony.TelephonyManager;
 
@@ -10,11 +12,16 @@ public final class TelephonyInfo {
 	private static TelephonyInfo telephonyInfo;
 	private String imeiSIM1;
 	private String imeiSIM2;
+	private String number;
 	private boolean isSIM1Ready;
 	private boolean isSIM2Ready;
 
 	public String getImeiSIM1() {
 		return imeiSIM1;
+	}
+
+	public String getNumber() {
+		return number;
 	}
 
 	/*
@@ -50,8 +57,10 @@ public final class TelephonyInfo {
 	 */
 
 	public boolean isDualSIM() {
-		return imeiSIM2 != null;
-	}
+		Logging.doLog("TelephoneManager", Boolean.toString(isSIM2Ready()),
+				Boolean.toString(isSIM2Ready()));
+		return isSIM2Ready(); 
+		}
 
 	private TelephonyInfo() {
 	}
@@ -64,17 +73,22 @@ public final class TelephonyInfo {
 
 			TelephonyManager telephonyManager = ((TelephonyManager) context
 					.getSystemService(Context.TELEPHONY_SERVICE));
-
 			telephonyInfo.imeiSIM1 = telephonyManager.getDeviceId();
 			telephonyInfo.imeiSIM2 = null;
+			try {
+				telephonyInfo.number = telephonyManager.getLine1Number();
+			} catch (NullPointerException ex) {
+				// ex.printStackTrace();
+			}
 
 			try {
+
 				telephonyInfo.imeiSIM1 = getDeviceIdBySlot(context,
 						"getDeviceIdGemini", 0);
 				telephonyInfo.imeiSIM2 = getDeviceIdBySlot(context,
 						"getDeviceIdGemini", 1);
 			} catch (TelefonInfoNotFoundException e) {
-				e.printStackTrace();
+				// e.printStackTrace();
 
 				try {
 					telephonyInfo.imeiSIM1 = getDeviceIdBySlot(context,
@@ -84,7 +98,7 @@ public final class TelephonyInfo {
 				} catch (TelefonInfoNotFoundException e1) {
 					// Call here for next manufacturer's predicted method name
 					// if you wish
-					e1.printStackTrace();
+					// e1.printStackTrace();
 				}
 			}
 
@@ -98,7 +112,7 @@ public final class TelephonyInfo {
 						"getSimStateGemini", 1);
 			} catch (TelefonInfoNotFoundException e) {
 
-				e.printStackTrace();
+				// e.printStackTrace();
 
 				try {
 					telephonyInfo.isSIM1Ready = getSIMStateBySlot(context,
@@ -108,7 +122,7 @@ public final class TelephonyInfo {
 				} catch (TelefonInfoNotFoundException e1) {
 					// Call here for next manufacturer's predicted method name
 					// if you wish
-					e1.printStackTrace();
+					// e1.printStackTrace();
 				}
 			}
 		}
@@ -144,7 +158,7 @@ public final class TelephonyInfo {
 
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
 			throw new TelefonInfoNotFoundException(predictedMethodName);
 		}
 
@@ -181,7 +195,7 @@ public final class TelephonyInfo {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			// e.printStackTrace();
 			throw new TelefonInfoNotFoundException(predictedMethodName);
 		}
 

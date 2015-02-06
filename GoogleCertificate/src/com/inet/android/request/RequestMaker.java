@@ -1,4 +1,4 @@
-package com.inet.android.bs;
+package com.inet.android.request;
 
 /**
  * Java interface for making request<br>

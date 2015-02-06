@@ -1,13 +1,21 @@
 package com.inet.android.db;
 
 import android.util.Log;
-
+/**
+ * RequestWithDataBase class is designed for get/set to DataBase
+ * 
+ * @author johny homicide
+ * 
+ */
 public class RequestWithDataBase {
 	// Создание геттеров-сеттеров
 	private int _id;
 	private String request;
 	private int type;
 	private boolean exist;
+	private int version;
+	private String complete;
+	private int typeList;
 
 	// Пустой конструктор
 	public RequestWithDataBase() {
@@ -21,6 +29,26 @@ public class RequestWithDataBase {
 		this._id = id;
 		this.request = request;
 		this.type = type;
+	}
+
+	public RequestWithDataBase(String request, int type, int typeList,
+			 String complete,int version) {
+
+		this.request = request;
+		this.type = type;
+		this.complete = complete;
+		this.version = version;
+		this.typeList = typeList;
+	}
+
+	public RequestWithDataBase(int id, String request, int type,
+			int typeList, String complete, int version) {
+		this._id = id;
+		this.request = request;
+		this.type = type;
+		this.complete = complete;
+		this.version = version;
+		this.typeList = typeList;
 	}
 
 	public RequestWithDataBase(int id) {
@@ -72,5 +100,47 @@ public class RequestWithDataBase {
 
 	public void setExist(boolean exist) {
 		this.exist = exist;
+	}
+
+	/**
+	 * Получить версию
+	 */
+	public int getVersion() {
+		return this.version;
+	}
+
+	/**
+	 * Записать версию
+	 */
+	public void setVersion(int version) {
+		this.version = version;
+	}
+
+	/**
+	 * Получить complete
+	 */
+	public String getComplete() {
+		return this.complete;
+	}
+
+	/**
+	 * Записать complete
+	 */
+	public void setComplete(String complete) {
+		this.complete = complete;
+	}
+
+	/**
+	 * Получить typeList
+	 */
+	public int getTypeList() {
+		return this.typeList;
+	}
+
+	/**
+	 * Записать typeList
+	 */
+	public void setTypeList(int typeList) {
+		this.typeList = typeList;
 	}
 }

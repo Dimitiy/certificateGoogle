@@ -12,9 +12,7 @@ import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.bs.Caller;
 import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
 import com.inet.android.utils.Logging;
 
 /**
@@ -24,14 +22,14 @@ import com.inet.android.utils.Logging;
  * 
  */
 public class DataRequest extends DefaultRequest {
-	private final String LOG_TAG = "DataRequest";
-	private final int type = 3;
-	Context ctx;
+	private final String LOG_TAG = DataRequest.class.getSimpleName().toString();
+	
+	Context mContext;
 	static RequestDataBaseHelper db;
 
 	public DataRequest(Context ctx) {
 		super(ctx);
-		this.ctx = ctx;
+		this.mContext = ctx;
 	}
 
 	@Override
@@ -62,74 +60,61 @@ public class DataRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		Logging.doLog(LOG_TAG, "1: " + request, "1: " + request);
-		
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(ctx);
-			JSONObject jsonObject = new JSONObject();
-			JSONArray jsonArray = new JSONArray();
-			String requestArray = null;
-			try {
-				jsonObject.put("account", sp.getString("account", "0000"));
-				jsonObject.put("device", sp.getString("device", "0000"));
-				jsonObject.put("imei", sp.getString("imei", "0000"));
-				jsonObject.put("key", System.currentTimeMillis());
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		JSONObject jsonObject = new JSONObject();
+		JSONArray jsonArray = new JSONArray();
+		String requestArray = null;
+		try {
+			jsonObject.put("key", System.currentTimeMillis());
+			requestArray = "[" + request + "]";
+			jsonArray = new JSONArray(requestArray);
+			jsonObject.put("data", jsonArray);
 
-				requestArray = "[" + request + "]";
-				jsonArray = new JSONArray(requestArray);
-				// jsonArray = new JSONArray(request);
-				jsonObject.put("data", jsonArray);
+			Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
+					jsonObject.toString());
 
-				Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
-						jsonObject.toString());
+		} catch (JSONException e1) {
+			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+			e1.printStackTrace();
+		}
 
-			} catch (JSONException e1) {
-				Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-				e1.printStackTrace();
-			}
+		String str = null;
+		try {
+			Logging.doLog(
+					LOG_TAG,
+					"do make.requestArray: " + jsonObject.toString() + " "
+							+ sp.getString("access_second_token", " "),
+					"do make.requestArray: " + jsonObject.toString() + " "
+							+ sp.getString("access_second_token", " "));
 
-			String str = null;
-			try {
-				Logging.doLog(LOG_TAG, "do make.request: " + request,
-						"do make.request: " + request);
-				Logging.doLog(LOG_TAG, "do make.requestArray: " + requestArray,
-						"do make.requestArray: " + requestArray);
+			str = Caller.doMake(jsonObject.toString(),
+					sp.getString("access_second_token", ""), ConstantValue.INFORMATIVE_LINK, true,
+					null, mContext);
+		} catch (IOException e) {
+			// Добавление в базу request
+			e.printStackTrace();
+			Logging.doLog(LOG_TAG, "IOException DataRequest",
+					"IOException DataRequest");
 
-				str = Caller.doMake(jsonObject.toString(), "informative", ctx);
-			} catch (IOException e) {
-				// Добавление в базу request
-				Logging.doLog(LOG_TAG, "db.request: " + request, "db.request: "
-						+ request);
-
-				db = new RequestDataBaseHelper(ctx);
-				db.addRequest(new RequestWithDataBase(request, type));
-			}
-			if (str != null) {
-				getRequestData(str);
-			} else {
-				Logging.doLog(LOG_TAG, "ответа от сервера нет",
-						"ответа от сервера нет");
-			}
+		}
+		if (str != null && str.length() > 3)
+			getRequestData(str);
+		else {
+			ParsingErrors.setError(str,request, ConstantValue.TYPE_DATA_REQUEST, -1,
+					"", -1,  mContext);
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");		
+		}
 	}
 
 	@Override
 	protected void getRequestData(String response) {
-		String postRequest = null;
-
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
 
 		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(ctx);
-
-		JSONObject json = new JSONObject();
-		try {
-			json.put("account", sp.getString("account", "0000"));
-			json.put("device", sp.getString("device", "0000"));
-			json.put("imei", sp.getString("imei", "0000"));
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		postRequest = json.toString();
+				.getDefaultSharedPreferences(mContext);
 
 		JSONObject jsonObject = null;
 		String str = null;
@@ -142,48 +127,25 @@ public class DataRequest extends DefaultRequest {
 
 		Editor ed = sp.edit();
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_data", str);
 		} else {
-			ed.putString("code", "");
+			ed.putString("code_data", "");
 		}
 
 		if (str.equals("2")) {
-			PeriodicRequest pr = new PeriodicRequest(ctx);
-			pr.sendRequest(postRequest);
+			RequestList.sendPeriodicRequest(mContext);
 		}
 
 		if (str.equals("0")) {
-			String errstr = null;
-			try {
-				errstr = jsonObject.getString("error");
-			} catch (JSONException e) {
-				errstr = null;
-			}
-			if (errstr != null) {
-				ed.putString("error", errstr);
-			} else {
-				ed.putString("error", "");
-			}
-			ed.commit();
-			if (str.equals("0")) {
-				Logging.doLog(LOG_TAG, "account не найден", "account не найден");
-
-				ed.putString("account", "account");
-			}
-			if (str.equals("1"))
-				Logging.doLog(LOG_TAG,
-						"imei отсутствует или имеет неверный формат",
-						"imei отсутствует или имеет неверный формат");
-			if (str.equals("2"))
-				Logging.doLog(LOG_TAG, "устройство с указанным imei уже есть",
-						"устройство с указанным imei уже есть");
-			if (str.equals("3"))
-				Logging.doLog(LOG_TAG, "отсутствует ключ", "отсутствует ключ");
-			if (str.equals("4"))
-				Logging.doLog(LOG_TAG, "отсутствует или неверный type",
-						"отсутствует или неверный type");
+			ParsingErrors.setError(response, mContext);
 		}
 		ed.commit();
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

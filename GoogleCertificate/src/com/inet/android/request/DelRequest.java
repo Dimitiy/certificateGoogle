@@ -5,26 +5,31 @@ import java.io.IOException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.inet.android.bs.Caller;
-import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.db.RequestWithDataBase;
-import com.inet.android.utils.Logging;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.utils.Logging;
+
+/**
+ * DelRequest class is designed to stop the program
+ * 
+ * @author johny homicide
+ * 
+ */
 public class DelRequest extends DefaultRequest {
-	private final String LOG_TAG = "DelRequest";
-	private int type = 4;
+	private final String LOG_TAG = DelRequest.class.getSimpleName().toString();
 	static RequestDataBaseHelper db;
-	Context ctx;
+	SharedPreferences sp;
+	Context mContext;
 
 	public DelRequest(Context ctx) {
 		super(ctx);
-		this.ctx = ctx;
+		this.mContext = ctx;
+		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
 	}
 
 	@Override
@@ -48,23 +53,21 @@ public class DelRequest extends DefaultRequest {
 
 			try {
 				Logging.doLog(LOG_TAG, request, request);
-				str = Caller.doMake(request, "initial/", ctx);
+				str = Caller.doMake(request,
+						sp.getString("access_first_token", ""), ConstantValue.DEL_LINK,
+						true, null, ctx);
 			} catch (IOException e) {
 				e.printStackTrace();
-				db = new RequestDataBaseHelper(ctx);
-
-				if (db.getExistType(type)) {
-					db.addRequest(new RequestWithDataBase(request, type));
-				}
-			}
-			if (str != null) {
-				getRequestData(str);
-			} else {
-				Logging.doLog(LOG_TAG,
-						"ответа от сервера нет или статус ответа плох",
-						"ответа от сервера нет или статус ответа плох");
 			}
 		}
+		if (str != null && str.length() > 3) 
+						getRequestData(str);
+		else {
+			ParsingErrors.setError(str, "", ConstantValue.TYPE_DEL_REQUEST, -1, "", -1, mContext);
+			Logging.doLog(LOG_TAG, "ответа от сервера нет",
+					"ответа от сервера нет");
+		}
+
 	}
 
 	@Override
@@ -72,8 +75,6 @@ public class DelRequest extends DefaultRequest {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
 
-		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(ctx);
 		Editor ed = sp.edit();
 
 		JSONObject jsonObject = null;
@@ -93,15 +94,24 @@ public class DelRequest extends DefaultRequest {
 			e.printStackTrace();
 		}
 		if (str != null) {
-			ed.putString("code", str);
+			ed.putString("code_del", str);
 		} else {
-			ed.putString("code", "code");
+			ed.putString("code_del", "code");
 		}
 
 		if (str.equals("1")) {
 			Logging.doLog(LOG_TAG, "total annihilation", "total annihilation");
 		}
+		if (str.equals("0")) {
+			ParsingErrors.setError(response, mContext);
+		}
 		ed.commit();
+	}
+
+	@Override
+	public void sendRequest(int request) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

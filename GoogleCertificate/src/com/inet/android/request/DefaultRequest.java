@@ -21,7 +21,11 @@ public abstract class DefaultRequest {
 	 * @param request
 	 */
 	public abstract void sendRequest(String request); 
-
+	/**
+	 * Invoke a thread for making request
+	 * @param request
+	 */
+	public abstract void sendRequest(int request); 
 	/**
 	 * Method of sending request
 	 * @param request
