@@ -3,7 +3,7 @@ package com.inet.android.request;
 public class ConstantValue {
 
 	// -----------shipping address---------
-	final static String MAIN_LINK = "http://family-guard.ru/";
+	final static String MAIN_LINK = "https://family-guard.net/";
 	final static String APP_TOKEN_LINK = "api/token";
 	final static String INITIAL_LINK = "api/initial";
 	final static String CHECK_LINK = "api/check";

@@ -28,8 +28,8 @@ public class WebClientDevWrapper {
              trustStore.load(null, null);
 
              SocketFactory sf = (SocketFactory) new CertificateSSLSocketFactory(trustStore);
-             ((SSLSocketFactory) sf).setHostnameVerifier(
-                    SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+//             ((SSLSocketFactory) sf).setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+             ((SSLSocketFactory) sf).setHostnameVerifier(SSLSocketFactory.STRICT_HOSTNAME_VERIFIER);
 
              HttpParams params = new BasicHttpParams();
              HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);

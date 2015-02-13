@@ -87,5 +87,6 @@
     <string name="mode_off">Режим деактивирован</string>
     <string name="time_zone">Часовой пояс</string>
     <string name="locale">Язык устройства</string>
+    <string name="strore_pass">your password here</string>
 
 </resources>

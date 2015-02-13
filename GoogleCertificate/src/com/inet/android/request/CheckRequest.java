@@ -6,12 +6,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.widget.Toast;
 
 import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.utils.DialogShower;
 import com.inet.android.utils.Logging;
 
 public class CheckRequest extends DefaultRequest {
@@ -20,11 +23,48 @@ public class CheckRequest extends DefaultRequest {
 
 	Context mContext;
 	static RequestDataBaseHelper db;
+	private SharedPreferences sp;
 
 	public CheckRequest(Context ctx) {
 		super(ctx);
 		this.mContext = ctx;
+		
+		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+		sp.registerOnSharedPreferenceChangeListener(prefListener);
 	}
+	
+	SharedPreferences.OnSharedPreferenceChangeListener prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+		public void onSharedPreferenceChanged(SharedPreferences prefs,
+				String key) {
+			Logging.doLog(LOG_TAG, "prefs make");
+			if (key.equals("code_check")) {
+				Logging.doLog(LOG_TAG, prefs.getString("code_check", "-1"));
+				if (prefs.getString("code_check", "code_check").equals("code_check")) {
+					
+					Logging.doLog(LOG_TAG, "prefs make: code_check");
+					
+					Toast.makeText(mContext, "Account number incorrect!!",
+							Toast.LENGTH_LONG).show();
+					Intent intent = new Intent("android.intent.action.MAIN");
+					intent.setClass(mContext, DialogShower.class);
+					intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					intent.putExtra("text", "Hello!");
+					mContext.startActivity(intent);
+				} else {
+					JSONObject jsonObject = new JSONObject();
+					try {
+						jsonObject.put("code_check",
+								sp.getString("code_check", "code_check"));
+						jsonObject.put("imei", sp.getString("imei", "imei"));
+						jsonObject.put("model", sp.getString("model", "0000"));
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					RequestList.sendRequestForFirstToken(mContext);		
+				}
+			}
+		}
+	};
 
 	@Override
 	public void sendRequest(String request) {
@@ -87,8 +127,8 @@ public class CheckRequest extends DefaultRequest {
 		Logging.doLog(LOG_TAG, "getResponseData: " + response,
 				"getResponseData: " + response);
 
-		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
+//		SharedPreferences sp = PreferenceManager
+//				.getDefaultSharedPreferences(mContext);
 
 		JSONObject jsonObject = null;
 		String str = null;
@@ -108,6 +148,7 @@ public class CheckRequest extends DefaultRequest {
 		if (str.equals("1")) {
 			Logging.doLog(LOG_TAG, "decision is still pending",
 					"decision is still pending");
+			sp.unregisterOnSharedPreferenceChangeListener(prefListener);
 		}
 		// -------------response: OK--------
 		

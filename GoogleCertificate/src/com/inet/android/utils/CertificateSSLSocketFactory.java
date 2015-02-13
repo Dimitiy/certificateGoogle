@@ -1,6 +1,8 @@
 package com.inet.android.utils;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -10,6 +12,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.SSLContext;
@@ -18,7 +21,8 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 public class CertificateSSLSocketFactory extends SSLSocketFactory {
-
+	
+	
 	SSLContext sslContext = SSLContext.getInstance("TLS");
 
     public CertificateSSLSocketFactory(KeyStore truststore)
@@ -36,7 +40,19 @@ public class CertificateSSLSocketFactory extends SSLSocketFactory {
                     }
 
                     public X509Certificate[] getAcceptedIssuers() {
-                            return null;
+                    	
+                    	X509Certificate c[] = null;
+                    	try {
+                    		InputStream inStream = new FileInputStream("fileName-of-cert");
+                        	CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                        	X509Certificate cert = (X509Certificate)cf.generateCertificate(inStream);
+                        	c[0] = cert;
+							inStream.close();
+						} catch (IOException | CertificateException e) {
+							e.printStackTrace();
+						}
+                          
+                    	return c;
                     }
             };
 

@@ -24,6 +24,7 @@ import org.apache.http.util.EntityUtils;
 import android.content.Context;
 
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.WebClientDevWrapper;
 
 /**
  * Class for make http post request
@@ -51,7 +52,10 @@ public class Caller {
 		mContext = context;
 
 		// Create HttpClient è PostHandler
-		HttpClient httpclient = new DefaultHttpClient();
+//		HttpClient httpclient = new DefaultHttpClient();
+		DefaultHttpClient httpclient = (DefaultHttpClient) WebClientDevWrapper
+				.getNewHttpClient();
+//		DefaultHttpClient httpclient = new CustomHttpClient(context);
 		URI uri = null;
 		HttpPost httppost = null;
 		/*
