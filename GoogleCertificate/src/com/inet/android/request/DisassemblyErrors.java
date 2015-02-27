@@ -8,10 +8,9 @@ import android.content.Context;
 
 import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.utils.Logging;
-import com.loopj.android.http.RequestParams;
 
-public class ParsingErrors {
-	private static String LOG_TAG = ParsingErrors.class.getSimpleName()
+public class DisassemblyErrors {
+	private static String LOG_TAG = DisassemblyErrors.class.getSimpleName()
 			.toString();
 
 	public static void setError(String response, String request, int type,
@@ -33,13 +32,7 @@ public class ParsingErrors {
 		}
 	}
 
-	public static void setError(int response, RequestParams params, int type,
-			final Context mContext) {
-
-		Logging.doLog(LOG_TAG, "response: " + params.APPLICATION_JSON,
-				"response: " + params.APPLICATION_JSON);
-		OperationWithRecordInDataBase.insertRecord(params.toString(), type, -1,
-				"", -1, mContext);
+	public static void setError(int response, int type, final Context mContext) {
 
 		if (response != -1) {
 			Logging.doLog(LOG_TAG, "response: " + response, "response: "
@@ -48,7 +41,10 @@ public class ParsingErrors {
 			if (response == HttpStatus.SC_UNAUTHORIZED) {
 				Logging.doLog(LOG_TAG, "response: SC_UNAUTHORIZED",
 						"response: SC_UNAUTHORIZED");
-				RequestList.sendRequestForSecondToken(mContext);
+				if (type == ConstantValue.TYPE_FIRST_TOKEN_REQUEST)
+					RequestList.sendRequestForFirstToken(mContext);
+				if (type == ConstantValue.TYPE_SECOND_TOKEN_REQUEST)
+					RequestList.sendRequestForSecondToken(mContext);
 			}
 		}
 	}

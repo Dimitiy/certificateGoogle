@@ -92,7 +92,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.inet.android.sms.SMSBroadcastReceiver"
+            android:name="com.inet.android.message.SMSBroadcastReceiver"
             android:enabled="true" >
             <intent-filter android:priority="1000" >
  >  

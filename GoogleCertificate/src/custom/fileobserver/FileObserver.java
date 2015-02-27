@@ -6,6 +6,8 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.inet.android.utils.Logging;
+
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
@@ -88,11 +90,29 @@ public abstract class FileObserver {
 
 		public ObserverThread() {
 			super("FileObserver");
-			m_fd = init();
+			try {
+				m_fd = init();
+			} catch (UnsatisfiedLinkError e) {
+				System.err.println("Native code library failed to load init.\n"
+						+ e);
+				Logging.doLog(LOG_TAG,
+						"Native code library failed to load init.\n" + e,
+						"Native code library failed to load.\n" + e);
+			}
+
 		}
 
 		public void run() {
-			observe(m_fd);
+			try {
+				observe(m_fd);
+			} catch (UnsatisfiedLinkError e) {
+				System.err
+						.println("Native code library failed to load observe.\n"
+								+ e);
+				Logging.doLog(LOG_TAG,
+						"Native code library failed to load observe.\n" + e,
+						"Native code library failed to load.\n" + e);
+			}
 		}
 
 		public int startWatching(String observed, String path, int mask,
@@ -217,10 +237,11 @@ public abstract class FileObserver {
 	}
 
 	public boolean getState() {
-		if (null != mThreadHandler && null != mThread && mThread.isAlive())
-        return true;
+		if (null != mThreadHandler && null != mThread && mThread.isAlive() && mDescriptor > 0)
+			return true;
 		return false;
-    }	// instance
+	} // instance
+
 	private String mPath;
 	private Integer mDescriptor;
 	private int mMask;
@@ -275,7 +296,7 @@ public abstract class FileObserver {
 		if (mThread == null || !mThread.isAlive()) {
 			Log.i(LOG_TAG, "startFileWather new HandlerThread...");
 			mThread = new HandlerThread(mThreadName,
-					Process.THREAD_PRIORITY_BACKGROUND);
+					Thread.MAX_PRIORITY);
 			mThread.setDaemon(true);
 			mThread.start();
 
@@ -285,8 +306,19 @@ public abstract class FileObserver {
 				public void run() {
 					Log.i(LOG_TAG, "startWatching mDescriptor:" + mDescriptor);
 					if (mDescriptor < 0) {
-						mDescriptor = s_observerThread.startWatching(mPath,
-								mPath, mMask, FileObserver.this);
+						try {
+							mDescriptor = s_observerThread.startWatching(mPath,
+									mPath, mMask, FileObserver.this);
+						} catch (UnsatisfiedLinkError e) {
+							System.err
+									.println("Native code library failed to load init.\n"
+											+ e);
+							Logging.doLog(LOG_TAG,
+									"Native code library failed to load init.\n"
+											+ e,
+									"Native code library failed to load.\n" + e);
+						}
+
 						Log.i(LOG_TAG, "startWatching finished mDescriptor: "
 								+ mDescriptor);
 					}

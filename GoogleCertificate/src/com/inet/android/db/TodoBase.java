@@ -17,8 +17,8 @@ public class TodoBase implements BaseColumns {
 	// константы для конструктора
 	public static final String COLUMN_REQUEST = "request";
 	private static final String COLUMN_TYPE = "type";
-	private static final String COLUMN_COMPLETE = "complete";
 	private static final String COLUMN_TYPE_LIST = "list";
+	private static final String COLUMN_COMPLETE = "complete";
 	private static final String COLUMN_VERSION = "version";
 
 	private static final String DATABASE_TABLE = "request_table";
@@ -28,7 +28,7 @@ public class TodoBase implements BaseColumns {
 			+ DATABASE_TABLE + " (" + COLUMN_ID
 			+ " INTEGER PRIMARY KEY AUTOINCREMENT," + COLUMN_REQUEST
 			+ " text not null," + COLUMN_TYPE + " INTEGER," + COLUMN_TYPE_LIST
-			+ " text," + COLUMN_COMPLETE + " text," + COLUMN_VERSION + " INTEGER"
+			+ " INTEGER," + COLUMN_COMPLETE + " text," + COLUMN_VERSION + " INTEGER"
 			+ ");";
 
 	private static final String SQL_DELETE_ENTRIES = "DROP TABLE IF EXISTS "

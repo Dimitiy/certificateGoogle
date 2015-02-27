@@ -9,7 +9,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
@@ -29,7 +28,6 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.inet.android.certificate.R;
-import com.inet.android.request.Request4;
 import com.inet.android.utils.Logging;
 /**
  * MainActivity 
@@ -257,7 +255,7 @@ public class MainActivity extends Activity {
 	private void start() {
 		Logging.doLog(LOG_TAG, "start services", "start services");
 
-		startService(new Intent(MainActivity.this, Request4.class));
+		ServiceControl.startRequest4(context);
 		
 	
 	}

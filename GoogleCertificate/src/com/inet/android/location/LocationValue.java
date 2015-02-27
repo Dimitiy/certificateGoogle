@@ -18,6 +18,7 @@ public class LocationValue {
 	private boolean gpsEnable;
 	private boolean gpsFix;
 	private boolean gpsLoc;
+	private boolean networkLoc;
 	private float speed;
 	private boolean connectClient;
 	public LocationValue() {
@@ -154,7 +155,13 @@ public class LocationValue {
 	public boolean getGPSLoc() {
 		return gpsLoc;
 	}
+	public void setNetworkLoc(boolean networkLoc) {
+		this.networkLoc = networkLoc;
+	}
 
+	public boolean getNetworkLoc() {
+		return networkLoc;
+	}
 	public void setSpeed(float speed) {
 		this.speed = speed;
 	}

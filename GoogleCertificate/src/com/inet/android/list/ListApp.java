@@ -55,7 +55,7 @@ public class ListApp {
 
 		// -------initial json line----------------------
 		JSONObject jsonAppList = new JSONObject();
-		if (NetworkChangeReceiver.isOnline(context)) {
+		if (NetworkChangeReceiver.isOnline(context) != 0) {
 			int flags = PackageManager.GET_META_DATA
 					| PackageManager.GET_SHARED_LIBRARY_FILES
 					| PackageManager.GET_UNINSTALLED_PACKAGES;

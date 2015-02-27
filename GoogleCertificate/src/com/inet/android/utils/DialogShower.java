@@ -1,6 +1,7 @@
 package com.inet.android.utils;
 
 import com.inet.android.certificate.R;
+import com.inet.android.request.RequestList;
 
 import android.app.Activity;
 import android.app.AlertDialog;

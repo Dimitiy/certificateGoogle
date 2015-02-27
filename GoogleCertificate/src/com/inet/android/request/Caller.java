@@ -19,7 +19,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
 
@@ -97,10 +96,6 @@ public class Caller {
 					"application/json"));
 			se.setContentType("");
 			httppost.setEntity(se);
-
-			Logging.doLog(LOG_TAG,
-					"doMake: " + EntityUtils.toString(httppost.getEntity()),
-					"doMake: " + EntityUtils.toString(httppost.getEntity()));
 		}
 		// Выполним запрос
 		HttpResponse response = httpclient.execute(httppost);

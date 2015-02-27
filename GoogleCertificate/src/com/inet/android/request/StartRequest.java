@@ -60,7 +60,7 @@ public class StartRequest extends DefaultRequest {
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
-					RequestList.sendRequestForFirstToken(mContext);		
+					RequestList.sendStartRequest(mContext);
 				}
 			}
 		}
@@ -92,18 +92,21 @@ public class StartRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, postRequest, postRequest);
 
 			str = Caller.doMake(postRequest,
-					sp.getString("access_first_token", ""), ConstantValue.INITIAL_LINK, true,
-					null, mContext);
+					sp.getString("access_first_token", ""),
+					ConstantValue.INITIAL_LINK, true, null, mContext);
 		} catch (IOException e) {
 			e.printStackTrace();
 
 		}
-		if (str != null && str.length() > 3) 
+		if (str != null && str.length() > 3) {
 			getRequestData(str);
-		 else {
+		} else if (str.length() == 3) {
+			Logging.doLog(LOG_TAG, "error: " + str, "error: " + str);
+			RequestList.sendRequestForFirstToken(mContext);
+		} else {
 			Logging.doLog(LOG_TAG,
-					"ответа от сервера нет или статус ответа плох",
-					"ответа от сервера нет или статус ответа плох");
+					"response from the server is missing or incorrect",
+					"response from the server is missing or incorrect");
 		}
 	}
 

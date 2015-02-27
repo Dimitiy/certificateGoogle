@@ -22,6 +22,9 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 	private static final int DATABASE_VERSION = 1;
 	public static final String COLUMN_REQUEST = "request";
 	private static final String COLUMN_TYPE = "type";
+	private static final String COLUMN_COMPLETE = "complete";
+	private static final String COLUMN_TYPE_LIST = "list";
+	private static final String COLUMN_VERSION = "version";
 	private static final String DATABASE_TABLE = "request_table";
 	public static final String COLUMN_ID = BaseColumns._ID;
 	SQLiteDatabase db;
@@ -108,7 +111,11 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 				ContentValues values = new ContentValues();
 				values.put(COLUMN_REQUEST, request.getRequest());
 				values.put(COLUMN_TYPE, request.getType());
-				Logging.doLog(LOG_TAG, "values", "values");
+				values.put(COLUMN_TYPE_LIST, request.getTypeList());
+				values.put(COLUMN_TYPE, request.getType());
+				values.put(COLUMN_COMPLETE, request.getComplete());
+				values.put(COLUMN_VERSION, request.getVersion());
+				Logging.doLog(LOG_TAG, "values" + values, "values"  + values);
 
 				// Вставляем строку в таблицу
 				db.insert(DATABASE_TABLE, null, values);
@@ -166,6 +173,9 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 					request.setID(Integer.parseInt(cursor.getString(0)));
 					request.setRequest(cursor.getString(1));
 					request.setType(cursor.getInt(2));
+					request.setTypeList(cursor.getInt(3));
+					request.setComplete(cursor.getString(4));
+					request.setVersion(cursor.getInt(5));			
 					requestList.add(request);
 				} while (cursor.moveToNext());
 				Logging.doLog(LOG_TAG, requestList.toString(),

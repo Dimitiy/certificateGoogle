@@ -96,7 +96,7 @@ public class TokenRequest extends DefaultRequest {
 		if (str != null && str.length() > 2)
 			getRequestData(str);
 		else {
-			ParsingErrors.setError(str, "", typeTokenRequest, -1, "", -1,
+			DisassemblyErrors.setError(str, "", typeTokenRequest, -1, "", -1,
 					mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
@@ -207,7 +207,7 @@ public class TokenRequest extends DefaultRequest {
 			}
 
 			if (str.equals("0")) {
-				ParsingErrors.setError(response, mContext);
+				DisassemblyErrors.setError(response, mContext);
 			}
 		} else {
 			ed.putString("code_" + token, "");

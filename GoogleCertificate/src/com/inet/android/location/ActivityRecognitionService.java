@@ -17,7 +17,7 @@ public class ActivityRecognitionService extends IntentService {
 	private String TAG = ActivityRecognitionService.class.getSimpleName();
 
 	public ActivityRecognitionService() {
-		super("My Activity Recognition Service");
+		super("ActivityRecognitionService");
 	}
 
 	@Override
