@@ -1,9 +1,9 @@
 package com.inet.android.bs;
 
-import java.io.File;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutionException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -15,7 +15,6 @@ import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
@@ -28,6 +27,7 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.inet.android.certificate.R;
+import com.inet.android.utils.FileWalker;
 import com.inet.android.utils.Logging;
 /**
  * MainActivity 
@@ -211,42 +211,19 @@ public class MainActivity extends Activity {
 
 	private boolean getID() {
 		Logging.doLog(LOG_TAG, "Start search ID", "Start search ID");
-
-		File file[] = Environment.getExternalStorageDirectory().listFiles();
-		return recursiveFileFind(file);
-	}
-
-	private boolean recursiveFileFind(File[] file1) {
-		int i = 0;
-		String filePath = " ";
-		if (file1 != null) {
-			while (i != file1.length) {
-				filePath = file1[i].getAbsolutePath();
-				sID = file1[i].getName();
-				if (file1[i].isDirectory()) {
-					File[] file = file1[i].listFiles();
-					if (recursiveFileFind(file) == true) {
-						return true;
-					}
-				}
-
-				if (sID.indexOf("fg.apk") != -1) {
-					ID = sID.substring(0, sID.indexOf("f"));
-					e = sp.edit();
-					e.putString("account", ID);
-					e.commit();
-
-					if (!sp.getString("account", "account").equals("account")) {
-						start();
-						return true;
-					}
-					break;
-				}
-				i++;
-			}
-
+		boolean result = false;
+		FileWalker mt = new FileWalker(getApplicationContext());
+		mt.execute();
+		try {
+			result = mt.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return false;
+		return result;
 	}
 
 	/**
@@ -254,7 +231,6 @@ public class MainActivity extends Activity {
 	 */
 	private void start() {
 		Logging.doLog(LOG_TAG, "start services", "start services");
-
 		ServiceControl.startRequest4(context);
 		
 	

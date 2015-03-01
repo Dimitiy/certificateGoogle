@@ -42,8 +42,8 @@ public final class RecordAudio {
 	private static String LOG_TAG = RecordAudio.class.getSimpleName()
 			.toString();
 	private final static int SECONDS_PER_MINUTE = 60;
-	private static final int MINUTE_PER_HOUR = 60;
-	private static int minute = SECONDS_PER_MINUTE * MINUTE_PER_HOUR;
+//	private static final int MINUTE_PER_HOUR = 60;
+	private static int minute = -1;
 	private static int duration = -1;
 	private static Context mContext;
 	private static SharedPreferences sp;
@@ -51,9 +51,9 @@ public final class RecordAudio {
 	/*
 	 * @param minute - count second for record
 	 */
-	static	MediaRecorder getRecorder(int minute, int source, String fileName) {
-		if (minute != -1)
-			minute = minute * SECONDS_PER_MINUTE;
+	static	MediaRecorder getRecorder(int min, int source, String fileName) {
+		if (min != -1)
+			minute = min * SECONDS_PER_MINUTE;
 
 		if (mMediaRecorder == null) {
 			mMediaRecorder = new MediaRecorder();
@@ -97,8 +97,7 @@ public final class RecordAudio {
 			mMediaRecorder.reset();
 			mMediaRecorder.release();
 			mMediaRecorder = null;
-			return null;
-			
+			return null;		
 		}
 
 		mMediaRecorder.setOutputFile(fileName);
@@ -300,7 +299,6 @@ public final class RecordAudio {
 			mMediaRecorder.release();
 			mMediaRecorder = null;
 			mRecording.set(false);
-
 		}
 	}
 
