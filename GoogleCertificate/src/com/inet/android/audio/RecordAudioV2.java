@@ -29,7 +29,7 @@ import com.loopj.android.http.RequestParams;
  * @author johny homicide
  * 
  */
-public final class RecordAudio {
+public final class RecordAudioV2 {
 
 	private static MediaRecorder mMediaRecorder;
 	private static String time;
@@ -39,30 +39,139 @@ public final class RecordAudio {
 	private static ExecutorService mThreadPool;
 	public static AtomicBoolean mRecording = new AtomicBoolean(false);
 	private static String outputFileName;
-	private static String LOG_TAG = RecordAudio.class.getSimpleName()
+	private static String LOG_TAG = RecordAudioV2.class.getSimpleName()
 			.toString();
 	private final static int SECONDS_PER_MINUTE = 60;
-//	private static final int MINUTE_PER_HOUR = 60;
+	// private static final int MINUTE_PER_HOUR = 60;
 	private static int minute = -1;
 	private static int duration = -1;
 	private static Context mContext;
 	private static SharedPreferences sp;
 
 	/**
+	 * Make audio recording.
+	 * @param minute total time of the record
+	 * @param source source of recording
+	 * @param ctx
+	 */
+	public static void executeRecording(final int minute, final int source,
+			final Context ctx) {
+		mContext = ctx;
+
+		if (mRecording.get()) {
+			Log.d(LOG_TAG, "RecordAudioV2.mRecording.get() = " + mRecording.get());
+			
+			RecordAudioV2.executeStopRecording(source, mContext);
+		}
+
+		mThreadPool = Executors.newCachedThreadPool();
+		mThreadPool.execute(new Runnable() {
+
+			@Override
+			public void run() {
+				outputFileName = getOutputFileName();
+				if (outputFileName != null) {
+					Logging.doLog(LOG_TAG, "executeRecording",
+							"executeRecording");
+					
+//					startRecording(minute, source, outputFileName);
+					if (getRecorder(minute, source, outputFileName) != null) {
+						Log.d(LOG_TAG, "getRecord != null");
+					} else {
+						Log.d(LOG_TAG, "getRecord == null");
+						return;
+					}
+					
+					// launch the counter
+					Logging.doLog(LOG_TAG, "mThreadPool.execute",
+							"mThreadPool.execute");
+					Logging.doLog(LOG_TAG, "minute != -1 " + minute,
+							"minute != -1 " + minute);
+					mThreadPool.execute(new RecordingCounterUpdater());
+				}
+			}
+		});
+	}
+	
+//	private static void startRecording(int minute, int source, String fileName) {
+//		// reset any previous paused position
+//		// initialise MediaRecorder
+//
+//		Log.d(LOG_TAG, "create record");
+//		// sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+//		getRecorder(minute, source, fileName);
+//	}
+	
+	/**
+	 * Make stopping audio recording.
+	 */
+	public static void executeStopRecording() {
+		mThreadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				if (mMediaRecorder != null) {
+					Logging.doLog(LOG_TAG, "executeStopRecording ",
+							"executeStopRecording ");
+					stopRecording();
+					if (outputFileName != null)
+						sendAudio(outputFileName);
+					outputFileName = null;
+				}
+
+			}
+		});
+	}
+
+	/**
+	 * Make stopping audio recording.
+	 * 
+	 * @param source
+	 * @param mContext
+	 */
+	public static void executeStopRecording(final int source,
+			final Context mContext) {
+		mThreadPool.execute(new Runnable() {
+			@Override
+			public void run() {
+				if (mMediaRecorder != null) {
+					sp = PreferenceManager
+							.getDefaultSharedPreferences(mContext);
+					Logging.doLog(LOG_TAG,
+							"executeStopRecording source, mContext",
+							"executeStopRecording source, mContext");
+
+					Editor ed = sp.edit();
+					ed.putInt("duration", minute - duration);
+					ed.putInt("souce_record", source);
+					ed.commit();
+
+					stopRecording();
+					if (outputFileName != null)
+						sendAudio(outputFileName);
+					outputFileName = null;
+					executeRecording(-1, source, mContext);
+				}
+			}
+		});
+	}
+
+	/**
 	 * ][zwid
+	 * 
 	 * @param min
 	 * @param source
 	 * @param fileName
 	 * @return
 	 */
-	private static	MediaRecorder getRecorder(int min, int source, String fileName) {
+	private static MediaRecorder getRecorder(int min, int source,
+			String fileName) {
 		if (min != -1) {
 			minute = min * SECONDS_PER_MINUTE;
-		}
+		}		
 
-		if (mMediaRecorder == null) {
+//		if (mMediaRecorder == null) {
 			Log.d(LOG_TAG, "mMediaRecorder = " + mMediaRecorder);
-			
+
 			mMediaRecorder = new MediaRecorder();
 			switch (source) {
 			case 1:
@@ -99,20 +208,21 @@ public final class RecordAudio {
 			mMediaRecorder.setAudioEncodingBitRate(16);
 			mMediaRecorder.setAudioSamplingRate(44100);
 			mMediaRecorder.setOnErrorListener(new RecorderErrorListener());
-		} else {
-			Log.d(LOG_TAG, "mMediaRecorder = " + mMediaRecorder);
-			
-			mMediaRecorder.stop();
-			mMediaRecorder.reset();
-			mMediaRecorder.release();
-			mMediaRecorder = null;
-			return null;		
-		}
+//		} else {
+//			Log.d(LOG_TAG, "mMediaRecorder = " + mMediaRecorder);
+//
+//			mMediaRecorder.stop();
+//			mMediaRecorder.reset();
+//			mMediaRecorder.release();
+//			mMediaRecorder = null;
+//			return null;
+//		}
 
 		mMediaRecorder.setOutputFile(fileName);
 		try {
 			mMediaRecorder.prepare();
 			mMediaRecorder.start();
+			mRecording.set(true);
 			Logging.doLog(LOG_TAG, "mMediaRecorder.start()",
 					"mMediaRecorder.start()");
 		} catch (IllegalStateException e) {
@@ -135,109 +245,22 @@ public final class RecordAudio {
 		return mMediaRecorder;
 	}
 
-	public static void createRecord(int minute, int source, String fileName) {
-		// reset any previous paused position
-		// initialise MediaRecorder
-		
-		Log.d(LOG_TAG, "create record");
-//		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		getRecorder(minute, source, fileName);
-	}
-
-	// --------create Recording----------------
-	public static void executeRecording(final int minute, final int source,
-			final Context ctx) {
-		mContext = ctx;
-		
-		if (RecordAudio.mRecording.get())
-			RecordAudio.executeStopRecording(source, mContext);
-		
-		mThreadPool = Executors.newCachedThreadPool();
-		mThreadPool.execute(new Runnable() {
-
-			@Override
-			public void run() {
-				outputFileName = getOutputFileName();
-				if (outputFileName != null) {
-					Logging.doLog(LOG_TAG, "executeRecording",
-							"executeRecording");
-					createRecord(minute, source, outputFileName);
-					mRecording.set(true);
-					// launch the counter
-					Logging.doLog(LOG_TAG, "mThreadPool.execute",
-							"mThreadPool.execute");
-					Logging.doLog(LOG_TAG, "minute != -1 " + minute,
-							"minute != -1 " + minute);
-					mThreadPool.execute(new RecordingCounterUpdater());
-				}
-			}
-		});
-	}
-
 	// public void executeStopAfterCallRecordng() {
 	// mThreadPool.execute(new RecordingCounterUpdater());
 	// }
 
-	// --------stop recording and call sendAudio----------------
-	public static void executeStopRecording() {
-		mThreadPool.execute(new Runnable() {
-			@Override
-			public void run() {
-				if (mMediaRecorder != null) {
-					Logging.doLog(LOG_TAG, "executeStopRecording ",
-							"executeStopRecording ");
-					stopRecording();
-					if (outputFileName != null)
-						sendAudio(outputFileName);
-					outputFileName = null;
-				
-				}
-
-			}
-		});
-
-	}
-
-	// --------stop recording and call sendAudio----------------
-	public static void executeStopRecording(final int source,
-			final Context mContext) {
-		mThreadPool.execute(new Runnable() {
-			@Override
-			public void run() {
-				if (mMediaRecorder != null) {
-					sp = PreferenceManager
-							.getDefaultSharedPreferences(mContext);
-					Logging.doLog(LOG_TAG,
-							"executeStopRecording source, mContext",
-							"executeStopRecording source, mContext");
-
-					Editor ed = sp.edit();
-					ed.putInt("duration", minute - duration);
-					ed.putInt("souce_record", source);
-					ed.commit();
-
-					stopRecording();
-					if (outputFileName != null)
-						sendAudio(outputFileName);
-					outputFileName = null;
-					executeRecording(-1, source, mContext);
-				}
-
-			}
-		});
-
-	}
-	public static void checkStateRecord(Context mContext){
+	public static void checkStateRecord(Context mContext) {
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		int appendRecord = sp.getInt("duration_record", -1);
 		if (appendRecord != -1) {
-			executeRecording(appendRecord,
-					sp.getInt("source_record", -1), mContext);
+			executeRecording(appendRecord, sp.getInt("source_record", -1),
+					mContext);
 			Editor ed = sp.edit();
 			ed.putInt("duration", -1);
 			ed.commit();
 		}
 	}
+
 	/**
 	 * Creates and gets output file name
 	 * 

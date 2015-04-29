@@ -97,8 +97,8 @@ public class CallReceiver extends BroadcastReceiver {
 	private void setRecord() {
 		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
 			return;
-		if (RecordAudio.mRecording.get())
-			RecordAudio.executeStopRecording(SOURCE_RECORD, mContext);
+//		if (RecordAudio.mRecording.get())
+//			RecordAudio.executeStopRecording(SOURCE_RECORD, mContext);
 		RecordAudio.executeRecording(-1, SOURCE_RECORD, mContext);
 	}
 
