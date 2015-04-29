@@ -2,6 +2,7 @@ package com.inet.android.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 import com.inet.android.bs.ServiceControl;
@@ -41,6 +42,9 @@ public class ValueWork {
 			break;
 		case ConstantValue.LOCATION_TRACKER_MODE:
 			value = Integer.parseInt(sp.getString("geo_mode", "0"));
+			break;
+		case ConstantValue.TYPE_DISPATCH:
+			value = Integer.parseInt(sp.getString("dispatch", "0"));
 			break;
 		case ConstantValue.TYPE_IMAGE_REQUEST:
 			value = Integer.parseInt(sp.getString("image", "0"));
@@ -86,37 +90,70 @@ public class ValueWork {
 			Context mContext) {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
+		Editor ed = sp.edit();
+
 		Logging.doLog(LOG_TAG, "changeValueMethod " + method + " " + newValue,
 				"changeValueMethod " + method + " " + newValue);
 		switch (method) {
 
 		case ConstantValue.TYPE_INCOMING_SMS_REQUEST:
-			if (sp.getString("sms", "0").equals(newValue))
+			if (!sp.getString("sms", "0").equals(newValue)) {
+				ed.putString("sms", newValue);
+				ed.commit();
 				if (newValue.equals("1"))
 					ServiceControl.runSMSObserver(mContext);
+			}
 			break;
 		case ConstantValue.TYPE_HISTORY_BROUSER_REQUEST:
-			if (sp.getString("www", "0").equals(newValue))
+			if (!sp.getString("www", "0").equals(newValue)) {
+				ed.putString("www", newValue);
+				ed.commit();
 				if (newValue.equals("1"))
 					ServiceControl.runLink(mContext);
 				else
 					ServiceControl.stopLink(mContext);
+			}
 			break;
 		case ConstantValue.TYPE_LOCATION_TRACKER_REQUEST:
-			if (sp.getString("geo", "0").equals(newValue))
+			if (!sp.getString("geo", "0").equals(newValue)) {
+				ed.putString("geo", newValue);
+				ed.commit();
 				if (!newValue.equals("0"))
 					ServiceControl.runLocation(mContext);
 				else
 					ServiceControl.stopLocation(mContext);
+			}
 			break;
 		case ConstantValue.LOCATION_TRACKER_MODE:
-			if (sp.getString("geo_mode", "0").equals(newValue))
-				;
-			if (!newValue.equals("0"))
+			if (!sp.getString("geo_mode", "0").equals(newValue)) {
+				ed.putString("geo_mode", newValue);
+				ed.commit();
 				ServiceControl.runLocation(mContext);
-			else
-				ServiceControl.stopLocation(mContext);
+			}
 			break;
+
+		default:
+			break;
+		}
+	}
+
+	public static void setValueFileObserverService(String audio, String image,
+			Context mContext) {
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		Editor ed = sp.edit();
+		boolean setRunObserver = false;
+		if (!sp.getString("audio", "0").equals(audio)) {
+			ed.putString("audio", audio);
+			ed.commit();
+			if (audio.equals("1"))
+				setRunObserver = true;
+		}
+		if (!sp.getString("image", "0").equals(image)) {
+			ed.putString("image", audio);
+			ed.commit();
+			if (image.equals("1") && setRunObserver)
+				ServiceControl.runFileObserver(mContext);
 		}
 	}
 
@@ -124,5 +161,33 @@ public class ValueWork {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
 		return sp.getString("key_rec", "0");
+	}
+
+	private static String lastImagePath = "";
+	private static String lastCreateAudioPath = "";
+	private static String lastAudioPath = "";
+
+	public static void setLastImageFile(String path) {
+		lastImagePath = path;
+	}
+
+	public static String getLastImageFile() {
+		return lastImagePath;
+	}
+
+	public static void setLastCreateAudioFile(String path) {
+		lastCreateAudioPath = path;
+	}
+
+	public static void setLastAudioFile(String path) {
+		lastAudioPath = path;
+	}
+
+	public static String getLastCreateAudioFile() {
+		return lastCreateAudioPath;
+	}
+
+	public static String getLastAudioFile() {
+		return lastAudioPath;
 	}
 }

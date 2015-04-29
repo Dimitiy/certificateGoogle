@@ -87,38 +87,34 @@ public class OnDemandRequest extends DefaultRequest {
 			jsonArray = new JSONArray(requestArray);
 			jsonObject.put("data", jsonArray);
 
-			Logging.doLog(LOG_TAG, "jsonArray: " + jsonObject.toString(),
-					jsonObject.toString());
+			Logging.doLog(LOG_TAG, "list: " + infoType + " compete: "
+					+ complete + " version: " + version, "list: " + infoType
+					+ " compete: " + complete + " version: " + version);
 
 		} catch (JSONException e1) {
-			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
+			Logging.doLog(LOG_TAG, "json Г±Г«Г®Г¬Г Г«Г±Гї", "json Г±Г«Г®Г¬Г Г«Г±Гї");
 			e1.printStackTrace();
 		}
 
 		String str = null;
 		try {
-			Logging.doLog(
-					LOG_TAG,
-					"do make.requestArray: " + jsonObject.toString() + " "
-							+ sp.getString("access_second_token", " "),
-					"do make.requestArray: " + jsonObject.toString() + " "
-							+ sp.getString("access_second_token", " "));
-
+		
 			str = Caller.doMake(jsonObject.toString(),
-					sp.getString("access_second_token", ""), ConstantValue.LIST_LINK, true,
-					null, mContext);
+					sp.getString("access_second_token", ""),
+					ConstantValue.LIST_LINK, true, null, mContext);
 
 		} catch (IOException e) {
-			// Добавление в базу request
+			// Г„Г®ГЎГ ГўГ«ГҐГ­ГЁГҐ Гў ГЎГ Г§Гі request
 			e.printStackTrace();
 		}
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParsingErrors.setError(str, request, ConstantValue.TYPE_DATA_REQUEST, infoType, complete,
+			DisassemblyErrors.setError(str, request,
+					ConstantValue.TYPE_DATA_REQUEST, infoType, complete,
 					version, mContext);
-			Logging.doLog(LOG_TAG, "ответа от сервера нет",
-					"ответа от сервера нет");
+			Logging.doLog(LOG_TAG, "Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ",
+					"Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ");
 		}
 
 	}
@@ -151,7 +147,7 @@ public class OnDemandRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "code = 1 ", "code = 1");
 			}
 			if (str.equals("0")) {
-				ParsingErrors.setError(response, mContext);
+				DisassemblyErrors.setError(response, mContext);
 			}
 
 			if (str.equals("2")) {

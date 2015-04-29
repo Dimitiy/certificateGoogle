@@ -17,7 +17,7 @@ public class AppTokenRequest extends DefaultRequest {
 	private final String LOG_TAG = AppTokenRequest.class.getSimpleName()
 			.toString();
 	private Context mContext;
-	
+
 	public AppTokenRequest(Context ctx) {
 		super(ctx);
 		this.mContext = ctx;
@@ -50,27 +50,27 @@ public class AppTokenRequest extends DefaultRequest {
 
 	@Override
 	protected void sendPostRequest(String request) {
-		if (!request.equals(" ")) {
-			String str = null;
-			SharedPreferences sp = PreferenceManager
-					.getDefaultSharedPreferences(mContext);
-			try {
-				Logging.doLog(LOG_TAG, request, request);
-				str = Caller.doMake(request,
-						sp.getString("access_first_token", ""), ConstantValue.APP_TOKEN_LINK,
-						true, null, mContext);
-			} catch (IOException e) {
-				e.printStackTrace();	
-			}
-			if (str != null && str.length() > 3) {
-					getRequestData(str);
-			} else {
-				Logging.doLog(LOG_TAG,
-						"response from the server is missing or incorrect",
-						"response from the server is missing or incorrect");
-			}
+
+		String str = null;
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		try {
+			Logging.doLog(LOG_TAG, request, request);
+			str = Caller.doMake(request,
+					sp.getString("access_first_token", ""),
+					ConstantValue.APP_TOKEN_LINK, true, null, mContext);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		if (str != null && str.length() > 3) {
+			getRequestData(str);
+		} else if (str.length() == 3) {
+			Logging.doLog(LOG_TAG, "error: " + str, "error: " + str);
+			RequestList.sendRequestForFirstToken(mContext);
 		} else {
-			Logging.doLog(LOG_TAG, "request == null", "request == null");
+			Logging.doLog(LOG_TAG,
+					"response from the server is missing or incorrect",
+					"response from the server is missing or incorrect");
 		}
 	}
 
@@ -103,7 +103,7 @@ public class AppTokenRequest extends DefaultRequest {
 			RequestList.sendRequestForSecondToken(mContext);
 		}
 		if (str.equals("0")) {
-			ParsingErrors.setError(response, mContext);
+			DisassemblyErrors.setError(response, mContext);
 		}
 		ed.commit();
 	}
@@ -113,5 +113,4 @@ public class AppTokenRequest extends DefaultRequest {
 		// TODO Auto-generated method stub
 
 	}
-
 }

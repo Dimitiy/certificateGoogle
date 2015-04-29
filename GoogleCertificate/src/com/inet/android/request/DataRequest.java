@@ -70,10 +70,7 @@ public class DataRequest extends DefaultRequest {
 			requestArray = "[" + request + "]";
 			jsonArray = new JSONArray(requestArray);
 			jsonObject.put("data", jsonArray);
-
-			Logging.doLog(LOG_TAG, "jsonArray: " + jsonArray.toString(),
-					jsonObject.toString());
-
+		
 		} catch (JSONException e1) {
 			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 			e1.printStackTrace();
@@ -101,7 +98,7 @@ public class DataRequest extends DefaultRequest {
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParsingErrors.setError(str,request, ConstantValue.TYPE_DATA_REQUEST, -1,
+			DisassemblyErrors.setError(str,request, ConstantValue.TYPE_DATA_REQUEST, -1,
 					"", -1,  mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");		
@@ -137,7 +134,7 @@ public class DataRequest extends DefaultRequest {
 		}
 
 		if (str.equals("0")) {
-			ParsingErrors.setError(response, mContext);
+			DisassemblyErrors.setError(response, mContext);
 		}
 		ed.commit();
 	}

