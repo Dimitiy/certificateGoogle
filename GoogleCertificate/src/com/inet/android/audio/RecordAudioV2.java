@@ -47,6 +47,34 @@ public final class RecordAudioV2 {
 	private static int duration = -1;
 	private static Context mContext;
 	private static SharedPreferences sp;
+	
+	private final static Object lock = new Object();
+	
+	public static void start(final int minute, final int source, final Context ctx) {
+		Log.d(LOG_TAG, "start");
+		
+		synchronized (lock) {
+			mContext = ctx;
+			if (mRecording.get()) {
+				Log.d(LOG_TAG, "start mRecording = true");
+			} else {
+				Log.d(LOG_TAG, "start mRecording = false");
+				stop();
+			}
+		}
+	}
+	
+	public static void stop() {
+		Log.d(LOG_TAG, "stop");
+		
+		synchronized (lock) {
+			if (mRecording.get()) {
+				Log.d(LOG_TAG, "stop mRecording = true");
+			} else {
+				Log.d(LOG_TAG, "stop mRecording = false");
+			}
+		}
+	}
 
 	/**
 	 * Make audio recording.
@@ -99,21 +127,37 @@ public final class RecordAudioV2 {
 	 * Make stopping audio recording.
 	 */
 	public synchronized static void executeStopRecording() {
-		if (mRecording.get()) {
-			Log.d(LOG_TAG, "executeStopRecording mRecording.get() = " + mRecording.get());
-		} else {
-			Log.d(LOG_TAG, "executeStopRecording mRecording.get() = " + mRecording.get() + ", return");
-			return;
+//		if (mRecording.get()) {
+//			Log.d(LOG_TAG, "executeStopRecording1 mRecording.get() = " + mRecording.get());
+//		} else {
+//			Log.d(LOG_TAG, "executeStopRecording1 mRecording.get() = " + mRecording.get() + ", return");
+//			return;
+//		}
+		if (RecordAudioV2.mRecording.get()) {
+			RecordAudioV2.executeStopRecording();
+			
+			int minuteAfterCall = ValueWork.getMethod(
+					ConstantValue.RECORD_ENVORIMENT, mContext);
+			
+			Logging.doLog(LOG_TAG, "recording is true, minute after: " + minuteAfterCall,
+					"recordAudio != null " + minuteAfterCall);
+			
+			if (minuteAfterCall == 0) {
+				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
+						"minuteAfterCall == 0");
+				RecordAudioV2.checkStateRecord(mContext);
+			} else {
+				RecordAudioV2.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
+			}
 		}
+		
 		mThreadPool.execute(new Runnable() {
 			@Override
 			public void run() {
 				if (mMediaRecorder != null) {
-					Logging.doLog(LOG_TAG, "executeStopRecording ",
-							"executeStopRecording ");
+					Logging.doLog(LOG_TAG, "executeStopRecording ",	"executeStopRecording ");
 					stopRecording();
-					if (outputFileName != null)
-						sendAudio(outputFileName);
+					if (outputFileName != null) sendAudio(outputFileName);
 					outputFileName = null;
 				}
 
@@ -130,9 +174,9 @@ public final class RecordAudioV2 {
 	public synchronized static void executeStopRecording(final int source,
 			final Context mContext) {
 		if (mRecording.get()) {
-			Log.d(LOG_TAG, "executeStopRecording mRecording.get() = " + mRecording.get());
+			Log.d(LOG_TAG, "executeStopRecording2 mRecording.get() = " + mRecording.get());
 		} else {
-			Log.d(LOG_TAG, "executeStopRecording mRecording.get() = " + mRecording.get() + " , return");
+			Log.d(LOG_TAG, "executeStopRecording2 mRecording.get() = " + mRecording.get() + " , return");
 			return;
 		}
 		
@@ -290,6 +334,9 @@ public final class RecordAudioV2 {
 	public static void checkStateRecord(Context mContext) {
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		int appendRecord = sp.getInt("duration_record", -1);
+		
+		Log.d(LOG_TAG, "appendRecord: " + appendRecord);
+		
 		if (appendRecord != -1) {
 			executeRecording(appendRecord, sp.getInt("source_record", -1),
 					mContext);

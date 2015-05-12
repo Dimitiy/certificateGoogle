@@ -126,46 +126,17 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void setRecord() {
-		Log.d(LOG_TAG, "1 setRecord");
+		Log.d(LOG_TAG, "setRecord");
 		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
 			return;
-//		if (RecordAudio.mRecording.get())
-//			RecordAudio.executeStopRecording(SOURCE_RECORD, mContext);
-		RecordAudioV2.executeRecording(-1, SOURCE_RECORD, mContext);
+//		RecordAudioV2.executeRecording(-1, SOURCE_RECORD, mContext);
+		RecordAudioV2.start(-1, MediaRecorder.AudioSource.VOICE_CALL, mContext);
 	}
 
 	private void stopRecord() {
 		Log.d(LOG_TAG, "stopRecord");
-		if (RecordAudioV2.mRecording.get()) {
-			RecordAudioV2.executeStopRecording();
-			
-			int minuteAfterCall = ValueWork.getMethod(
-					ConstantValue.RECORD_ENVORIMENT, mContext);
-			Logging.doLog(LOG_TAG, "recording is true, minute after: " + minuteAfterCall,
-					"recordAudio != null " + minuteAfterCall);
-			if (minuteAfterCall == 0) {
-				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
-						"minuteAfterCall == 0");
-				RecordAudioV2.checkStateRecord(mContext);
-			} else {
-				RecordAudioV2.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
-//				Timer myTimer = new Timer(); // Создаем таймер
-//				Logging.doLog(LOG_TAG, "Timer", "Timer");
-//				myTimer.schedule(new TimerTask() { // Определяем задачу
-//							public void run() {
-//								// if(current == minuteAfterCall){
-//								Logging.doLog(LOG_TAG, "executeStopRecording",
-//										"executeStopRecording");
-//								RecordAudio.executeStopRecording();
-//
-//							};
-//						}, minuteAfterCall * 60 * 1000); // интервал - 60000
-//															// миллисекунд, 0
-//															// миллисекунд до
-//															// первого запуска.
-
-			}
-		}
+//		RecordAudioV2.executeStopRecording(SOURCE_RECORD, mContext);
+		RecordAudioV2.stop();
 	}
 
 	private void getCallDetails() {
