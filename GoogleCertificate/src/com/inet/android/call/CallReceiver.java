@@ -130,7 +130,7 @@ public class CallReceiver extends BroadcastReceiver {
 		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
 			return;
 //		RecordAudioV2.executeRecording(-1, SOURCE_RECORD, mContext);
-		RecordAudioV2.start(-1, MediaRecorder.AudioSource.VOICE_CALL, mContext);
+		RecordAudioV2.startCallRec(-1, MediaRecorder.AudioSource.VOICE_CALL, mContext);
 	}
 
 	private void stopRecord() {

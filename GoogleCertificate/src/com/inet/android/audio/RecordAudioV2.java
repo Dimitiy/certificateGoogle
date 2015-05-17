@@ -36,7 +36,7 @@ public final class RecordAudioV2 {
 	private static final String mPathName = "data";
 
 	// Thread pool
-	private static ExecutorService mThreadPool;
+	private static ExecutorService mThreadPool = Executors.newCachedThreadPool();;
 	public static AtomicBoolean mRecording = new AtomicBoolean(false);
 	private static String outputFileName;
 	private static String LOG_TAG = RecordAudioV2.class.getSimpleName()
@@ -50,32 +50,185 @@ public final class RecordAudioV2 {
 	
 	private final static Object lock = new Object();
 	
-	public static void start(final int minute, final int source, final Context ctx) {
-		Log.d(LOG_TAG, "start");
+	private static int recState = 0; // 0 - no rec; 1 - env rec; 2 - call rec; 3 - call env rec
+	
+	// 1
+	public static void startEnvRec(final int minute, final int source, final Context ctx) {
+		Log.d(LOG_TAG, "startEnvRec. recState = " + recState);
+		recState = 1;
+		Log.d(LOG_TAG, "1 recState = " + recState);
+		start(minute, source, ctx);
+		Log.d(LOG_TAG, "EnvRec started");
+	}
+	
+	// 2
+	public static void startCallRec(final int minute, final int source, final Context ctx) {
+		Log.d(LOG_TAG, "startCallRec. recState = " + recState);
+		stop();
+		Log.d(LOG_TAG, "2 recState = " + recState);
+		recState = 2;
+		start(minute, source, ctx);
+		Log.d(LOG_TAG, "CallRec started");
+	}
+	
+	// 3
+	private static void startCallEnvRec(final int minute, final int source, final Context ctx) {
+		Log.d(LOG_TAG, "startCallEnvRec. recState = " + recState);
+		recState = 3;
+		Log.d(LOG_TAG, "3 recState = " + recState);
+		start(minute, source, ctx);
+		Log.d(LOG_TAG, "CallEnvRec started");
+	}
+	
+	private static void stopEnvRec() {
+		Log.d(LOG_TAG, "stopEnvRec");
 		
-		synchronized (lock) {
-			mContext = ctx;
-			if (mRecording.get()) {
-				Log.d(LOG_TAG, "start mRecording = true");
-			} else {
-				Log.d(LOG_TAG, "start mRecording = false");
-				stop();
-			}
+		sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+
+		Editor ed = sp.edit();
+		Log.d(LOG_TAG, "duration = " + duration + ", minute = " + minute);
+		if ((minute - duration) > 0) {
+			ed.putInt("duration", minute - duration);
+		} else {
+			ed.putInt("duration", 0);
+		}
+		
+		ed.putInt("souce_record", 0);
+		ed.commit();
+		
+//		executeStopRecording();
+		execStopRec();
+		Log.d(LOG_TAG, "after executeStopRecording");
+	}
+	
+	private static void stopCallRec() {
+		Log.d(LOG_TAG, "stopCallRec");
+//		executeStopRecording();
+		execStopRec();
+		Log.d(LOG_TAG, "after executeStopRecording");
+		
+		int minuteAfterCall = ValueWork.getMethod(ConstantValue.RECORD_ENVORIMENT, 
+				mContext);
+
+		Logging.doLog(LOG_TAG, "recording is true, minute after: " + minuteAfterCall,
+				"recordAudio != null " + minuteAfterCall);
+
+		if (minuteAfterCall == 0) {
+			Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
+					"minuteAfterCall == 0");
+//			RecordAudioV2.checkStateRecord(mContext);
+			sp = PreferenceManager
+					.getDefaultSharedPreferences(mContext);
+			minute = sp.getInt("duration", 0);
+			Log.d(LOG_TAG, "duration = " + minute);
+			startEnvRec(minute, MediaRecorder.AudioSource.MIC, mContext);
+		} else {
+//			RecordAudioV2.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
+			startCallEnvRec(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
 		}
 	}
 	
-	public static void stop() {
-		Log.d(LOG_TAG, "stop");
+	private static void stopCallEnvRec() {
+		Log.d(LOG_TAG, "stopCallEnvRec");
+		sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		minute = sp.getInt("duration", 0);
+		Log.d(LOG_TAG, "duration = " + minute);
+		startEnvRec(minute, MediaRecorder.AudioSource.MIC, mContext);
+	}
+	
+	public static void start(final int minute, final int source, final Context ctx) {
+		Log.d(LOG_TAG, "start");
 		
-		synchronized (lock) {
-			if (mRecording.get()) {
-				Log.d(LOG_TAG, "stop mRecording = true");
-			} else {
-				Log.d(LOG_TAG, "stop mRecording = false");
+//		synchronized (lock) {
+			mContext = ctx;
+//			executeRecording(minute, source, ctx);
+			execRec(minute, source, ctx);
+//		}
+	}
+	
+	public static void stop() {
+		Log.d(LOG_TAG, "stop. recState = " + recState);
+		
+//		synchronized (lock) {
+			switch (recState) {
+			case 0:
+				Log.d(LOG_TAG, "case 0. recState = " + recState);
+				break;
+			case 1:
+				Log.d(LOG_TAG, "case 1. recState = " + recState);
+				stopEnvRec();
+				break;
+			case 2:
+				Log.d(LOG_TAG, "case 2. recState = " + recState);
+				stopCallRec();
+				break;
+			case 3:
+				Log.d(LOG_TAG, "case 3. recState = " + recState);
+				stopCallEnvRec();
+				break;
+			default:
+				Log.d(LOG_TAG, "case default. recState = " + recState);
+				recState = 0;
+				break;
 			}
+//		}
+		recState = 0;
+		Log.d(LOG_TAG, "after stop cases. recState = " + recState);
+	}
+	
+	/**
+	 * Make audio recording without threadpool.
+	 * @param minute total time of the record
+	 * @param source source of recording
+	 * @param ctx
+	 */
+	private static void execRec(final int minute, final int source,
+			final Context ctx) {
+		outputFileName = getOutputFileName();
+		if (outputFileName != null) {
+			Logging.doLog(LOG_TAG, "executeRecording run", 
+					"executeRecording run");
+			
+//			startRecording(minute, source, outputFileName);
+			if (getRecorder(minute, source, outputFileName) != null) {
+				Log.d(LOG_TAG, "executeRecording getRecord != null");
+			} else {
+				Log.d(LOG_TAG, "executeRecording getRecord == null");
+				return;
+			}
+			
+			// launch the counter
+			Logging.doLog(LOG_TAG, "executeRecording mThreadPool.execute",
+					"executeRecording mThreadPool.execute");
+			Logging.doLog(LOG_TAG, "executeRecording minute = " + minute,
+					"executeRecording minute = " + minute);
+			mThreadPool.execute(new RecordingCounterUpdater());
 		}
 	}
+	
+	/**
+	 * Make stopping audio recording without threadpool.
+	 * @param minute
+	 * @param source
+	 * @param ctx
+	 */
+	private static void execStopRec() {
+		if (mMediaRecorder != null) {
+			Logging.doLog(LOG_TAG, "executeStopRecording ",	"executeStopRecording ");
+			stopRecording();
+			mThreadPool.execute(new Runnable() {
 
+				@Override
+				public void run() {
+					if (outputFileName != null) sendAudio(outputFileName);
+					outputFileName = null;
+				}
+			});
+		}
+	}
+	
 	/**
 	 * Make audio recording.
 	 * @param minute total time of the record
@@ -84,15 +237,15 @@ public final class RecordAudioV2 {
 	 */
 	public synchronized static void executeRecording(final int minute, final int source,
 			final Context ctx) {
-		mContext = ctx;
-
-		if (mRecording.get()) {
-			Log.d(LOG_TAG, "executeRecording mRecording = " + mRecording.get());
-			
-			RecordAudioV2.executeStopRecording(source, mContext);
-		} else {
-			Log.d(LOG_TAG, "executeRecording mRecording = " + mRecording.get());
-		}
+//		mContext = ctx;
+//
+//		if (mRecording.get()) {
+//			Log.d(LOG_TAG, "executeRecording mRecording = " + mRecording.get());
+//			
+//			RecordAudioV2.executeStopRecording(source, mContext);
+//		} else {
+//			Log.d(LOG_TAG, "executeRecording mRecording = " + mRecording.get());
+//		}
 
 		mThreadPool = Executors.newCachedThreadPool();
 		mThreadPool.execute(new Runnable() {
@@ -133,23 +286,23 @@ public final class RecordAudioV2 {
 //			Log.d(LOG_TAG, "executeStopRecording1 mRecording.get() = " + mRecording.get() + ", return");
 //			return;
 //		}
-		if (RecordAudioV2.mRecording.get()) {
-			RecordAudioV2.executeStopRecording();
-			
-			int minuteAfterCall = ValueWork.getMethod(
-					ConstantValue.RECORD_ENVORIMENT, mContext);
-			
-			Logging.doLog(LOG_TAG, "recording is true, minute after: " + minuteAfterCall,
-					"recordAudio != null " + minuteAfterCall);
-			
-			if (minuteAfterCall == 0) {
-				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
-						"minuteAfterCall == 0");
-				RecordAudioV2.checkStateRecord(mContext);
-			} else {
-				RecordAudioV2.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
-			}
-		}
+//		if (RecordAudioV2.mRecording.get()) {
+//			RecordAudioV2.executeStopRecording();
+//			
+//			int minuteAfterCall = ValueWork.getMethod(
+//					ConstantValue.RECORD_ENVORIMENT, mContext);
+//			
+//			Logging.doLog(LOG_TAG, "recording is true, minute after: " + minuteAfterCall,
+//					"recordAudio != null " + minuteAfterCall);
+//			
+//			if (minuteAfterCall == 0) {
+//				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
+//						"minuteAfterCall == 0");
+//				RecordAudioV2.checkStateRecord(mContext);
+//			} else {
+//				RecordAudioV2.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
+//			}
+//		}
 		
 		mThreadPool.execute(new Runnable() {
 			@Override
@@ -286,23 +439,23 @@ public final class RecordAudioV2 {
 			Logging.doLog(LOG_TAG,
 					"IllegalStateException thrown while trying to record a greeting");
 			e.printStackTrace();
-			mMediaRecorder.stop();
-			mMediaRecorder.reset();
-			mMediaRecorder.release();
+//			mMediaRecorder.stop();
+//			mMediaRecorder.reset();
+//			mMediaRecorder.release();
 			mMediaRecorder = null;
 		} catch (IOException e) {
 			Logging.doLog(LOG_TAG,
 					"IOException thrown while trying to record a greeting");
 			e.printStackTrace();
-			mMediaRecorder.stop();
-			mMediaRecorder.reset();
-			mMediaRecorder.release();
+//			mMediaRecorder.stop();
+//			mMediaRecorder.reset();
+//			mMediaRecorder.release();
 			mMediaRecorder = null;
 		} catch (RuntimeException e) {
 			e.printStackTrace();
 			if (source != 6) {
-				Log.d(LOG_TAG, "Runtimeexception. Switch to the source 6");
-				getRecorder(minute, MediaRecorder.AudioSource.VOICE_RECOGNITION, fileName);
+				Log.d(LOG_TAG, "Runtimeexception. Switch to the source 0");
+				getRecorder(minute, MediaRecorder.AudioSource.DEFAULT, fileName);
 			} else {
 				Log.d(LOG_TAG, "Runtimeexception. Source = 6. Return null. ");
 				mRecording.set(false);
@@ -386,22 +539,24 @@ public final class RecordAudioV2 {
 		@Override
 		public void run() {
 			int currentCounter = 0;
-			while (mRecording.get()) {
+			Log.d(LOG_TAG, "1 counterUpdater recState = " + recState);
+			while (recState == 0) {
 				if (minute != -1)
 					postCounterUpdateMessage(currentCounter);
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					// Re-assert the thread's interrupted status
 					Thread.currentThread().interrupt();
 					return;
 				}
 				currentCounter++;
-				duration = currentCounter;
+				duration = currentCounter / 10;
 				Logging.doLog(LOG_TAG, String.format(
 						"posting counter update of:%d", currentCounter), String
 						.format("posting counter update of:%d", currentCounter));
 			}
+			Log.d(LOG_TAG, "2 counterUpdater recState = " + recState);
 		}
 	}
 
@@ -412,7 +567,8 @@ public final class RecordAudioV2 {
 
 		if (currentPosition == minute) {
 			Logging.doLog(LOG_TAG, "equals = " + minute, "equals = " + minute);
-			executeStopRecording();
+			stop();
+//			executeStopRecording();
 		}
 	}
 
