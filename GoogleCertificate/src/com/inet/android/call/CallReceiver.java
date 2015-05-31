@@ -33,7 +33,6 @@ public class CallReceiver extends BroadcastReceiver {
 	private static Context mContext;
 	private static String LOG_TAG = CallReceiver.class.getSimpleName()
 			.toString();
-	private final static int SOURCE_RECORD = MediaRecorder.AudioSource.VOICE_CALL;
 	private static int osCheck = 0;
 
 	@Override
@@ -104,16 +103,16 @@ public class CallReceiver extends BroadcastReceiver {
 				if (osVersion.startsWith("5")) {
 					Log.d(LOG_TAG, "osCheck = " + osCheck);
 					if (osCheck == 1) {
-						setRecord();
+						stopRecord();
 						osCheck = 0;
 					} else {
 						osCheck++;
 					}
 				} else {
-					setRecord();
+					stopRecord();
 				}
 				
-				stopRecord();
+//				stopRecord();
 				try {
 					// TimeUnit.SECONDS.sleep(1);
 					TimeUnit.MILLISECONDS.sleep(1000);
@@ -126,7 +125,7 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void setRecord() {
-		Log.d(LOG_TAG, "setRecord");
+		Logging.doLog(LOG_TAG, "setRecord", "setRecord");
 		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
 			return;
 //		RecordAudioV2.executeRecording(-1, SOURCE_RECORD, mContext);
@@ -134,7 +133,7 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void stopRecord() {
-		Log.d(LOG_TAG, "stopRecord");
+		Logging.doLog(LOG_TAG, "stopRecord", "stopRecord");
 //		RecordAudioV2.executeStopRecording(SOURCE_RECORD, mContext);
 		RecordAudioV2.stop();
 	}
