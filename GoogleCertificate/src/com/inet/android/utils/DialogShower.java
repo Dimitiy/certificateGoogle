@@ -1,8 +1,5 @@
 package com.inet.android.utils;
 
-import com.inet.android.certificate.R;
-import com.inet.android.request.RequestList;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -17,6 +14,8 @@ import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.ContextThemeWrapper;
 import android.widget.EditText;
+
+import com.inet.android.certificate.R;
 
 /**
  * Class show dialog

@@ -13,7 +13,7 @@ import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
 import com.loopj.android.http.RequestParams;
 
@@ -51,7 +51,7 @@ public class Logging {
 
 	private static void writeLog(String str) {
 		File outFile = new File(Environment.getExternalStorageDirectory(),
-				ConstantValue.PATH_TO_LOG_FILE);
+				AppConstants.PATH_TO_LOG_FILE);
 		long fileSize = outFile.length();
 
 		if ((fileSize + str.length()) > logFileSize) {
@@ -93,8 +93,8 @@ public class Logging {
 			writer = new BufferedWriter(new FileWriter(tempFile));
 			boolean firstString = true;
 			String currentLine;
-
-			while ((currentLine = reader.readLine()) != null) {
+			
+			while (((currentLine = reader.readLine()) != null)) {
 				if (firstString) {
 					firstString = false;
 					continue;
@@ -131,13 +131,13 @@ public class Logging {
 	public static void sendLogFileToServer(Context mContext) {
 		RequestParams params = new RequestParams();
 		String path = Environment.getExternalStorageDirectory()
-				+ ConstantValue.PATH_TO_LOG_FILE;
+				+ AppConstants.PATH_TO_LOG_FILE;
 		File logFile = new File(path);
 		if (logFile.exists() && logFile.isFile()) {
 
 			try {
 				params.put("data[][time]", ConvertDate.logTime());
-				params.put("data[][type]", ConstantValue.TYPE_LOG_REQUEST);
+				params.put("data[][type]", AppConstants.TYPE_LOG_REQUEST);
 				params.put("data[][path]", path);
 				params.put("key", System.currentTimeMillis());
 				params.put("data[][file]", new File(path));

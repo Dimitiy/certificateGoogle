@@ -23,7 +23,7 @@ public class Request4 extends Service {
 	final String LOG_TAG = Request4.class.getSimpleName().toString();
 	// SharedPreferences sPref;
 	String period = "1"; // периодичность запросов
-	String periodAfterRegistration = "10";
+	String periodAfterRegistration = "5";
 	SharedPreferences sp;
 
 	public void onCreate() {
@@ -50,6 +50,7 @@ public class Request4 extends Service {
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
+
 		if (getFirstToken())
 			if (getStartRequest())
 				if (getCheckRequest())
@@ -57,7 +58,8 @@ public class Request4 extends Service {
 						if (getSecondToken()) {
 							Logging.doLog(LOG_TAG, "Send periodical request",
 									"Send periodical request");
-							RequestList.sendPeriodicRequest(this);
+							PeriodicRequest pr = new PeriodicRequest(getApplicationContext());
+							pr.sendRequest();
 						}
 		return Service.START_STICKY;
 	}
@@ -65,7 +67,8 @@ public class Request4 extends Service {
 	private boolean getFirstToken() {
 		String code = sp.getString("access_first_token", "-1");
 		if (code.equals("-1")) {
-			RequestList.sendRequestForFirstToken(this);
+			TestCaller caller = TestCaller.getInstance();
+			caller.sendRequestForFirstToken(getApplicationContext());
 			return false;
 		}
 		return true;
@@ -73,22 +76,19 @@ public class Request4 extends Service {
 
 	private boolean getStartRequest() {
 
-		// -----------start request-------------------
 		String code = sp.getString("code_initial", "-1");
 		Logging.doLog(LOG_TAG, "code_initial: " + code, "code_initial: " + code);
 
 		if (code.equals("-1")) {
-			RequestList.sendStartRequest(this);
+			StartRequest sr = new StartRequest(getApplicationContext());
+			sr.sendRequest();
 			return false;
 		}
 		if (code.equals("0")) {
-			if (sp.getString("error_initial", "-1").equals("0")) {
-				RequestList.sendStartRequest(this);
-				return false;
-
-			}
+			StartRequest sr = new StartRequest(getApplicationContext());
+			sr.sendRequest();
+			return false;
 		}
-
 		return true;
 	}
 
@@ -97,11 +97,10 @@ public class Request4 extends Service {
 		Logging.doLog(LOG_TAG, "code_check: " + code, "code_check: " + code);
 
 		if (code.equals("-1") || code.equals("1")) {
-			RequestList.sendCheckRequest(this);
+			CheckRequest check = new CheckRequest(getApplicationContext());
+			check.sendRequest();
 			return false;
-		}
-
-		else if (code.equals("2")) {
+		} else if (code.equals("2")) {
 			if (!sp.getBoolean("hideIcon", false)) {
 				Logging.doLog(LOG_TAG, "hide icon");
 				// HiddingIcon hi = new HiddingIcon(this);
@@ -114,17 +113,21 @@ public class Request4 extends Service {
 			}
 			return true;
 		} else if (code.equals("3")) {
-			RequestList.sendRequestForFirstToken(this);
-			if (sp.getString("scope", "-1").equals("client"))
-				RequestList.sendDelRequest(this);
-			return false;
+			TestCaller caller = TestCaller.getInstance();
+			caller.sendRequestForFirstToken(getApplicationContext());
+			if (!sp.getString("key_removal", "-1").equals("-1")) {
+				DelRequest del = new DelRequest(getApplicationContext());
+				del.sendRequest();
+				return false;
+			}
 		} else if (code.equals("0")) {
 			Logging.doLog(LOG_TAG, "code : 0", "code : 0");
 
 			if (sp.getString("error_check", "-1").equals("0")
 					|| sp.getString("error_check", "-1").equals("1")
 					|| sp.getString("error_check", "-1").equals("2")) {
-				RequestList.sendStartRequest(this);
+				StartRequest sr = new StartRequest(getApplicationContext());
+				sr.sendRequest();
 				return false;
 			}
 		}
@@ -139,7 +142,9 @@ public class Request4 extends Service {
 				+ code);
 
 		if (code.equals("-1")) {
-			RequestList.sendTokenAppRequest(this);
+			AppTokenRequest appToken = new AppTokenRequest(
+					getApplicationContext());
+			appToken.sendRequest();
 			return false;
 		} else if (code.equals("0")) {
 			Logging.doLog(
@@ -151,7 +156,10 @@ public class Request4 extends Service {
 			if (sp.getString("error_app_token", "-1").equals("0")
 					|| sp.getString("error_app_token", "-1").equals("1")
 					|| sp.getString("error_app_token", "-1").equals("2")) {
-				RequestList.sendTokenAppRequest(this);
+				AppTokenRequest appToken = new AppTokenRequest(
+						getApplicationContext());
+				appToken.sendRequest();
+
 			}
 			return false;
 		} else if (code.equals("1"))
@@ -160,7 +168,6 @@ public class Request4 extends Service {
 	}
 
 	private boolean getSecondToken() {
-		// --------second token request----------------------
 		String code = sp.getString("access_second_token", "-1");
 		Logging.doLog(LOG_TAG, "access_second_token: " + code,
 				"access_second_token: " + code);
@@ -168,7 +175,8 @@ public class Request4 extends Service {
 		if (code.equals("-1")) {
 			Logging.doLog(LOG_TAG, "sendRequestForSecondToken",
 					"sendRequestForSecondToken");
-			RequestList.sendRequestForSecondToken(this);
+			TestCaller caller = TestCaller.getInstance();
+			caller.sendRequestForSecondToken(getApplicationContext());
 			return false;
 		}
 		Editor ed = sp.edit();

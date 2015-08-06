@@ -2,8 +2,6 @@ package com.inet.android.info;
 
 import java.lang.reflect.Method;
 
-import com.inet.android.utils.Logging;
-
 import android.content.Context;
 import android.telephony.TelephonyManager;
 
@@ -57,20 +55,18 @@ public final class TelephonyInfo {
 	 */
 
 	public boolean isDualSIM() {
-		Logging.doLog("TelephoneManager", Boolean.toString(isSIM2Ready()),
-				Boolean.toString(isSIM2Ready()));
-		return isSIM2Ready(); 
-		}
+		return isSIM2Ready();
+	}
 
-	private TelephonyInfo() {
+	private TelephonyInfo(Context context) {
+
 	}
 
 	public static TelephonyInfo getInstance(Context context) {
 
 		if (telephonyInfo == null) {
 
-			telephonyInfo = new TelephonyInfo();
-
+			telephonyInfo = new TelephonyInfo(context);
 			TelephonyManager telephonyManager = ((TelephonyManager) context
 					.getSystemService(Context.TELEPHONY_SERVICE));
 			telephonyInfo.imeiSIM1 = telephonyManager.getDeviceId();
@@ -122,7 +118,7 @@ public final class TelephonyInfo {
 				} catch (TelefonInfoNotFoundException e1) {
 					// Call here for next manufacturer's predicted method name
 					// if you wish
-					// e1.printStackTrace();
+					e1.printStackTrace();
 				}
 			}
 		}

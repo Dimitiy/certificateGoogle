@@ -87,7 +87,7 @@ public class TokenRequest extends DefaultRequest {
 				break;
 			}
 
-			str = Caller.doMake(null, null, ConstantValue.TOKEN_LINK, false,
+			str = Caller.doMake(null, null, AppConstants.TOKEN_LINK, false,
 					postParameters, mContext);
 		} catch (IOException e) {
 			// ƒобавление в базу request
@@ -102,7 +102,7 @@ public class TokenRequest extends DefaultRequest {
 					"ответа от сервера нет");
 		}
 	}
-
+	
 	@Override
 	protected void getRequestData(String response) {
 
@@ -177,9 +177,11 @@ public class TokenRequest extends DefaultRequest {
 
 		if (str != null) {
 			ed.putString("access_" + token, str);
+			ed.commit();
 			if (token.equals("first_token")
 					&& sp.getString("code_initial", "-1").equals("-1"))
-				RequestList.sendStartRequest(mContext);
+//				TestRequestList.sendStartRequest(mContext);
+				Logging.doLog(LOG_TAG, "-1");
 			else if (token.equals("second_token")
 					&& !sp.getString("code_periodic", "-1").equals("2"))
 				RequestList.sendPeriodicRequest(mContext);

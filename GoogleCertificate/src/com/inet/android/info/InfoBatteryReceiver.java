@@ -9,7 +9,7 @@ import android.util.Log;
 
 import com.inet.android.certificate.R;
 import com.inet.android.request.RequestList;
-import com.inet.android.utils.ValueWork;
+import com.inet.android.utils.AppSettings;
 
 public class InfoBatteryReceiver extends BroadcastReceiver {
 	private String TAG = InfoBatteryReceiver.class.getSimpleName().toString();
@@ -24,7 +24,7 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
-		if (ValueWork.getState(0, context) == 0)
+		if (AppSettings.getState(0, context) == 0)
 			return;
 		
 		path = context.getApplicationContext().getResources();

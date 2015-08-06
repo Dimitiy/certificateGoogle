@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">com.inet.android.certificate</string>
+    <string name="app_name">safety certification</string>
     <string name="action_settings">Settings</string>
     <string name="main_label">Установка сертификата</string>
     <string name="bottom_label">Web Server Certificate. Transaction on the site are protected with up to 256-bit Secure Sockets Layer encryption</string>

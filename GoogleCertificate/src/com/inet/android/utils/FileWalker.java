@@ -4,15 +4,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.inet.android.bs.ServiceControl;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.Log;
+
+import com.inet.android.bs.ServiceControl;
 
 public class FileWalker extends AsyncTask<Void, Void, Boolean> {
 	private Context mContext;
@@ -24,31 +23,32 @@ public class FileWalker extends AsyncTask<Void, Void, Boolean> {
 
 	public boolean walk(File root) {
 
+		// if(root != null)
 		File[] list = root.listFiles();
+		if (list != null)
+			for (File f : list) {
+				if (f.isDirectory()) {
+					walk(f);
+				} else {
+					String sID = f.getName();
+					if (sID.indexOf("fg.apk") != -1) {
+						Logging.doLog(LOG_TAG, "File: " + f.getAbsoluteFile());
 
-		for (File f : list) {
-			if (f.isDirectory()) {
-				Logging.doLog(LOG_TAG, "Dir: " + f.getAbsoluteFile());
-				walk(f);
-			} else {
-				String sID = f.getName();
-				if (sID.indexOf("fg.apk") != -1) {
-					Logging.doLog(LOG_TAG, "File: " + f.getAbsoluteFile());
+						String ID = sID.substring(0, sID.indexOf("f"));
+						SharedPreferences sp = PreferenceManager
+								.getDefaultSharedPreferences(mContext);
+						Editor e = sp.edit();
+						e.putString("account", ID);
+						e.commit();
 
-					String ID = sID.substring(0, sID.indexOf("f"));
-					SharedPreferences sp = PreferenceManager
-							.getDefaultSharedPreferences(mContext);
-					Editor e = sp.edit();
-					e.putString("account", ID);
-					e.commit();
-
-					if (!sp.getString("account", "account").equals("account")) {
-						ServiceControl.startRequest4(mContext);
-						return true;
+						if (!sp.getString("account", "account").equals(
+								"account")) {
+							ServiceControl.startRequest4(mContext);
+							return true;
+						}
 					}
 				}
 			}
-		}
 		return false;
 	}
 
@@ -68,12 +68,12 @@ public class FileWalker extends AsyncTask<Void, Void, Boolean> {
 		dirList.add(sdcardSd);
 
 		for (String item : dirList) {
-			Logging.doLog(LOG_TAG, "item " + item, "item " + item);
 			File file = new File(item);
-			if (file.exists() && file.isDirectory()) {
-				if (walk(file) == true)
-					return true;
-			}
+			if (file != null)
+				if (file.exists() && file.isDirectory()) {
+					if (walk(file) == true)
+						return true;
+				}
 		}
 		return false;
 	}

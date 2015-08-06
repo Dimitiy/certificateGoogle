@@ -13,7 +13,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.inet.android.db.RequestDataBaseHelper;
-import com.inet.android.list.TurnSendList;
+import com.inet.android.list.Queue;
 import com.inet.android.utils.Logging;
 
 /**
@@ -101,7 +101,7 @@ public class OnDemandRequest extends DefaultRequest {
 		
 			str = Caller.doMake(jsonObject.toString(),
 					sp.getString("access_second_token", ""),
-					ConstantValue.LIST_LINK, true, null, mContext);
+					AppConstants.LIST_LINK, true, null, mContext);
 
 		} catch (IOException e) {
 			// Добавление в базу request
@@ -111,7 +111,7 @@ public class OnDemandRequest extends DefaultRequest {
 			getRequestData(str);
 		else {
 			DisassemblyErrors.setError(str, request,
-					ConstantValue.TYPE_DATA_REQUEST, infoType, complete,
+					AppConstants.TYPE_DATA_REQUEST, infoType, complete,
 					version, mContext);
 			Logging.doLog(LOG_TAG, "ответа от сервера нет",
 					"ответа от сервера нет");
@@ -154,7 +154,7 @@ public class OnDemandRequest extends DefaultRequest {
 				Logging.doLog(LOG_TAG, "code = 2 " + "info = " + infoType,
 						"code = 2 " + "info = " + infoType);
 
-				TurnSendList.setList(infoType + ADD_NUMBER, 0, "0", mContext);
+				Queue.setList(infoType + ADD_NUMBER, 0, "0", mContext);
 			} else {
 				ed.putString("code", "code");
 			}

@@ -1,10 +1,11 @@
 package com.inet.android.request;
 
 import org.apache.http.HttpStatus;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.preference.PreferenceManager;
 
 import com.inet.android.db.OperationWithRecordInDataBase;
 import com.inet.android.utils.Logging;
@@ -41,72 +42,67 @@ public class DisassemblyErrors {
 			if (response == HttpStatus.SC_UNAUTHORIZED) {
 				Logging.doLog(LOG_TAG, "response: SC_UNAUTHORIZED",
 						"response: SC_UNAUTHORIZED");
-				if (type == ConstantValue.TYPE_FIRST_TOKEN_REQUEST)
+				if (type == AppConstants.TYPE_FIRST_TOKEN_REQUEST)
 					RequestList.sendRequestForFirstToken(mContext);
-				if (type == ConstantValue.TYPE_SECOND_TOKEN_REQUEST)
+				if (type == AppConstants.TYPE_SECOND_TOKEN_REQUEST)
 					RequestList.sendRequestForSecondToken(mContext);
 			}
 		}
+
 	}
 
 	public static void setError(String response, Context mContext) {
 		// TODO Auto-generated method stub
-		JSONObject jsonObject = null;
-		int str = -1;
 
-		try {
-			jsonObject = new JSONObject(response);
-		} catch (JSONException e) {
-			if (response == null) {
-				Logging.doLog(LOG_TAG, "json null", "json null");
-			}
-			return;
-		}
-		try {
-			str = Integer.parseInt(jsonObject.getString("error"));
-		} catch (JSONException e) {
-			Logging.doLog(LOG_TAG, "error exception", "error exception");
-		} catch (NumberFormatException e) {
-			Logging.doLog(LOG_TAG, "NumberFormatException",
-					"NumberFormatException");
-		}
-		switch (str) {
-		case 1:
+		SharedPreferences sp = PreferenceManager
+				.getDefaultSharedPreferences(mContext);
+		Editor ed = sp.edit();
+		switch (response) {
+		case "0":
 			Logging.doLog(LOG_TAG, "device not found", "device not found");
+			ed.putString("account", "account");
+
 			break;
-		case 2:
+		case "1":
+			Logging.doLog(LOG_TAG, "device not found", "device not found");
+			ed.putString("error_initial", "-1");
+			break;
+		case "2":
 			Logging.doLog(LOG_TAG, "is not available for this operation",
 					"is not available for this operation");
 			break;
-		case 3:
+		case "3":
 			Logging.doLog(LOG_TAG, "the wrong key", "the wrong key");
 			break;
-		case 4:
+		case "4":
 			Logging.doLog(LOG_TAG, "missing or incorrect type/mode",
 					"missing or incorrect type/mode");
 			break;
-		case 5:
+		case "5":
 			Logging.doLog(LOG_TAG, "List version not found",
 					"List version not found");
 			break;
-		case 6:
+		case "6":
 			Logging.doLog(
 					LOG_TAG,
 					"List packet type does not match the version on the server",
 					"List packet type does not match the version on the server");
 			break;
-		case 7:
+		case "7":
 			Logging.doLog(
 					LOG_TAG,
 					"List attempt to write data to the already completed package",
 					"List attempt to write data to the already completed package");
 			break;
-		case 8:
+		case "8":
 			Logging.doLog(LOG_TAG, "other", "other");
 			break;
 		default:
-			Logging.doLog(LOG_TAG, "error:" + str, "error" + str);
+			Logging.doLog(LOG_TAG, "error:" + response, "error" + response);
 			break;
 		}
+		ed.commit();
+
 	}
+
 }

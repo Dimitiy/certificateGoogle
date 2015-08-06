@@ -57,7 +57,7 @@ public class Caller {
 		 * set uri
 		 */
 		try {
-			uri = new URI(ConstantValue.MAIN_LINK + addition);
+			uri = new URI(addition);
 			httppost = new HttpPost(uri);
 			Logging.doLog(LOG_TAG, uri.toASCIIString());
 		} catch (URISyntaxException e1) {
@@ -123,7 +123,8 @@ public class Caller {
 
 			Logging.doLog(LOG_TAG, "response: " + str, "response: " + str);
 
-			if (str.indexOf("code") == -1 && str.indexOf("access_token") == -1) {
+			if (str != null)
+				if(str.indexOf("code") == -1 && str.indexOf("access_token") == -1) {
 				Logging.doLog(LOG_TAG, "something wrong in the answer",
 						"something wrong in the answer");
 				return null;

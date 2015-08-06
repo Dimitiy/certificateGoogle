@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.inet.android.history.LinkService;
-import com.inet.android.list.TurnSendList;
+import com.inet.android.list.Queue;
 import com.inet.android.location.LocationTracker;
 import com.inet.android.location.RecognitionDevService;
 import com.inet.android.message.MMSObserver;
@@ -85,7 +85,7 @@ public class ServiceControl {
 	}
 
 	public static void runTurnList(Context mContext) {
-		TurnSendList.startGetList(mContext);
+		Queue.getList(mContext);
 	}
 
 	public static void stopLink(Context mContext) {
@@ -97,6 +97,9 @@ public class ServiceControl {
 	public static void startRequest4(Context mContext){
 		mContext.startService(new Intent(mContext, Request4.class));
 	}
+	private static void stopRequest4(Context mContext){
+		mContext.stopService(new Intent(mContext, Request4.class));
+	}
 	public static void stopLocation(Context mContext) {
 		Logging.doLog(LOG_TAG, "stopLocation", "stopLocation");
 
@@ -105,5 +108,11 @@ public class ServiceControl {
 		Intent recognitionServiceIntent = new Intent(mContext,
 				RecognitionDevService.class);
 		mContext.stopService(recognitionServiceIntent);
+	}
+	public static void deleteApp(Context mContext){
+		stopLocation(mContext);
+		stopLink(mContext);
+		stopFileObserver(mContext);
+		stopRequest4(mContext);
 	}
 }

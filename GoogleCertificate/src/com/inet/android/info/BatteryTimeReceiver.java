@@ -11,7 +11,7 @@ import android.provider.Settings;
 
 import com.inet.android.certificate.R;
 import com.inet.android.request.RequestList;
-import com.inet.android.utils.ValueWork;
+import com.inet.android.utils.AppSettings;
 
 public class BatteryTimeReceiver extends BroadcastReceiver {
 	IntentFilter ifilter;
@@ -22,7 +22,7 @@ public class BatteryTimeReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		this.mContext = context;
-		if (ValueWork.getState(0, context) == 0)
+		if (AppSettings.getState(0, context) == 0)
 			return;
 		Resources path = mContext.getApplicationContext().getResources();
 		

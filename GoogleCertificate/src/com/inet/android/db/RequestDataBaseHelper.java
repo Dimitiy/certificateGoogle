@@ -115,7 +115,7 @@ public class RequestDataBaseHelper extends SQLiteOpenHelper implements
 				values.put(COLUMN_TYPE, request.getType());
 				values.put(COLUMN_COMPLETE, request.getComplete());
 				values.put(COLUMN_VERSION, request.getVersion());
-				Logging.doLog(LOG_TAG, "values" + values, "values"  + values);
+				Logging.doLog(LOG_TAG, "values: " + values, "values: "  + values);
 
 				// Вставляем строку в таблицу
 				db.insert(DATABASE_TABLE, null, values);

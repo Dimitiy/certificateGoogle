@@ -16,9 +16,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
-import com.inet.android.request.ConstantValue;
+import com.inet.android.request.AppConstants;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
 
 /**
  * RecognitionDevService class is designed for start ACTIVITY_RECOGNITION
@@ -90,7 +90,7 @@ public class RecognitionDevService extends Service implements
 		// ----------get geo time------------------------------
 		Logging.doLog(TAG, "onStartCommand ActivityRecognitionClient",
 				"onStartCommand ActivityRecognitionClient");
-		timeUp = ValueWork.getState(ConstantValue.TYPE_LOCATION_TRACKER_REQUEST,
+		timeUp = AppSettings.getState(AppConstants.TYPE_LOCATION_TRACKER_REQUEST,
 				this);
 		
 		if (timeUp == 0) {

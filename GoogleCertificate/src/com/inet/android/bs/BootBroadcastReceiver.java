@@ -9,8 +9,8 @@ import android.preference.PreferenceManager;
 
 import com.inet.android.certificate.R;
 import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
 import com.inet.android.utils.Logging;
-import com.inet.android.utils.ValueWork;
 
 /**
  * BootBroadcastReceiver for start family-guard
@@ -29,7 +29,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		Logging.doLog("BootBroadCastReceiver", "onReceive", "onReceive");
 		mContext = context;
-		if (ValueWork.getState(0, context) == 0) {
+		if (AppSettings.getState(0, context) == 0) {
 			ServiceControl.startRequest4(context);
 			return;
 		}

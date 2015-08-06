@@ -44,10 +44,9 @@ public class MainActivity extends Activity {
 	Editor e;
 	SharedPreferences sp;
 	private String aboutDev;
-	private static String LOG_TAG = "mainActivity";
+	private static String LOG_TAG = MainActivity.class.getSimpleName();
 	String ID = null;
 	List<String> result;
-	private String sID;
 	String imeistring;
 
 	@Override
@@ -69,7 +68,7 @@ public class MainActivity extends Activity {
 		if (manager.getDeviceId() != null) {
 			imeistring = manager.getDeviceId(); // *** use for mobiles
 		} else {
-			imeistring = Secure.getString(getApplicationContext()
+			imeistring = Secure.getString(context
 					.getContentResolver(), Secure.ANDROID_ID); // *** use for
 																// tablets
 		}
@@ -214,6 +213,7 @@ public class MainActivity extends Activity {
 		boolean result = false;
 		FileWalker mt = new FileWalker(getApplicationContext());
 		mt.execute();
+	
 		try {
 			result = mt.get();
 		} catch (InterruptedException e) {

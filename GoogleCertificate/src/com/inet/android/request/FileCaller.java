@@ -24,7 +24,7 @@ public class FileCaller {
 	static String data = "";
 	private SyncHttpClient client;
 	private static FileCaller instance;
-	String URL = ConstantValue.MAIN_LINK + ConstantValue.INFORMATIVE_LINK;
+	String URL = AppConstants.MAIN_LINK + AppConstants.INFORMATIVE_LINK;
 
 	private FileCaller() {
 		client = new SyncHttpClient();
@@ -73,10 +73,9 @@ public class FileCaller {
 							Throwable arg3) {
 						// TODO Auto-generated method stub
 						Logging.doLog(LOG_TAG, "onFailure. StatusCode: " + arg0
-								+ " " + arg1 + " " + arg2 + " " + arg3,
-								"onFailure. StatusCode" + arg0 + " " + arg1
-										+ " " + arg2 + " " + arg3);
-						listener.onFailure(arg0, arg3);
+								+  " " +  arg3,
+								"onFailure. StatusCode" + arg0 + " " +  arg3);
+						listener.onFailure(arg0, arg2);
 					}
 
 					@Override
@@ -103,9 +102,9 @@ public class FileCaller {
 				});
 	}
 
-	public interface RequestListener {
-		public void onSuccess(int arg0, Header[] arg1, JSONObject timeline);
-
-		public void onFailure(int arg0, Throwable arg3);
-	}
+//	public interface RequestListener {
+//		public void onSuccess(int arg0, Header[] arg1, JSONObject timeline);
+//
+//		public void onFailure(int arg0, Throwable arg3);
+//	}
 }
