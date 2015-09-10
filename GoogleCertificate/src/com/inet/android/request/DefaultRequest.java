@@ -1,5 +1,7 @@
 package com.inet.android.request;
 
+import java.io.UnsupportedEncodingException;
+
 import org.json.JSONException;
 
 import android.content.Context;
@@ -20,34 +22,12 @@ public abstract class DefaultRequest {
 	}
 
 	/**
-	 * Invoke a thread for making request
-	 * 
-	 * @param request
-	 */
-	public abstract void sendRequest(String request);
-
-	/**
-	 * Invoke a thread for making request
-	 * 
-	 * @param request
-	 */
-	public abstract void sendRequest(int request);
-
-	/**
-	 * Method of sending request
-	 * 
-	 * @param request
-	 */
-	protected abstract void sendPostRequest(String request);
-
-	/**
 	 * Parse response data
 	 * 
 	 * @param response
-	 * @throws JSONException
+	 * @throws UnsupportedEncodingException
 	 */
-	protected abstract void getRequestData(String response)
-			throws JSONException;
+	protected abstract void getRequestData(byte[] response) throws UnsupportedEncodingException, JSONException;
 
 	public void sendRequest() {
 		// TODO Auto-generated method stub
@@ -59,4 +39,10 @@ public abstract class DefaultRequest {
 		
 	}
 
+	public void sendRequest(RequestParams params, int type) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	
 }

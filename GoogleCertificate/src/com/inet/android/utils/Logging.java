@@ -8,14 +8,16 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
-
-import android.content.Context;
-import android.os.Environment;
-import android.util.Log;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
 import com.loopj.android.http.RequestParams;
+
+import android.content.Context;
+import android.os.Environment;
+import android.util.Log;
 
 /**
  * Class logging
@@ -50,8 +52,7 @@ public class Logging {
 	}
 
 	private static void writeLog(String str) {
-		File outFile = new File(Environment.getExternalStorageDirectory(),
-				AppConstants.PATH_TO_LOG_FILE);
+		File outFile = new File(Environment.getExternalStorageDirectory(), AppConstants.PATH_TO_LOG_FILE);
 		long fileSize = outFile.length();
 
 		if ((fileSize + str.length()) > logFileSize) {
@@ -79,8 +80,7 @@ public class Logging {
 		Log.d("logging", "log file size: " + inputFile.length());
 		Log.d("logging", "str.length: " + strLength);
 
-		File tempFile = new File(Environment.getExternalStorageDirectory(),
-				"myTempFile.txt");
+		File tempFile = new File(Environment.getExternalStorageDirectory(), "myTempFile.txt");
 
 		BufferedReader reader = null;
 		try {
@@ -93,14 +93,13 @@ public class Logging {
 			writer = new BufferedWriter(new FileWriter(tempFile));
 			boolean firstString = true;
 			String currentLine;
-			
+
 			while (((currentLine = reader.readLine()) != null)) {
 				if (firstString) {
 					firstString = false;
 					continue;
 				}
-				writer.write(currentLine.trim()
-						+ System.getProperty("line.separator"));
+				writer.write(currentLine.trim() + System.getProperty("line.separator"));
 			}
 			writer.close();
 			reader.close();
@@ -124,28 +123,24 @@ public class Logging {
 		int month = calendar.get(Calendar.MONTH);
 		int day = calendar.get(Calendar.DATE);
 		int ms = calendar.get(Calendar.MILLISECOND);
-		return String.format("%02d.%02d.%04d %02d:%02d:%02d.%03d", day, month,
-				year, hour, minute, second, ms);
+		return String.format("%02d.%02d.%04d %02d:%02d:%02d.%03d", day, month, year, hour, minute, second, ms);
 	}
 
 	public static void sendLogFileToServer(Context mContext) {
 		RequestParams params = new RequestParams();
-		String path = Environment.getExternalStorageDirectory()
-				+ AppConstants.PATH_TO_LOG_FILE;
+		String path = Environment.getExternalStorageDirectory() + AppConstants.PATH_TO_LOG_FILE;
 		File logFile = new File(path);
 		if (logFile.exists() && logFile.isFile()) {
+			Map<String, Object> log = new HashMap<String, Object>();
+			Map<String, Object> payloadMap = new HashMap<String, Object>();
 
-			try {
-				params.put("data[][time]", ConvertDate.logTime());
-				params.put("data[][type]", AppConstants.TYPE_LOG_REQUEST);
-				params.put("data[][path]", path);
-				params.put("key", System.currentTimeMillis());
-				params.put("data[][file]", new File(path));
+			log.put("type", AppConstants.TYPE_LOG_REQUEST);
+			log.put("time", ConvertDate.logTime());
+			log.put("path", path);
 
-				RequestList.sendFileRequest(params, mContext);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
+			payloadMap.put("file", path);
+			RequestList.sendDataRequest(params, payloadMap, mContext);
+
 		}
 	}
 }

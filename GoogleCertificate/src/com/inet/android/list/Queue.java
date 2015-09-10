@@ -37,13 +37,12 @@ public class Queue {
 		SharedPreferences sp = PreferenceManager
 				.getDefaultSharedPreferences(mContext);
 		Editor ed = sp.edit();
-		if (busy != null)
-			ed.putString("busy", busy);
+		
 		switch (list) {
 		case AppConstants.TYPE_LIST_CALL:
 			ed.putInt("list_call", value);
 			break;
-		case AppConstants.TYPE_LIST_SMS:
+		case AppConstants.TYPE_LIST_MESSAGE:
 			ed.putInt("list_sms", value);
 			break;
 		case AppConstants.TYPE_LIST_CONTACTS:
@@ -55,6 +54,8 @@ public class Queue {
 		default:
 			break;
 		}
+		if (busy != null)
+			ed.putString("busy", busy);
 		Logging.doLog(LOG_TAG, "list = " + value, "list = " + value);
 		ed.commit();
 		getList(mContext);
@@ -77,7 +78,7 @@ public class Queue {
 				CallList arhCall = new CallList();
 				arhCall.execute(mContext);
 				return;
-			} else if (AppSettings.getSetting(AppConstants.TYPE_LIST_SMS,
+			} else if (AppSettings.getSetting(AppConstants.TYPE_LIST_MESSAGE,
 					mContext) != 0) {
 				Logging.doLog(LOG_TAG, "list_sms go", "list_sms go");
 				ed.putString("busy", "1");
@@ -99,7 +100,7 @@ public class Queue {
 				ed.putString("busy", "1");
 				ed.commit();
 				AppList listApp = new AppList();
-				listApp.getListOfInstalledApp(mContext);
+				listApp.execute(mContext);
 				return;
 			}
 		} else

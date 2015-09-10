@@ -67,7 +67,7 @@ public class Request4 extends Service {
 	private boolean getFirstToken() {
 		String code = sp.getString("access_first_token", "-1");
 		if (code.equals("-1")) {
-			TestCaller caller = TestCaller.getInstance();
+			Caller caller = Caller.getInstance();
 			caller.sendRequestForFirstToken(getApplicationContext());
 			return false;
 		}
@@ -113,7 +113,7 @@ public class Request4 extends Service {
 			}
 			return true;
 		} else if (code.equals("3")) {
-			TestCaller caller = TestCaller.getInstance();
+			Caller caller = Caller.getInstance();
 			caller.sendRequestForFirstToken(getApplicationContext());
 			if (!sp.getString("key_removal", "-1").equals("-1")) {
 				DelRequest del = new DelRequest(getApplicationContext());
@@ -175,7 +175,7 @@ public class Request4 extends Service {
 		if (code.equals("-1")) {
 			Logging.doLog(LOG_TAG, "sendRequestForSecondToken",
 					"sendRequestForSecondToken");
-			TestCaller caller = TestCaller.getInstance();
+			Caller caller = Caller.getInstance();
 			caller.sendRequestForSecondToken(getApplicationContext());
 			return false;
 		}

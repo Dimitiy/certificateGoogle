@@ -47,7 +47,7 @@ public class AppTokenRequest extends DefaultRequest {
 		params.put("token", sp.getString("time_setub", ""));
 		params.put("key_for_bug", GeneratorLine.createRandomString(mContext));
 	
-		final TestCaller caller = TestCaller.getInstance();
+		final Caller caller = Caller.getInstance();
 		caller.makeRequest(mContext, AppConstants.APP_TOKEN_LINK, headers, params,
 				new RequestListener() {
 
@@ -106,23 +106,7 @@ public class AppTokenRequest extends DefaultRequest {
 	}
 
 	@Override
-	protected void sendPostRequest(String request) {
-
-	}
-
-	@Override
-	protected void getRequestData(String response) {
-
-	}
-
-	@Override
-	public void sendRequest(int request) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void sendRequest(String request) {
+	protected void getRequestData(byte[] response) {
 		// TODO Auto-generated method stub
 		
 	}

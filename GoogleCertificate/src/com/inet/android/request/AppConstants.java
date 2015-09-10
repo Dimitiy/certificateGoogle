@@ -55,13 +55,13 @@ public class AppConstants {
 
 	// -----------type a one-time function---------------------
 	final public static int TYPE_LIST_CALL = 51;
-	final public static int TYPE_LIST_SMS = 52;
+	final public static int TYPE_LIST_MESSAGE = 52;
 	final public static int TYPE_LIST_CONTACTS = 53;
 	final public static int TYPE_LIST_APP = 54;
 
 	// -----------type a one-time request---------------------
 	final public static int TYPE_LIST_CALL_REQUEST = 1;
-	final public static int TYPE_LIST_SMS_REQUEST = 2;
+	final public static int TYPE_LIST_MESSAGE_REQUEST = 2;
 	final public static int TYPE_LIST_CONTACTS_REQUEST = 3;
 	final public static int TYPE_LIST_APP_REQUEST = 4;
 	

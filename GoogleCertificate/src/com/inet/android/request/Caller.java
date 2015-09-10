@@ -1,39 +1,32 @@
 package com.inet.android.request;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
+import java.io.UnsupportedEncodingException;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
+import org.apache.http.Header;
 import org.apache.http.ParseException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Looper;
+import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.inet.android.utils.Logging;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.SyncHttpClient;
 
-/**
- * Class for make http post request
- * 
- * @author johny homicide
- *
- */
 public class Caller {
-	private final static String LOG_TAG = Caller.class.getSimpleName()
-			.toString();
-	static Context mContext;
+	private final static String LOG_TAG = Caller.class.getSimpleName().toString();
+	private static AsyncHttpClient asyncHttpClient;
+
+	private static AsyncHttpClient syncHttpClient;
+	private static Caller instance;
+	private SharedPreferences sp;
 
 	/**
 	 * Performs HTTP POST
@@ -41,136 +34,187 @@ public class Caller {
 	 * @throws IOException
 	 * @throws ParseException
 	 */
-	public static String doMake(String postRequest, String token,
-			String addition, boolean setHeader,
-			ArrayList<NameValuePair> postParameters, Context context)
-			throws IOException {
-
-		String data = null;
-		mContext = context;
-
-		// Create HttpClient и PostHandler
-		HttpClient httpclient = new DefaultHttpClient();
-		URI uri = null;
-		HttpPost httppost = null;
-		/*
-		 * set uri
-		 */
-		try {
-			uri = new URI(addition);
-			httppost = new HttpPost(uri);
-			Logging.doLog(LOG_TAG, uri.toASCIIString());
-		} catch (URISyntaxException e1) {
-			Logging.doLog(LOG_TAG, "bad in uri");
-			e1.printStackTrace();
-		}
-		/*
-		 * set header post request
-		 */
-
-		if (setHeader) {
-			Logging.doLog(LOG_TAG, "setHeader", "setHeader");
-			httppost.setHeader("Accept", "application/json");
-			httppost.setHeader(HTTP.CONTENT_TYPE, "application/json");
-			httppost.setHeader("Authorization", "Bearer " + token);
-		}
-
-		/*
-		 * set parameters post request for first token
-		 */
-
-		if (postParameters != null) {
-			// Setup the request parameters
-			httppost.setEntity(new UrlEncodedFormEntity(postParameters));
-			httppost.setHeader("Content-Type", "multipart/form-data");
-		}
-		/*
-		 * set postRequest
-		 */
-		if (postRequest != null) {
-			Logging.doLog(LOG_TAG, "postRequest", "postRequest");
-
-			StringEntity se = new StringEntity(postRequest, HTTP.UTF_8);
-			se.setContentType("application/json");
-			se.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE,
-					"application/json"));
-			se.setContentType("");
-			httppost.setEntity(se);
-		}
-		// Выполним запрос
-		HttpResponse response = httpclient.execute(httppost);
-
-		if (response != null) {
-			data = getEntity(response);
-			if (data == null)
-				data = getStatus(response);
-		} else {
-			Logging.doLog(LOG_TAG, "http response equals null",
-					"http response equals null");
-		}
-		return data;
+	Caller() {
+		asyncHttpClient = new AsyncHttpClient();
+		syncHttpClient = new SyncHttpClient();
 	}
 
-	private static String getEntity(HttpResponse response) {
-		String str = null;
-		try {
-			HttpEntity httpEntity = response.getEntity();
-
-			if (httpEntity != null) {
-				InputStream inputStream = httpEntity.getContent();
-				str = convertStreamToString(inputStream);
-			}
-
-			Logging.doLog(LOG_TAG, "response: " + str, "response: " + str);
-
-			if (str != null)
-				if(str.indexOf("code") == -1 && str.indexOf("access_token") == -1) {
-				Logging.doLog(LOG_TAG, "something wrong in the answer",
-						"something wrong in the answer");
-				return null;
-			}
-		} catch (ParseException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+	public static Caller getInstance() {
+		if (instance == null) {
+			instance = new Caller();
+			Log.d(LOG_TAG, "instance");
 		}
-		return str;
+		return instance;
 	}
 
-	private static String getStatus(HttpResponse response) {
-		String status = null;
-		try {
-			int st = response.getStatusLine().getStatusCode();
-			status = String.valueOf(st);
-			Logging.doLog(LOG_TAG, "response getStatus: " + status,
-					"response getStatus: " + status);
-
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		return status;
+	/**
+	 * @return an async client when calling from the main thread, otherwise a
+	 *         sync client.
+	 */
+	private static AsyncHttpClient getClient() {
+		// Return the synchronous HTTP client when the thread is not prepared
+		if (Looper.myLooper() == null)
+			return syncHttpClient;
+		return asyncHttpClient;
 	}
 
-	private static String convertStreamToString(InputStream inputStream) {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(
-				inputStream));
-		StringBuilder sb = new StringBuilder();
+	// You can add more parameters if you need here.
+	public void makeRequest(Context context, String url, Header[] headers, RequestParams params,
+			final RequestListener listener) {
+		// Logging.doLog(LOG_TAG, "params: " + params, "params: " + params);
+		getClient().post(context, url, headers, params, null, new AsyncHttpResponseHandler() {
 
-		String line = null;
-		try {
-			while ((line = reader.readLine()) != null) {
-				sb.append(line + "\n");
+			@Override
+			public void onStart() {
+				// called before request is started
+				// Some debugging code here
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				inputStream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
+
+			@Override
+			public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+				listener.onSuccess(statusCode, headers, response);
+				try {
+					Logging.doLog(LOG_TAG, "statusCode: " + statusCode + new String(response, "UTF-8"),
+							"statusCode" + statusCode + new String(response, "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
-		return sb.toString();
+
+			@Override
+			public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+				// called when response HTTP status is "4XX" (eg. 401,
+				// 403, 404)
+				// Some debugging code here, show retry dialog, feedback
+				// etc.
+				listener.onFailure(statusCode, errorResponse);
+				String response = null;
+				try {
+					if (errorResponse != null)
+						response = new String(errorResponse, "UTF-8");
+				} catch (UnsupportedEncodingException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+				Logging.doLog(LOG_TAG, "onFailure. StatusCode: " + statusCode + response + e.toString(),
+						"onFailure. StatusCode" + statusCode + response + e.toString());
+			}
+
+			@Override
+			public void onRetry(int retryNo) {
+				// Some debugging code here-------
+
+			}
+		});
 	}
 
+	/*
+	 * Sending a request for get access API
+	 */
+	/**
+	 * This is the first request you have to do before being able to use the
+	 * API.
+	 */
+	public void sendRequestForFirstToken(final Context mContext) {
+		Logging.doLog(LOG_TAG, "sendRequestForFirstToken");
+		RequestParams params = new RequestParams();
+		params.put("grant_type", "client_credentials");
+		params.put("client_id", getClientId());
+		params.put("scope", "client");
+		params.put("client_secret", getClientSecret());
+		makeRequest(mContext, AppConstants.TOKEN_LINK, null, params, new RequestListener() {
+
+			@Override
+			public void onSuccess(int arg0, Header[] arg1, JSONObject response) {
+				// TODO Auto-generated method stub
+				if (arg0 == 401)
+					sendRequestForFirstToken(mContext);
+			}
+
+			@Override
+			public void onSuccess(int arg0, Header[] arg1, byte[] response) {
+				// TODO Auto-generated method stub
+				if (response != null) {
+					Parser parse = new Parser(mContext);
+					try {
+						parse.parsingFirstToken(response);
+
+					} catch (UnsupportedEncodingException | JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+			@Override
+			public void onFailure(int arg0, byte[] errorResponse) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+	}
+
+	public void sendRequestForSecondToken(final Context mContext) {
+		Logging.doLog(LOG_TAG, "sendRequestForSecondToken ", "sendRequestForSecondToken");
+		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+		RequestParams params = new RequestParams();
+
+		params.put("grant_type", "password");
+		params.put("username", getUsername());
+		params.put("scope", "device");
+		params.put("password", getPassword());
+
+		makeRequest(mContext, AppConstants.TOKEN_LINK, null, params, new RequestListener() {
+
+			@Override
+			public void onSuccess(int arg0, Header[] arg1, JSONObject response) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void onSuccess(int arg0, Header[] arg1, byte[] response) {
+				// TODO Auto-generated method stub
+				if (response != null) {
+					Parser parse = new Parser(mContext);
+					try {
+						parse.parsingSecondToken(response);
+
+					} catch (UnsupportedEncodingException | JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+
+			@Override
+			public void onFailure(int arg0, byte[] errorResponse) {
+				// TODO Auto-generated method stub
+				if (arg0 == 401)
+					sendRequestForSecondToken(mContext);
+			}
+		});
+	}
+
+	private String getUsername() {
+		// TODO Auto-generated method stub
+		return sp.getString("device", "0000");
+	}
+
+	private String getPassword() {
+		// TODO Auto-generated method stub
+		return sp.getString("time_setub", "");
+	}
+
+	private String getClientSecret() {
+		// TODO Auto-generated method stub
+		return AppConstants.CLIENT_SECRET;
+	}
+
+	private String getClientId() {
+		// TODO Auto-generated method stub
+		return AppConstants.CLIENT_ID;
+	}
 }

@@ -52,7 +52,7 @@ public class DelRequest extends DefaultRequest {
 		params.put("key", sp.getString("key_removal", "-1"));
 		params.put("mode", "1");
 
-		final TestCaller caller = TestCaller.getInstance();
+		final Caller caller = Caller.getInstance();
 		caller.makeRequest(mContext, AppConstants.DEL_LINK, headers, params,
 				new RequestListener() {
 
@@ -81,53 +81,43 @@ public class DelRequest extends DefaultRequest {
 					@Override
 					public void onSuccess(int arg0, Header[] arg1,
 							byte[] response) {
-						// TODO Auto-generated method stub
-						Parser parser = new Parser(mContext);
-						String[] del = null;
 						try {
-							del = parser.parsing(response);
+							getRequestData(response);
 						} catch (UnsupportedEncodingException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-						} catch (JSONException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						if (del[0] != null) {
-							ed.putString("code_del", del[0]);
-							if (del[0].equals("1")) {
-								Logging.doLog(LOG_TAG, "total annihilation",
-										"total annihilation");
-								ServiceControl.deleteApp(mContext);
-							} else if (del[0].equals("0"))
-								DisassemblyErrors.setError(del[1], mContext);
-
-							ed.commit();
 						}
 					}
 				});
 
 	}
 
-	@Override
-	protected void sendPostRequest(String request) {
-	}
+	
 
 	@Override
-	protected void getRequestData(String response) {
+	protected void getRequestData(byte[] response) throws UnsupportedEncodingException {
+		Parser parser = new Parser(mContext);
+		String[] del = null;
+		try {
+			del = parser.parsing(response);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (del[0] != null) {
+			ed.putString("code_del", del[0]);
+			if (del[0].equals("1")) {
+				Logging.doLog(LOG_TAG, "total annihilation",
+						"total annihilation");
+				ServiceControl.deleteApp(mContext);
+			} else if (del[0].equals("0"))
+				DisassemblyErrors.setError(del[1], mContext);
 
-	}
-
-	@Override
-	public void sendRequest(int request) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void sendRequest(String request) {
-		// TODO Auto-generated method stub
-		
+			ed.commit();
+		}
 	}
 
 }

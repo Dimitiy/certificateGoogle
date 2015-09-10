@@ -63,7 +63,7 @@ public class AppSettings {
 		case AppConstants.TYPE_LIST_CALL:
 			value = sp.getInt("list_call", 0);
 			break;
-		case AppConstants.TYPE_LIST_SMS:
+		case AppConstants.TYPE_LIST_MESSAGE:
 			value = sp.getInt("list_sms", 0);
 			break;
 		case AppConstants.TYPE_LIST_CONTACTS:

@@ -45,7 +45,7 @@ public class DataRequest extends DefaultRequest {
 
 		Log.d(LOG_TAG, params.toString());
 
-		final TestCaller caller = TestCaller.getInstance();
+		final Caller caller = Caller.getInstance();
 		caller.makeRequest(mContext, AppConstants.INFORMATIVE_LINK, headers,
 				params, new RequestListener() {
 
@@ -59,24 +59,13 @@ public class DataRequest extends DefaultRequest {
 					@Override
 					public void onSuccess(int arg0, Header[] arg1,
 							byte[] response) {
-						// TODO Auto-generated method stub
-						Parser parser = new Parser(mContext);
-						String[] check = null;
 						try {
-							check = parser.parsing(response);
+							getRequestData(response);
 						} catch (UnsupportedEncodingException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
-						} catch (JSONException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
 						}
-						if (check[0] != null) {
-							if (check[0].equals("2")) {
-								RequestList.sendPeriodicRequest(mContext);
-							} else if (check[0].equals("0"))
-								DisassemblyErrors.setError(check[1], mContext);
-						}
+					
 					}
 
 					@Override
@@ -96,34 +85,25 @@ public class DataRequest extends DefaultRequest {
 				});
 
 	}
-
 	@Override
-	public void sendRequest(int request) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void sendRequest() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void sendRequest(String request) {
-
-	}
-
-	@Override
-	protected void getRequestData(String response) throws JSONException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	protected void sendPostRequest(String request) {
-		// TODO Auto-generated method stub
-		
+	protected void getRequestData(byte[] response) throws UnsupportedEncodingException {
+		Parser parser = new Parser(mContext);
+		String[] check = null;
+		try {
+			check = parser.parsing(response);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (check[0] != null) {
+			if (check[0].equals("2")) {
+				RequestList.sendPeriodicRequest(mContext);
+			} else if (check[0].equals("0"))
+				DisassemblyErrors.setError(check[1], mContext);
+		}
 	}
 
 }

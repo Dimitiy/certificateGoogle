@@ -214,7 +214,7 @@ public class Parser {
 			case "sms_list":
 				if (!value.equals("0")
 						&& sp.getInt("list_sms", 0) != Integer.parseInt(value)) {
-					Queue.setList(AppConstants.TYPE_LIST_SMS,
+					Queue.setList(AppConstants.TYPE_LIST_MESSAGE,
 							Integer.parseInt(value), null, mContext);
 				}
 				break;
